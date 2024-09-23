@@ -3,7 +3,7 @@
 import { IndexBufferObject } from '@/PaleGL/core/IndexBufferObject';
 import { getAttributeUsage, GPU } from '@/PaleGL/core/GPU';
 import { Attribute } from '@/PaleGL/core/Attribute';
-import {GL_ARRAY_BUFFER, GL_FLOAT, GL_UNSIGNED_SHORT} from "@/PaleGL/constants.ts";
+import { GL_ARRAY_BUFFER, GL_FLOAT, GL_UNSIGNED_SHORT } from '@/PaleGL/constants.ts';
 
 type VertexBufferObject = {
     name: string;

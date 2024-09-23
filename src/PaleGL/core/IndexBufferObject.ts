@@ -1,5 +1,6 @@
 ﻿import { GLObject } from '@/PaleGL/core/GLObject';
 import { GPU } from '@/PaleGL/core/GPU';
+import { GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW } from '@/PaleGL/constants.ts';
 
 export class IndexBufferObject extends GLObject {
     private ibo: WebGLBuffer;
@@ -19,16 +20,16 @@ export class IndexBufferObject extends GLObject {
         this.ibo = gl.createBuffer()!;
 
         this.bind();
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+        gl.bufferData(GL_ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), GL_STATIC_DRAW);
     }
 
     bind() {
         const gl = this.gpu.gl;
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ibo);
+        gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, this.ibo);
     }
 
     unbind() {
         const gl = this.gpu.gl;
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+        gl.bindBuffer(GL_ELEMENT_ARRAY_BUFFER, null);
     }
 }

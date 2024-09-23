@@ -1,5 +1,5 @@
 ﻿import { GLObject } from '@/PaleGL/core/GLObject';
-import { GLColorAttachment } from '@/PaleGL/constants';
+import {GL_FRAMEBUFFER, GLColorAttachment} from '@/PaleGL/constants';
 import { GPU } from '@/PaleGL/core/GPU';
 
 export class Framebuffer extends GLObject {
@@ -38,11 +38,11 @@ export class Framebuffer extends GLObject {
 
     bind() {
         const gl = this.#gpu.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, this.#framebuffer);
+        gl.bindFramebuffer(GL_FRAMEBUFFER, this.#framebuffer);
     }
 
     unbind() {
         const gl = this.#gpu.gl;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindFramebuffer(GL_FRAMEBUFFER, null);
     }
 }

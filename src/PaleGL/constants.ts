@@ -574,6 +574,50 @@ export const GL_ARRAY_BUFFER = 34962;
 
 export const GL_FLOAT = 5126;
 
+export const GL_RGBA = 6408;
+
+export const GL_RGBA32F = 34836;
+
+export const GL_RED = 6403;
+
+export const GL_R16F = 33325;
+
+export const GL_R11F_G11F_B10F = 35898;
+
+export const GL_RGB = 6407;
+
+export const GL_RGBA16F = 34842;
+
+export const GL_DEPTH_COMPONENT = 6402;
+
+export const GL_DEPTH_COMPONENT32F = 36012;
+export const GL_DEPTH_COMPONENT16 = 33189;
+
+export const GL_UNSIGNED_BYTE = 5121;
+
+export const GL_UNPACK_FLIP_Y_WEBGL = 37440;
+
+export const GL_DEPTH_ATTACHMENT = 36096;
+
+export const GL_RENDERBUFFER = 36161;
+
+export const GL_READ_FRAMEBUFFER = 36008;
+export const GL_DRAW_FRAMEBUFFER = 36009
+
+export const GL_ELEMENT_ARRAY_BUFFER = 34963;
+
+export const GL_UNIFORM_BUFFER = 35345;
+
+export const GL_VERTEX_SHADER = 35633;
+export const GL_FRAGMENT_SHADER = 35632;
+export const GL_SEPARATE_ATTRIBS = 35981;
+
+export const GL_TEXTURE_CUBE_MAP_POSITIVE_X = 34069;
+export const GL_TEXTURE_CUBE_MAP_NEGATIVE_X = 34070;
+export const GL_TEXTURE_CUBE_MAP_POSITIVE_Y = 34071;
+export const GL_TEXTURE_CUBE_MAP_NEGATIVE_Y = 34072;
+export const GL_TEXTURE_CUBE_MAP_POSITIVE_Z = 34073;
+export const GL_TEXTURE_CUBE_MAP_NEGATIVE_Z = 34074;
 
 // filter -----------------------------------
 

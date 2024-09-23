@@ -1,5 +1,6 @@
 ﻿import { GLObject } from '@/PaleGL/core/GLObject';
 import { GPU } from '@/PaleGL/core/GPU';
+import { GL_FRAGMENT_SHADER, GL_SEPARATE_ATTRIBS, GL_VERTEX_SHADER } from '@/PaleGL/constants.ts';
 
 type ShaderParams = { gpu: GPU; vertexShader: string; fragmentShader: string; transformFeedbackVaryings?: string[] };
 
@@ -26,7 +27,7 @@ function createShader(gl: WebGL2RenderingContext, type: number, src: string) {
 export class Shader extends GLObject {
     private program: WebGLProgram | null;
     private gpu: GPU;
-  
+
     get glObject(): WebGLProgram {
         return this.program!;
     }
@@ -48,14 +49,14 @@ export class Shader extends GLObject {
         // vertex shader
         //
 
-        const vs = createShader(gl, gl.VERTEX_SHADER, vertexShader);
+        const vs = createShader(gl, GL_VERTEX_SHADER, vertexShader);
         gl.attachShader(program, vs);
 
         //
         // fragment shader
         //
 
-        const fs = createShader(gl, gl.FRAGMENT_SHADER, fragmentShader);
+        const fs = createShader(gl, GL_FRAGMENT_SHADER, fragmentShader);
         gl.attachShader(program, fs);
 
         //
@@ -67,7 +68,7 @@ export class Shader extends GLObject {
                 program,
                 transformFeedbackVaryings,
                 // bufferと頂点属性が別の場合に限定している
-                gl.SEPARATE_ATTRIBS // or INTERLEAVED_ATTRIBS
+                GL_SEPARATE_ATTRIBS // or INTERLEAVED_ATTRIBS
             );
         }
 
@@ -85,7 +86,7 @@ export class Shader extends GLObject {
         // check program info log
         const programInfo = gl.getProgramInfoLog(program);
         if (!!programInfo && programInfo.length > 0) {
-            console.error("program error: ", vertexShader, fragmentShader)
+            console.error('program error: ', vertexShader, fragmentShader);
             throw programInfo;
         }
 
@@ -96,17 +97,17 @@ export class Shader extends GLObject {
         this.gpu.gl.deleteShader(this.program);
         this.program = null;
     }
-  
+
     // uniformBlockInfos:{
     //     bindingPoint: number;
     //     blockIndex: number;
     //     blockSize: number;
     // }[] = [];
-    // 
+    //
     // addUniformBlock(bindingPoint: number, blockIndex: number, blockSize: number) {
     //     this.gpu.gl.uniformBlockBinding(this.program!, blockIndex, bindingPoint);
     // }
-    
+
     // bindUniformBlock(blockIndex: number, bindingPoint: number) {
     //     this.gpu.gl.uniformBlockBinding(this.program!, blockIndex, bindingPoint);
     // }

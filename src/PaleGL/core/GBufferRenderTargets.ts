@@ -1,6 +1,13 @@
 ﻿import { Texture } from '@/PaleGL/core/Texture';
 import { Framebuffer } from '@/PaleGL/core/Framebuffer';
-import { GLColorAttachment, TextureFilterTypes, TextureTypes } from '@/PaleGL/constants';
+import {
+    GL_DEPTH_ATTACHMENT,
+    GL_FRAMEBUFFER,
+    GL_TEXTURE_2D,
+    GLColorAttachment,
+    TextureFilterTypes,
+    TextureTypes
+} from '@/PaleGL/constants';
 import { AbstractRenderTarget } from '@/PaleGL/core/AbstractRenderTarget';
 import { GPU } from '@/PaleGL/core/GPU';
 
@@ -85,7 +92,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
         //
         // 1: GBufferA
         //
-        const gBufferAAttachment = gl.COLOR_ATTACHMENT0 + 0;
+        const gBufferAAttachment = GLColorAttachment.COLOR_ATTACHMENT0;
         this._gBufferATexture = new Texture({
             gpu,
             width: this.width,
@@ -95,14 +102,14 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
             minFilter,
             magFilter,
         });
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gBufferAAttachment, gl.TEXTURE_2D, this._gBufferATexture.glObject, 0);
+        gl.framebufferTexture2D(GL_FRAMEBUFFER, gBufferAAttachment, GL_TEXTURE_2D, this._gBufferATexture.glObject, 0);
         this._gBufferTextures.push(this._gBufferATexture);
         this.framebuffer.registerDrawBuffer(gBufferAAttachment as GLColorAttachment);
 
         //
         // 2: GBufferB
         //
-        const gBufferBAttachment = gl.COLOR_ATTACHMENT0 + 1;
+        const gBufferBAttachment = GLColorAttachment.COLOR_ATTACHMENT1;
         this._gBufferBTexture = new Texture({
             gpu,
             width: this.width,
@@ -112,14 +119,14 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
             minFilter,
             magFilter,
         });
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gBufferBAttachment, gl.TEXTURE_2D, this._gBufferBTexture.glObject, 0);
+        gl.framebufferTexture2D(GL_FRAMEBUFFER, gBufferBAttachment, GL_TEXTURE_2D, this._gBufferBTexture.glObject, 0);
         this.framebuffer.registerDrawBuffer(gBufferBAttachment as GLColorAttachment);
         this._gBufferTextures.push(this._gBufferBTexture);
 
         //
         // 3: GBufferC
         //
-        const gBufferCAttachment = gl.COLOR_ATTACHMENT0 + 2;
+        const gBufferCAttachment = GLColorAttachment.COLOR_ATTACHMENT2;
         this._gBufferCTexture = new Texture({
             gpu,
             width: this.width,
@@ -129,14 +136,14 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
             minFilter,
             magFilter,
         });
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gBufferCAttachment, gl.TEXTURE_2D, this._gBufferCTexture.glObject, 0);
+        gl.framebufferTexture2D(GL_FRAMEBUFFER, gBufferCAttachment, GL_TEXTURE_2D, this._gBufferCTexture.glObject, 0);
         this.framebuffer.registerDrawBuffer(gBufferCAttachment as GLColorAttachment);
         this._gBufferTextures.push(this._gBufferCTexture);
 
         //
         // 4: GBufferD
         //
-        const gBufferDAttachment = gl.COLOR_ATTACHMENT0 + 3;
+        const gBufferDAttachment = GLColorAttachment.COLOR_ATTACHMENT3;
         this._gBufferDTexture = new Texture({
             gpu,
             width: this.width,
@@ -146,7 +153,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
             minFilter,
             magFilter,
         });
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gBufferDAttachment, gl.TEXTURE_2D, this._gBufferDTexture.glObject, 0);
+        gl.framebufferTexture2D(GL_FRAMEBUFFER, gBufferDAttachment, GL_TEXTURE_2D, this._gBufferDTexture.glObject, 0);
         this.framebuffer.registerDrawBuffer(gBufferDAttachment as GLColorAttachment);
         this._gBufferTextures.push(this._gBufferDTexture);
 
@@ -165,7 +172,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
         // gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture.glObject, 0);
 
         // unbind
-        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindTexture(GL_TEXTURE_2D, null);
         this.framebuffer.unbind();
     }
 
@@ -184,7 +191,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
         this._depthTexture = depthTexture;
         this._framebuffer.bind();
         // depth as texture
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture.glObject, 0);
+        gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, this._depthTexture.glObject, 0);
         this._framebuffer.unbind();
     }
 }

@@ -1,12 +1,12 @@
 ﻿import { Attribute } from '@/PaleGL/core/Attribute';
 import { VertexArrayObject } from '@/PaleGL/core/VertexArrayObject';
 // import { AttributeUsageType } from '@/PaleGL/constants';
-import {getAttributeUsage, GPU} from '@/PaleGL/core/GPU';
+import { getAttributeUsage, GPU } from '@/PaleGL/core/GPU';
 import { Shader } from '@/PaleGL/core/Shader.ts';
 import { TransformFeedback } from '@/PaleGL/core/TransformFeedback.ts';
 import transformFeedbackFragmentShader from '@/PaleGL/shaders/transform-feedback-fragment.glsl';
-import {AttributeUsageType} from "@/PaleGL/constants.ts";
-import {Uniforms, UniformsData} from "@/PaleGL/core/Uniforms.ts";
+import { AttributeUsageType, GL_ARRAY_BUFFER } from '@/PaleGL/constants.ts';
+import { Uniforms, UniformsData } from '@/PaleGL/core/Uniforms.ts';
 
 // TODO: location, divisorをいい感じに指定したい
 
@@ -19,7 +19,7 @@ export type TransformFeedbackBufferArgs = {
     varyings: {
         name: string;
         data: Float32Array | Uint16Array;
-        usageType?: AttributeUsageType
+        usageType?: AttributeUsageType;
     }[];
     uniforms?: UniformsData;
     uniformBlockNames?: string[];
@@ -53,7 +53,7 @@ export class TransformFeedbackBuffer {
         // fragmentShader,
         varyings,
         uniforms = [],
-        uniformBlockNames = []
+        uniformBlockNames = [],
     }: TransformFeedbackBufferArgs) {
         // this.gpu = gpu;
         const { gl } = gpu;
@@ -84,9 +84,9 @@ export class TransformFeedbackBuffer {
 
         const outputBuffers = varyings.map(({ data, usageType }) => {
             const buffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, data, getAttributeUsage(usageType || AttributeUsageType.DynamicDraw));
-            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
+            gl.bufferData(GL_ARRAY_BUFFER, data, getAttributeUsage(usageType || AttributeUsageType.DynamicDraw));
+            gl.bindBuffer(GL_ARRAY_BUFFER, null);
             this.outputs.push({
                 // name,
                 buffer: buffer!,
@@ -96,7 +96,7 @@ export class TransformFeedbackBuffer {
 
         this.transformFeedback = new TransformFeedback({ gpu, buffers: outputBuffers });
     }
-    
+
     // dispose() {
     // }
 

@@ -1,6 +1,6 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { GLObject } from '@/PaleGL/core/GLObject.ts';
-import { GL_TRANSFORM_FEEDBACK, GL_TRANSFORM_FEEDBACK_BUFFER } from '@/PaleGL/constants.ts';
+import { GL_ARRAY_BUFFER, GL_TRANSFORM_FEEDBACK, GL_TRANSFORM_FEEDBACK_BUFFER } from '@/PaleGL/constants.ts';
 
 export class TransformFeedback extends GLObject {
     private transformFeedback: WebGLTransformFeedback;
@@ -20,7 +20,7 @@ export class TransformFeedback extends GLObject {
         for (let i = 0; i < buffers.length; i++) {
             gl.bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, i, buffers[i]);
         }
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(GL_ARRAY_BUFFER, null);
         this.unbind();
     }
 
