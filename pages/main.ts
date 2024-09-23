@@ -1,13 +1,13 @@
 // actors
-import {DirectionalLight} from '@/PaleGL/actors/DirectionalLight';
-import {PerspectiveCamera} from '@/PaleGL/actors/PerspectiveCamera';
+import { DirectionalLight } from '@/PaleGL/actors/DirectionalLight';
+import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera';
 
 // core
-import {Engine} from '@/PaleGL/core/Engine';
-import {Renderer} from '@/PaleGL/core/Renderer';
-import {GPU} from '@/PaleGL/core/GPU';
-import {RenderTarget} from '@/PaleGL/core/RenderTarget';
-import {Scene} from '@/PaleGL/core/Scene';
+import { Engine } from '@/PaleGL/core/Engine';
+import { Renderer } from '@/PaleGL/core/Renderer';
+import { GPU } from '@/PaleGL/core/GPU';
+import { RenderTarget } from '@/PaleGL/core/RenderTarget';
+import { Scene } from '@/PaleGL/core/Scene';
 // import { Texture } from '@/PaleGL/core/Texture';
 // import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController';
 
@@ -16,21 +16,22 @@ import {Scene} from '@/PaleGL/core/Scene';
 // materials
 
 // math
-import {Color} from '@/PaleGL/math/Color';
-import {Vector3} from '@/PaleGL/math/Vector3';
-import {Vector4} from '@/PaleGL/math/Vector4';
+import { Color } from '@/PaleGL/math/Color';
+import { Vector3 } from '@/PaleGL/math/Vector3';
+import { Vector4 } from '@/PaleGL/math/Vector4';
 
 // postprocess
-import {BufferVisualizerPass} from '@/PaleGL/postprocess/BufferVisualizerPass';
+import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass';
 
 // inputs
-import {TouchInputController} from '@/PaleGL/inputs/TouchInputController';
-import {MouseInputController} from '@/PaleGL/inputs/MouseInputController';
+import { TouchInputController } from '@/PaleGL/inputs/TouchInputController';
+import { MouseInputController } from '@/PaleGL/inputs/MouseInputController';
 
 // others
 import {
     RenderTargetTypes,
     TextureDepthPrecisionType,
+    TextureFilterTypes,
     // TextureFilterTypes,
     // TextureFilterTypes, TextureWrapTypes,
 } from '@/PaleGL/constants';
@@ -39,24 +40,30 @@ import {
 // @ts-ignore
 import sceneJsonUrl from '../assets/data/scene.json';
 
-import {DebuggerGUI} from '@/DebuggerGUI';
-import {Camera} from '@/PaleGL/actors/Camera';
-import {OrthographicCamera} from '@/PaleGL/actors/OrthographicCamera';
-import {PostProcess} from '@/PaleGL/postprocess/PostProcess.ts';
+import { DebuggerGUI } from '@/DebuggerGUI';
+import { Camera } from '@/PaleGL/actors/Camera';
+import { OrthographicCamera } from '@/PaleGL/actors/OrthographicCamera';
+import { PostProcess } from '@/PaleGL/postprocess/PostProcess.ts';
 import soundVertexShader from '@/PaleGL/shaders/sound-vertex-demo.glsl';
-import {GLSLSound} from '@/PaleGL/core/GLSLSound.ts';
-import {wait} from '@/utilities/wait.ts';
-import {createMarionetter} from '@/Marionetter/createMarionetter.ts';
+import { createGLSLSound, GLSLSound } from '@/PaleGL/core/GLSLSound.ts';
+import { wait } from '@/utilities/wait.ts';
+import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
 // import { Mesh } from '@/PaleGL/actors/Mesh.ts';
-import {SpotLight} from '@/PaleGL/actors/SpotLight.ts';
+import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import {
     Marionetter,
     // MarionetterPlayableDirectorComponentInfo,
     MarionetterScene,
     MarionetterTimeline,
 } from '@/Marionetter/types';
-import {buildMarionetterScene} from '@/Marionetter/buildMarionetterScene.ts';
-import {OrbitCameraController} from "@/PaleGL/core/OrbitCameraController.ts";
+import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
+import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
+import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
+import { Texture } from '@/PaleGL/core/Texture.ts';
+import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
+import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.png?url';
+import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.json';
+
 // import { buildMarionetterTimeline } from '@/Marionetter/timeline.ts';
 // import glsl from 'vite-plugin-glsl';
 // import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
@@ -109,10 +116,10 @@ document.head.appendChild(styleElement);
 
 let debuggerGUI: DebuggerGUI;
 let width: number, height: number;
-let glslSound: GLSLSound;
+let glslSound: GLSLSound | null;
 let marionetterTimeline: MarionetterTimeline | null = null;
 
-const marionetter: Marionetter = createMarionetter({showLog: false});
+const marionetter: Marionetter = createMarionetter({ showLog: false });
 
 const isSP = !!window.navigator.userAgent.match(/(iPhone|iPad|iPod|Android)/i);
 const inputController = isSP ? new TouchInputController() : new MouseInputController();
@@ -127,13 +134,13 @@ wrapperElement.setAttribute('id', 'wrapper');
 const canvasElement = document.createElement('canvas')!;
 wrapperElement.appendChild(canvasElement);
 
-const gl = canvasElement.getContext('webgl2', {antialias: false});
+const gl = canvasElement.getContext('webgl2', { antialias: false });
 
 if (!gl) {
     throw 'invalid gl';
 }
 
-const gpu = new GPU({gl});
+const gpu = new GPU({ gl });
 
 const captureScene = new Scene();
 
@@ -145,7 +152,7 @@ const renderer = new Renderer({
     pixelRatio,
 });
 
-const engine = new Engine({gpu, renderer});
+const engine = new Engine({ gpu, renderer });
 
 engine.setScene(captureScene);
 
@@ -157,21 +164,20 @@ engine.setScene(captureScene);
 let captureSceneCamera: PerspectiveCamera | null;
 // let orbitCameraController: OrbitCameraController | null;
 
-/**
- *
- */
+const loadSound = () => {
+    glslSound = createGLSLSound(gpu, soundVertexShader, 144);
+};
+
 const playSound = () => {
     stopSound();
     // 120BPM x 64measure = 128sec
     // 120BPM x 72measure = 144sec
-    glslSound = new GLSLSound(gpu, soundVertexShader, 144);
-    glslSound.play(0);
+    loadSound();
+    glslSound?.play(0);
 };
 
 const stopSound = () => {
-    if (glslSound) {
-        glslSound.stop();
-    }
+    glslSound?.stop();
 };
 
 const initMarionetter = () => {
@@ -181,7 +187,7 @@ const initMarionetter = () => {
 const buildScene = (sceneJson: MarionetterScene) => {
     // const res = buildMarionetterScene(gpu, sceneJson, false);
     const res = buildMarionetterScene(gpu, sceneJson);
-    const {actors} = res;
+    const { actors } = res;
     marionetterTimeline = res.marionetterTimeline;
 
     for (let i = 0; i < actors.length; i++) {
@@ -212,7 +218,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     // const orbitCameraController = new OrbitCameraController(captureSceneCamera);
 
-    captureSceneCamera.subscribeOnStart(({actor}) => {
+    captureSceneCamera.subscribeOnStart(({ actor }) => {
         (actor as Camera).setClearColor(new Vector4(0, 0, 0, 1));
     });
     captureSceneCamera.onFixedUpdate = () => {
@@ -283,7 +289,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
             type: RenderTargetTypes.Depth,
         });
 
-        directionalLight.subscribeOnStart(({actor}) => {
+        directionalLight.subscribeOnStart(({ actor }) => {
             actor.transform.setTranslation(new Vector3(-8, 8, -2));
             actor.transform.lookAt(new Vector3(0, 0, 0));
             // const lightActor = actor as DirectionalLight;
@@ -301,7 +307,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     const cameraPostProcess = new PostProcess();
 
-    const bufferVisualizerPass = new BufferVisualizerPass({gpu});
+    const bufferVisualizerPass = new BufferVisualizerPass({ gpu });
     bufferVisualizerPass.parameters.enabled = false;
     cameraPostProcess.addPass(bufferVisualizerPass);
     // bufferVisualizerPass.beforeRender = () => {
@@ -360,31 +366,35 @@ const initHotReloadAndParseScene = () => {
     hotReloadScene();
 };
 
-const startupWrapperElement = document.getElementById("w");
-const loadingContentElement = document.getElementById("o");
-const loadingGageElement = document.getElementById("i");
-const menuContentElement = document.getElementById("c");
-const fullscreenButtonElement = document.getElementById("f");
-const playButtonElement = document.getElementById("p");
+const startupWrapperElement = document.getElementById('w');
+const loadingContentElement = document.getElementById('o');
+const loadingGageElement = document.getElementById('i');
+const menuContentElement = document.getElementById('c');
+const fullscreenButtonElement = document.getElementById('f');
+const playButtonElement = document.getElementById('p');
 
 const hideLoading = () => {
-    loadingContentElement!.style.display = "none";
-}
+    loadingContentElement!.style.display = 'none';
+};
 const setLoadingPercentile = (percent: number) => {
     loadingGageElement!.style.width = `${percent}%`;
-}
+};
 const showMenu = () => {
-    menuContentElement!.style.display = "flex";
-}
+    menuContentElement!.style.display = 'flex';
+};
 
 const hideStartupWrapper = () => {
-    startupWrapperElement!.style.display = "none";
-}
+    startupWrapperElement!.style.display = 'none';
+};
 
 const load = async () => {
     setLoadingPercentile(10);
 
     await wait(0);
+
+    loadSound();
+
+    await wait(100);
 
     // parseScene(sceneJsonUrl as unknown as MarionetterScene);
     console.log('====== main ======');
@@ -412,9 +422,63 @@ const load = async () => {
         initHotReloadAndParseScene();
     }
 
+    //
+    // text mesh
+    //
+
+    const fontAtlasImg = await loadImg(fontAtlasImgUrl);
+    const fontAtlasTexture = new Texture({
+        gpu,
+        img: fontAtlasImg,
+        flipY: false,
+        minFilter: TextureFilterTypes.Linear,
+        magFilter: TextureFilterTypes.Linear,
+    });
+    const textMesh1 = new TextMesh({
+        gpu,
+        text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: true,
+        align: TextAlignType.Center,
+        // characterSpacing: -0.2
+    });
+    captureScene.add(textMesh1);
+    textMesh1.transform.position = new Vector3(0, 1, 6);
+    textMesh1.transform.rotation.setRotationX(-90);
+    textMesh1.transform.scale = Vector3.fill(0.4);
+
+    const textMesh2 = new TextMesh({
+        gpu,
+        text: 'abcdefghijklmnopqrstuvwxyz',
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: true,
+        align: TextAlignType.Center,
+        characterSpacing: -0.16,
+    });
+    captureScene.add(textMesh2);
+    textMesh2.transform.position = new Vector3(0, 2, 8);
+    textMesh2.transform.rotation.setRotationX(-90);
+    textMesh2.transform.scale = Vector3.fill(0.4);
+
+    const textMesh3 = new TextMesh({
+        gpu,
+        text: '0123456789',
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: true,
+        align: TextAlignType.Left,
+        characterSpacing: 0.2,
+    });
+    captureScene.add(textMesh3);
+    textMesh3.transform.position = new Vector3(0, 0.01, 9);
+    textMesh3.transform.rotation.setRotationX(-90);
+    textMesh3.transform.scale = Vector3.fill(0.4);
+
     setLoadingPercentile(100);
 
-    await wait(500);
+    await wait(1200);
 
     fullscreenButtonElement!.addEventListener('click', () => {
         if (!document.fullscreenElement) {
@@ -432,7 +496,7 @@ const load = async () => {
 
     hideLoading();
     showMenu();
-}
+};
 
 const play = () => {
     // TODO: engine側に移譲したい
@@ -453,30 +517,33 @@ const play = () => {
     };
 
     engine.onRender = (time) => {
-        if (marionetterTimeline !== null) {
-            marionetterTimeline.execute(marionetter.getCurrentTime());
+        if (marionetterTimeline !== null && glslSound) {
+            // TODO: prodの時はこっちを使いたい
+            const soundTime = glslSound.getCurrentTime();
+            // marionetterTimeline.execute(marionetter.getCurrentTime());
+            marionetterTimeline.execute(soundTime);
         }
         if (captureSceneCamera) {
-            renderer.render(captureScene, captureSceneCamera, {time});
+            renderer.render(captureScene, captureSceneCamera, { time });
         }
     };
 
     const tick = (time: number) => {
         engine.run(time);
-        // renderer.render(captureScene, captureSceneCamera, { time });
         requestAnimationFrame(tick);
     };
 
+    playSound();
+
     engine.start();
     requestAnimationFrame(tick);
-
-}
+};
 
 const main = async () => {
     await load();
 };
 
-function initDebugger({bufferVisualizerPass}: { bufferVisualizerPass: BufferVisualizerPass }) {
+function initDebugger({ bufferVisualizerPass }: { bufferVisualizerPass: BufferVisualizerPass }) {
     debuggerGUI = new DebuggerGUI();
 
     //
