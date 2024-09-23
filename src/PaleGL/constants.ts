@@ -89,7 +89,7 @@ export const ActorTypes = {
     Skybox: 4,
     Camera: 5,
     TextMesh: 6,
-    PostProcessVolume: 7
+    PostProcessVolume: 7,
 } as const;
 
 export type ActorType = (typeof ActorTypes)[keyof typeof ActorTypes];
@@ -458,38 +458,88 @@ export type ShaderPragmas = (typeof ShaderPragmas)[keyof typeof ShaderPragmas];
 // webgl
 // -----------------------------------------------------------------------------
 
-export const GLColorAttachment = {
-    COLOR_ATTACHMENT0: 36064, // gl.COLOR_ATTACHMENT0 + 0
-    COLOR_ATTACHMENT1: 36065, // gl.COLOR_ATTACHMENT0 + 1
-    COLOR_ATTACHMENT2: 36066, // gl.COLOR_ATTACHMENT0 + 2
-    COLOR_ATTACHMENT3: 36067, // gl.COLOR_ATTACHMENT0 + 3
-    COLOR_ATTACHMENT4: 36068, // gl.COLOR_ATTACHMENT0 + 4
-    COLOR_ATTACHMENT5: 36069, // gl.COLOR_ATTACHMENT0 + 5
-    COLOR_ATTACHMENT6: 36070, // gl.COLOR_ATTACHMENT0 + 6
-    COLOR_ATTACHMENT7: 36071, // gl.COLOR_ATTACHMENT0 + 7
-} as const;
+// export const GLColorAttachment = {
+//     COLOR_ATTACHMENT0: 36064, // gl.COLOR_ATTACHMENT0 + 0
+//     COLOR_ATTACHMENT1: 36065, // gl.COLOR_ATTACHMENT0 + 1
+//     COLOR_ATTACHMENT2: 36066, // gl.COLOR_ATTACHMENT0 + 2
+//     COLOR_ATTACHMENT3: 36067, // gl.COLOR_ATTACHMENT0 + 3
+//     COLOR_ATTACHMENT4: 36068, // gl.COLOR_ATTACHMENT0 + 4
+//     COLOR_ATTACHMENT5: 36069, // gl.COLOR_ATTACHMENT0 + 5
+//     COLOR_ATTACHMENT6: 36070, // gl.COLOR_ATTACHMENT0 + 6
+//     COLOR_ATTACHMENT7: 36071, // gl.COLOR_ATTACHMENT0 + 7
+// } as const;
+//
+// export type GLColorAttachment =
+//     | 36064 // gl.COLOR_ATTACHMENT0 + 0
+//     | 36065 // gl.COLOR_ATTACHMENT0 + 1
+//     | 36066 // gl.COLOR_ATTACHMENT0 + 2
+//     | 36067 // gl.COLOR_ATTACHMENT0 + 3
+//     | 36068 // gl.COLOR_ATTACHMENT0 + 4
+//     | 36069 // gl.COLOR_ATTACHMENT0 + 5
+//     | 36070 // gl.COLOR_ATTACHMENT0 + 6
+//     | 36071; // gl.COLOR_ATTACHMENT0 + 7
+//
+// export const GLFrameBufferStatus = {
+//     FRAMEBUFFER_COMPLETE: 36053,
+//     FRAMEBUFFER_INCOMPLETE_ATTACHMENT: 36054,
+//     FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: 36055,
+//     FRAMEBUFFER_INCOMPLETE_DIMENSIONS: 36057,
+//     FRAMEBUFFER_UNSUPPORTED: 36061,
+// } as const;
+//
+// export const GLExtensionName = {
+//     ColorBufferFloat: 'EXT_color_buffer_float',
+// } as const;
+//
+// export const GL = {
+//     TEXTURE_2D: 3553,
+// } as const;
+//
+// export type GL = (typeof GL)[keyof typeof GL];
+//
+// export const GLTextureFilterType = {
+//     TEXTURE_MIN_FILTER: 10241,
+//     TEXTURE_MAG_FILTER: 10240
+// } as const;
+//
+// export type GLTextureFilterType = (typeof GLTextureFilterType)[keyof typeof GLTextureFilterType];
+//
+// export const GLTextureFilter = {
+//     NEAREST: 9728,
+//     LINEAR: 9729,
+//     NEAREST_MIPMAP_NEAREST: 9984,
+//     NEAREST_MIPMAP_LINEAR: 9986,
+//     LINEAR_MIPMAP_NEAREST: 9985,
+//     LINEAR_MIPMAP_LINEAR: 9987,
+// } as const;
+//
+// export type GLTextureFilter = (typeof GLTextureFilter)[keyof typeof GLTextureFilter];
+//
+// export const GLTextureWrap = {
+//     REPEAT: 10497,
+//     CLAMP_TO_EDGE: 33071,
+//     MIRRORED_REPEAT: 33648,
+// } as const;
+//
+// export type GLTextureWrap = (typeof GLTextureWrap)[keyof typeof GLTextureWrap];
 
-export type GLColorAttachment =
-    | 36064 // gl.COLOR_ATTACHMENT0 + 0
-    | 36065 // gl.COLOR_ATTACHMENT0 + 1
-    | 36066 // gl.COLOR_ATTACHMENT0 + 2
-    | 36067 // gl.COLOR_ATTACHMENT0 + 3
-    | 36068 // gl.COLOR_ATTACHMENT0 + 4
-    | 36069 // gl.COLOR_ATTACHMENT0 + 5
-    | 36070 // gl.COLOR_ATTACHMENT0 + 6
-    | 36071; // gl.COLOR_ATTACHMENT0 + 7
+// ---
 
-export const GLFrameBufferStatus = {
-    FRAMEBUFFER_COMPLETE: 36053,
-    FRAMEBUFFER_INCOMPLETE_ATTACHMENT: 36054,
-    FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT: 36055,
-    FRAMEBUFFER_INCOMPLETE_DIMENSIONS: 36057,
-    FRAMEBUFFER_UNSUPPORTED: 36061,
-} as const;
+export const GL_EXT_color_buffer_float = 'EXT_color_buffer_float';
 
-export const GLExtensionName = {
-    ColorBufferFloat: 'EXT_color_buffer_float',
-} as const;
+export const GL_TEXTURE_2D = 3553;
+
+// filter -----------------------------------
+
+export const GL_TEXTURE_MIN_FILTER = 10241;
+export const GL_TEXTURE_MAG_FILTER = 10240;
+
+// export const GL_NEAREST = 9728;
+// export const GL_LINEAR = 9729;
+// export const GL_NEAREST_MIPMAP_NEAREST = 9984;
+// export const GL_NEAREST_MIPMAP_LINEAR = 9986;
+// export const GL_LINEAR_MIPMAP_NEAREST = 9985;
+// export const GL_LINEAR_MIPMAP_LINEAR = 9987;
 
 export const GLTextureFilter = {
     NEAREST: 9728,
@@ -497,15 +547,50 @@ export const GLTextureFilter = {
     NEAREST_MIPMAP_NEAREST: 9984,
     NEAREST_MIPMAP_LINEAR: 9986,
     LINEAR_MIPMAP_NEAREST: 9985,
-    LINEAR_MIPMAP_LINEAR: 9987,
+    LINEAR_MIPMAP_LINEAR: 9987
 } as const;
-
 export type GLTextureFilter = (typeof GLTextureFilter)[keyof typeof GLTextureFilter];
+
+// wrap -----------------------------------
+
+export const GL_TEXTURE_WRAP_S = 10242;
+export const GL_TEXTURE_WRAP_T = 10243;
+// export const GL_REPEAT = 10497;
+// export const GL_CLAMP_TO_EDGE = 33071;
+// export const GL_MIRRORED_REPEAT = 33648;
 
 export const GLTextureWrap = {
     REPEAT: 10497,
     CLAMP_TO_EDGE: 33071,
-    MIRRORED_REPEAT: 33648,
+    MIRRORED_REPEAT: 33648
 } as const;
-
 export type GLTextureWrap = (typeof GLTextureWrap)[keyof typeof GLTextureWrap];
+
+// framebuffer -----------------------------------
+
+export const GL_FRAMEBUFFER_COMPLETE = 36053;
+export const GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 36054;
+export const GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 36055;
+export const GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 36057;
+export const GL_FRAMEBUFFER_UNSUPPORTED = 36061;
+
+// export const GL_COLOR_ATTACHMENT0 = 36064;
+// export const GL_COLOR_ATTACHMENT1 = 36065;
+// export const GL_COLOR_ATTACHMENT2 = 36066;
+// export const GL_COLOR_ATTACHMENT3 = 36067;
+// export const GL_COLOR_ATTACHMENT4 = 36068;
+// export const GL_COLOR_ATTACHMENT5 = 36069;
+// export const GL_COLOR_ATTACHMENT6 = 36070;
+// export const GL_COLOR_ATTACHMENT7 = 36071;
+
+export const GLColorAttachment = {
+    COLOR_ATTACHMENT0: 36064,
+    COLOR_ATTACHMENT1: 36065,
+    COLOR_ATTACHMENT2: 36066,
+    COLOR_ATTACHMENT3: 36067,
+    COLOR_ATTACHMENT4: 36068,
+    COLOR_ATTACHMENT5: 36069,
+    COLOR_ATTACHMENT6: 36070,
+    COLOR_ATTACHMENT7: 36071
+} as const;
+export type GLColorAttachment = (typeof GLColorAttachment)[keyof typeof GLColorAttachment];

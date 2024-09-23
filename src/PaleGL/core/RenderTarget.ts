@@ -9,9 +9,7 @@ import {
     TextureFilterTypes,
     TextureTypes,
     GLColorAttachment,
-    GLFrameBufferStatus,
-    GLExtensionName,
-    TextureDepthPrecisionType, TextureWrapTypes, TextureWrapType,
+    TextureDepthPrecisionType, TextureWrapTypes, TextureWrapType, GL_FRAMEBUFFER_COMPLETE, GL_EXT_color_buffer_float,
 } from '@/PaleGL/constants';
 import { AbstractRenderTarget } from '@/PaleGL/core/AbstractRenderTarget';
 import { GPU } from '@/PaleGL/core/GPU';
@@ -149,7 +147,7 @@ export class RenderTarget extends AbstractRenderTarget {
 
             // RGBA16F浮動小数点バッファ
             case RenderTargetTypes.RGBA16F:
-                if (!gpu.checkExtension(GLExtensionName.ColorBufferFloat)) {
+                if (!gpu.checkExtension(GL_EXT_color_buffer_float)) {
                     console.error('EXT_color_buffer_float not supported');
                     return;
                 }
@@ -170,7 +168,7 @@ export class RenderTarget extends AbstractRenderTarget {
             // R11G11B10F浮動小数点バッファ
             case RenderTargetTypes.R11F_G11F_B10F:
                 // TODO: r11g11b10 の場合はなくてもよい？
-                if (!gpu.checkExtension(GLExtensionName.ColorBufferFloat)) {
+                if (!gpu.checkExtension(GL_EXT_color_buffer_float)) {
                     console.error('EXT_color_buffer_float not supported');
                     return;
                 }
@@ -212,7 +210,7 @@ export class RenderTarget extends AbstractRenderTarget {
         // check frame buffer status for color attachment
         if (this._texture) {
             const checkFramebufferStatus = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
-            if (checkFramebufferStatus !== GLFrameBufferStatus.FRAMEBUFFER_COMPLETE) {
+            if (checkFramebufferStatus !== GL_FRAMEBUFFER_COMPLETE) {
                 throw 'framebuffer not completed';
             }
             this._framebuffer.registerDrawBuffer(GLColorAttachment.COLOR_ATTACHMENT0);

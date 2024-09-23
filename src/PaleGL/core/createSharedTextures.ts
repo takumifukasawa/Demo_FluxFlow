@@ -1,6 +1,12 @@
 import { PlaneGeometry } from '@/PaleGL/geometries/PlaneGeometry.ts';
 import { RenderTarget } from '@/PaleGL/core/RenderTarget.ts';
-import { RenderTargetTypes, TextureFilterTypes, TextureWrapTypes, UniformTypes } from '@/PaleGL/constants.ts';
+import {
+    RenderTargetTypes,
+    TextureFilterTypes,
+    TextureWrapTypes,
+    UniformNames,
+    UniformTypes,
+} from '@/PaleGL/constants.ts';
 import { Material } from '@/PaleGL/materials/Material.ts';
 import { PostProcessPassBase } from '@/PaleGL/postprocess/PostProcessPassBase.ts';
 import { Vector2 } from '@/PaleGL/math/Vector2.ts';
@@ -12,6 +18,8 @@ import randomNoiseFragment from '@/PaleGL/shaders/random-noise-fragment.glsl';
 import perlinNoiseFragment from '@/PaleGL/shaders/perlin-noise-fragment.glsl';
 import simplexNoiseFragment from '@/PaleGL/shaders/simplex-noise.glsl';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
+
+const gridUniformName = 'uGridSize';
 
 export const SharedTexturesTypes = {
     RANDOM_NOISE: 0,
@@ -52,12 +60,12 @@ const sharedTextureInfos: SharedTextureInfo[] = [
         effectFragmentShader: randomNoiseFragment,
         effectUniforms: [
             {
-                name: 'uTime',
+                name: UniformNames.Time,
                 type: UniformTypes.Float,
                 value: 0,
             },
             {
-                name: 'uGridSize',
+                name: gridUniformName,
                 type: UniformTypes.Vector2,
                 value: new Vector2(512, 512),
             },
@@ -74,12 +82,12 @@ const sharedTextureInfos: SharedTextureInfo[] = [
         effectFragmentShader: perlinNoiseFragment,
         effectUniforms: [
             {
-                name: 'uTime',
+                name: UniformNames.Time,
                 type: UniformTypes.Float,
                 value: 0,
             },
             {
-                name: 'uGridSize',
+                name: gridUniformName,
                 type: UniformTypes.Vector2,
                 value: new Vector2(4, 4),
             },
@@ -101,12 +109,12 @@ const sharedTextureInfos: SharedTextureInfo[] = [
         effectFragmentShader: perlinNoiseFragment,
         effectUniforms: [
             {
-                name: 'uTime',
+                name: UniformNames.Time,
                 type: UniformTypes.Float,
                 value: 0,
             },
             {
-                name: 'uGridSize',
+                name: gridUniformName,
                 type: UniformTypes.Vector2,
                 value: new Vector2(4, 4),
             },
@@ -128,12 +136,12 @@ const sharedTextureInfos: SharedTextureInfo[] = [
         effectFragmentShader: simplexNoiseFragment,
         effectUniforms: [
             {
-                name: 'uTime',
+                name: UniformNames.Time,
                 type: UniformTypes.Float,
                 value: 0,
             },
             {
-                name: 'uGridSize',
+                name: gridUniformName,
                 type: UniformTypes.Vector2,
                 value: new Vector2(4, 4),
             },
@@ -197,7 +205,7 @@ export function createSharedTextures({ gpu, renderer }: { gpu: GPU; renderer: Re
             fragmentShader: effectTexturePostProcessFragment,
             uniforms: [
                 {
-                    name: 'uSrcTexture',
+                    name: UniformNames.SrcTexture,
                     type: UniformTypes.Texture,
                     value: null,
                 },
@@ -226,7 +234,7 @@ export function createSharedTextures({ gpu, renderer }: { gpu: GPU; renderer: Re
 
         tmpMaterial.start({ gpu, attributeDescriptors: planeGeometryAttributeDescriptors });
         ppMaterial.start({ gpu, attributeDescriptors: planeGeometryAttributeDescriptors });
-        ppMaterial.uniforms.setValue('uSrcTexture', tmpRenderTarget.texture);
+        ppMaterial.uniforms.setValue(UniformNames.SrcTexture, tmpRenderTarget.texture);
 
         const render = () => {
             renderMaterial(tmpRenderTarget, tmpMaterial);
@@ -257,69 +265,6 @@ export function createSharedTextures({ gpu, renderer }: { gpu: GPU; renderer: Re
 
         return acc;
     }, {} as SharedTextures);
-
-    // const randomNoiseRenderTarget = createEffectRenderTarget({ gpu, size: 512 });
-    // const randomNoiseMaterial = new Material({
-    //     vertexShader: PostProcessPassBase.baseVertexShader,
-    //     fragmentShader: randomNoiseFragment,
-    //     uniforms: [
-    //         {
-    //             name: 'uTime',
-    //             type: UniformTypes.Float,
-    //             value: 0,
-    //         },
-    //         {
-    //             name: 'uGridSize',
-    //             type: UniformTypes.Vector2,
-    //             value: new Vector2(512, 512),
-    //         },
-    //     ],
-    // });
-
-    // const postProcessRenderTarget = createEffectRenderTarget({ gpu, width, height });
-    // const postprocessMaterial = new Material({
-    //     vertexShader: PostProcessPassBase.baseVertexShader,
-    //     fragmentShader: effectTexturePostProcessFragment,
-    //     uniforms: [
-    //         {
-    //             name: 'uSrcTexture',
-    //             type: UniformTypes.Texture,
-    //             value: null,
-    //         },
-    //         {
-    //             name: 'uTilingEnabled',
-    //             type: UniformTypes.Float,
-    //             value: 1,
-    //         },
-    //         {
-    //             name: 'uEdgeMaskMix',
-    //             type: UniformTypes.Float,
-    //             value: 1,
-    //         },
-    //         {
-    //             name: 'uRemapMin',
-    //             type: UniformTypes.Float,
-    //             value: 0,
-    //         },
-    //         {
-    //             name: 'uRemapMax',
-    //             type: UniformTypes.Float,
-    //             value: 1,
-    //         },
-    //     ],
-    // });
-
-    // randomNoiseMaterial.start({ gpu, attributeDescriptors: planeGeometryAttributeDescriptors });
-    // renderMaterial(randomNoiseRenderTarget, randomNoiseMaterial);
-
-    // postprocessMaterial.start({ gpu, attributeDescriptors: planeGeometryAttributeDescriptors });
-    // postprocessMaterial.uniforms.setValue('uSrcTexture', randomNoiseRenderTarget.texture);
-
-    // renderMaterial(postProcessRenderTarget, postprocessMaterial);
-
-    // const sharedTextures: SharedTextures = {
-    //     [SharedTexturesTypes.RANDOM_NOISE]: postProcessRenderTarget.texture!,
-    // };
 
     return sharedTextures;
 }

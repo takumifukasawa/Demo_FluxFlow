@@ -22,6 +22,6 @@
 
     // TODO: 引数でworldMatrixとdirty_flagを渡すべきな気がする
     updateMatrix() {
-        throw 'should implementation';
+        console.error('should implementation');
     }
 }

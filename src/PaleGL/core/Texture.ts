@@ -1,5 +1,8 @@
 ﻿import { GLObject } from '@/PaleGL/core/GLObject';
 import {
+    GL_TEXTURE_2D,
+    GL_TEXTURE_MAG_FILTER,
+    GL_TEXTURE_MIN_FILTER,
     GLTextureFilter,
     TextureDepthPrecisionType,
     TextureFilterType,
@@ -141,11 +144,11 @@ export class Texture extends GLObject {
         this.texture = texture;
 
         // bind texture object to gl
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.bindTexture(GL_TEXTURE_2D, this.texture);
 
         // mipmap settings
         if (mipmap) {
-            gl.generateMipmap(gl.TEXTURE_2D);
+            gl.generateMipmap(GL_TEXTURE_2D);
         }
 
         //
@@ -162,35 +165,35 @@ export class Texture extends GLObject {
                 // min filter settings
                 switch (this.minFilter) {
                     case TextureFilterTypes.Nearest:
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTextureFilter.NEAREST);
                         break;
                     case TextureFilterTypes.Linear:
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTextureFilter.LINEAR);
                         break;
                     default:
                         console.warn('[Texture.constructor] invalid min filter type and fallback to LINEAR');
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTextureFilter.LINEAR);
                         break;
                 }
                 // mag filter settings
                 switch (this.magFilter) {
                     case TextureFilterTypes.Nearest:
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLTextureFilter.NEAREST);
                         break;
                     case TextureFilterTypes.Linear:
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLTextureFilter.LINEAR);
                         break;
                     default:
                         console.warn('[Texture.constructor] invalid mag filter type and fallback to LINEAR');
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLTextureFilter.LINEAR);
                         break;
                 }
                 break;
 
             // TODO: depthの場合nearest必須？
             case TextureTypes.Depth:
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTextureFilter.NEAREST);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLTextureFilter.NEAREST);
                 break;
 
             // // 「filterできない」で合っているはず？
