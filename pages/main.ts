@@ -16,7 +16,6 @@ import { Scene } from '@/PaleGL/core/Scene';
 // materials
 
 // math
-import { Color } from '@/PaleGL/math/Color';
 import { Vector3 } from '@/PaleGL/math/Vector3';
 import { Vector4 } from '@/PaleGL/math/Vector4';
 
@@ -31,7 +30,7 @@ import { MouseInputController } from '@/PaleGL/inputs/MouseInputController';
 import {
     RenderTargetTypes,
     TextureDepthPrecisionType,
-    TextureFilterTypes,
+    // TextureFilterTypes,
     // TextureFilterTypes,
     // TextureFilterTypes, TextureWrapTypes,
 } from '@/PaleGL/constants';
@@ -40,7 +39,6 @@ import {
 // @ts-ignore
 import sceneJsonUrl from '../assets/data/scene.json';
 
-import { DebuggerGUI } from '@/DebuggerGUI';
 import { Camera } from '@/PaleGL/actors/Camera';
 import { OrthographicCamera } from '@/PaleGL/actors/OrthographicCamera';
 import { PostProcess } from '@/PaleGL/postprocess/PostProcess.ts';
@@ -58,19 +56,12 @@ import {
 } from '@/Marionetter/types';
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
-import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
-import { Texture } from '@/PaleGL/core/Texture.ts';
-import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
-import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.png?url';
-import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.json';
-
-// import { buildMarionetterTimeline } from '@/Marionetter/timeline.ts';
-// import glsl from 'vite-plugin-glsl';
+import { initDebugger } from './initDebugger.ts';
 // import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
 // import { Texture } from '@/PaleGL/core/Texture.ts';
 // import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
-// import fontAtlasImgUrl from './assets/fonts/NotoSans-Bold/atlas.png?url';
-// import fontAtlasJson from './assets/fonts/NotoSans-Bold/NotoSans-Bold.json';
+// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.png?url';
+// import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.json';
 
 const stylesText = `
 :root {
@@ -114,10 +105,10 @@ const styleElement = document.createElement('style');
 styleElement.innerText = stylesText;
 document.head.appendChild(styleElement);
 
-let debuggerGUI: DebuggerGUI;
 let width: number, height: number;
 let glslSound: GLSLSound | null;
 let marionetterTimeline: MarionetterTimeline | null = null;
+let bufferVisualizerPass: BufferVisualizerPass;
 
 const marionetter: Marionetter = createMarionetter({ showLog: false });
 
@@ -307,7 +298,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     const cameraPostProcess = new PostProcess();
 
-    const bufferVisualizerPass = new BufferVisualizerPass({ gpu });
+    bufferVisualizerPass = new BufferVisualizerPass({ gpu });
     bufferVisualizerPass.parameters.enabled = false;
     cameraPostProcess.addPass(bufferVisualizerPass);
     // bufferVisualizerPass.beforeRender = () => {
@@ -337,10 +328,6 @@ const buildScene = (sceneJson: MarionetterScene) => {
     // parseScene(sceneJson);
 
     console.log('scene', actors);
-
-    initDebugger({
-        bufferVisualizerPass,
-    });
 };
 
 // const parseScene = (sceneJson: MarionetterScene) => {
@@ -422,59 +409,59 @@ const load = async () => {
         initHotReloadAndParseScene();
     }
 
-    //
-    // text mesh
-    //
+    // //
+    // // text mesh
+    // //
 
-    const fontAtlasImg = await loadImg(fontAtlasImgUrl);
-    const fontAtlasTexture = new Texture({
-        gpu,
-        img: fontAtlasImg,
-        flipY: false,
-        minFilter: TextureFilterTypes.Linear,
-        magFilter: TextureFilterTypes.Linear,
-    });
-    const textMesh1 = new TextMesh({
-        gpu,
-        text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: true,
-        align: TextAlignType.Center,
-        // characterSpacing: -0.2
-    });
-    captureScene.add(textMesh1);
-    textMesh1.transform.position = new Vector3(0, 1, 6);
-    textMesh1.transform.rotation.setRotationX(-90);
-    textMesh1.transform.scale = Vector3.fill(0.4);
+    // const fontAtlasImg = await loadImg(fontAtlasImgUrl);
+    // const fontAtlasTexture = new Texture({
+    //     gpu,
+    //     img: fontAtlasImg,
+    //     flipY: false,
+    //     minFilter: TextureFilterTypes.Linear,
+    //     magFilter: TextureFilterTypes.Linear,
+    // });
+    // const textMesh1 = new TextMesh({
+    //     gpu,
+    //     text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+    //     fontTexture: fontAtlasTexture,
+    //     fontAtlas: fontAtlasJson,
+    //     castShadow: true,
+    //     align: TextAlignType.Center,
+    //     // characterSpacing: -0.2
+    // });
+    // captureScene.add(textMesh1);
+    // textMesh1.transform.position = new Vector3(0, 1, 6);
+    // textMesh1.transform.rotation.setRotationX(-90);
+    // textMesh1.transform.scale = Vector3.fill(0.4);
 
-    const textMesh2 = new TextMesh({
-        gpu,
-        text: 'abcdefghijklmnopqrstuvwxyz',
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: true,
-        align: TextAlignType.Center,
-        characterSpacing: -0.16,
-    });
-    captureScene.add(textMesh2);
-    textMesh2.transform.position = new Vector3(0, 2, 8);
-    textMesh2.transform.rotation.setRotationX(-90);
-    textMesh2.transform.scale = Vector3.fill(0.4);
+    // const textMesh2 = new TextMesh({
+    //     gpu,
+    //     text: 'abcdefghijklmnopqrstuvwxyz',
+    //     fontTexture: fontAtlasTexture,
+    //     fontAtlas: fontAtlasJson,
+    //     castShadow: true,
+    //     align: TextAlignType.Center,
+    //     characterSpacing: -0.16,
+    // });
+    // captureScene.add(textMesh2);
+    // textMesh2.transform.position = new Vector3(0, 2, 8);
+    // textMesh2.transform.rotation.setRotationX(-90);
+    // textMesh2.transform.scale = Vector3.fill(0.4);
 
-    const textMesh3 = new TextMesh({
-        gpu,
-        text: '0123456789',
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: true,
-        align: TextAlignType.Left,
-        characterSpacing: 0.2,
-    });
-    captureScene.add(textMesh3);
-    textMesh3.transform.position = new Vector3(0, 0.01, 9);
-    textMesh3.transform.rotation.setRotationX(-90);
-    textMesh3.transform.scale = Vector3.fill(0.4);
+    // const textMesh3 = new TextMesh({
+    //     gpu,
+    //     text: '0123456789',
+    //     fontTexture: fontAtlasTexture,
+    //     fontAtlas: fontAtlasJson,
+    //     castShadow: true,
+    //     align: TextAlignType.Left,
+    //     characterSpacing: 0.2,
+    // });
+    // captureScene.add(textMesh3);
+    // textMesh3.transform.position = new Vector3(0, 0.01, 9);
+    // textMesh3.transform.rotation.setRotationX(-90);
+    // textMesh3.transform.scale = Vector3.fill(0.4);
 
     setLoadingPercentile(100);
 
@@ -491,14 +478,14 @@ const load = async () => {
 
     playButtonElement!.addEventListener('click', () => {
         hideStartupWrapper();
-        play();
+        playDemo();
     });
 
     hideLoading();
     showMenu();
 };
 
-const play = () => {
+const playDemo = () => {
     // TODO: engine側に移譲したい
     const onWindowResize = () => {
         width = wrapperElement.offsetWidth;
@@ -537,558 +524,20 @@ const play = () => {
 
     engine.start();
     requestAnimationFrame(tick);
+
+    initDebugger({
+        bufferVisualizerPass,
+        glslSound: glslSound!,
+        playSound,
+        stopSound,
+        renderer,
+        wrapperElement,
+    });
 };
 
 const main = async () => {
     await load();
 };
-
-function initDebugger({ bufferVisualizerPass }: { bufferVisualizerPass: BufferVisualizerPass }) {
-    debuggerGUI = new DebuggerGUI();
-
-    //
-    // play sound
-    //
-
-    debuggerGUI.addBorderSpacer();
-
-    debuggerGUI.addButtonDebugger({
-        buttonLabel: 'play sound',
-        onClick: () => {
-            playSound();
-        },
-    });
-
-    debuggerGUI.addButtonDebugger({
-        buttonLabel: 'stop sound',
-        onClick: () => {
-            stopSound();
-        },
-    });
-
-    debuggerGUI.addSliderDebugger({
-        label: 'seek sound',
-        minValue: 0,
-        maxValue: 144,
-        stepValue: 0.01,
-        initialValue: 0,
-        onChange: (value) => {
-            if (glslSound) {
-                glslSound.play(value);
-            }
-        },
-    });
-
-    //
-    // orbit controls
-    //
-
-    // debuggerGUI.addBorderSpacer();
-
-    // debuggerGUI.addToggleDebugger({
-    //     label: 'orbit controls enabled',
-    //     // initialValue: debuggerStates.orbitControlsEnabled,
-    //     // onChange: (value) => (debuggerStates.orbitControlsEnabled = value),
-    //     initialValue: orbitCameraController.enabled,
-    //     onChange: (value) => (orbitCameraController.enabled = value),
-    // });
-
-    //
-    // show buffers
-    //
-
-    debuggerGUI.addBorderSpacer();
-
-    debuggerGUI.addToggleDebugger({
-        label: 'show buffers',
-        initialValue: bufferVisualizerPass.parameters.enabled,
-        onChange: (value) => (bufferVisualizerPass.parameters.enabled = value),
-    });
-
-    // bufferVisualizerPass.beforeRender = () => {
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uDirectionalLightShadowMap',
-    //         directionalLight.shadowMap!.read.depthTexture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uAmbientOcclusionTexture',
-    //         renderer.ambientOcclusionPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uDeferredShadingTexture',
-    //         renderer.deferredShadingPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uLightShaftTexture',
-    //         renderer.lightShaftPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue('uFogTexture', renderer.fogPass.renderTarget.read.texture);
-    // };
-
-    //
-    // ssao
-    // TODO: ssao pass の参照を renderer に変える
-    //
-
-    debuggerGUI.addBorderSpacer();
-
-    const ssaoDebuggerGroup = debuggerGUI.addGroup('ssao', false);
-
-    ssaoDebuggerGroup.addToggleDebugger({
-        label: 'ssao pass enabled',
-        initialValue: renderer.ambientOcclusionPass.parameters.enabled,
-        onChange: (value) => (renderer.ambientOcclusionPass.parameters.enabled = value),
-    });
-
-    ssaoDebuggerGroup.addSliderDebugger({
-        label: 'ssao occlusion sample length',
-        minValue: 0.01,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ambientOcclusionPass.occlusionSampleLength,
-        onChange: (value) => {
-            renderer.ambientOcclusionPass.occlusionSampleLength = value;
-        },
-    });
-
-    ssaoDebuggerGroup.addSliderDebugger({
-        label: 'ssao occlusion bias',
-        minValue: 0.0001,
-        maxValue: 0.01,
-        stepValue: 0.0001,
-        initialValue: renderer.ambientOcclusionPass.occlusionBias,
-        onChange: (value) => {
-            renderer.ambientOcclusionPass.occlusionBias = value;
-        },
-    });
-
-    ssaoDebuggerGroup.addSliderDebugger({
-        label: 'ssao min distance',
-        minValue: 0,
-        maxValue: 0.1,
-        stepValue: 0.001,
-        initialValue: renderer.ambientOcclusionPass.occlusionMinDistance,
-        onChange: (value) => {
-            renderer.ambientOcclusionPass.occlusionMinDistance = value;
-        },
-    });
-
-    ssaoDebuggerGroup.addSliderDebugger({
-        label: 'ssao max distance',
-        minValue: 0,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ambientOcclusionPass.occlusionMaxDistance,
-        onChange: (value) => {
-            renderer.ambientOcclusionPass.occlusionMaxDistance = value;
-        },
-    });
-
-    ssaoDebuggerGroup.addColorDebugger({
-        label: 'ssao color',
-        initialValue: renderer.ambientOcclusionPass.occlusionColor.getHexCoord(),
-        onChange: (value) => {
-            renderer.ambientOcclusionPass.occlusionColor = Color.fromHex(value);
-        },
-    });
-
-    ssaoDebuggerGroup.addSliderDebugger({
-        label: 'ssao occlusion power',
-        minValue: 0.5,
-        maxValue: 4,
-        stepValue: 0.01,
-        initialValue: renderer.ambientOcclusionPass.occlusionPower,
-        onChange: (value) => {
-            renderer.ambientOcclusionPass.occlusionPower = value;
-        },
-    });
-
-    ssaoDebuggerGroup.addSliderDebugger({
-        label: 'ssao occlusion strength',
-        minValue: 0,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ambientOcclusionPass.occlusionStrength,
-        onChange: (value) => {
-            renderer.ambientOcclusionPass.occlusionStrength = value;
-        },
-    });
-
-    ssaoDebuggerGroup.addSliderDebugger({
-        label: 'ssao blend rate',
-        minValue: 0,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ambientOcclusionPass.blendRate,
-        onChange: (value) => {
-            renderer.ambientOcclusionPass.blendRate = value;
-        },
-    });
-
-    //
-    // light shaft
-    //
-
-    debuggerGUI.addBorderSpacer();
-
-    const lightShaftDebuggerGroup = debuggerGUI.addGroup('light shaft');
-
-    lightShaftDebuggerGroup.addToggleDebugger({
-        label: 'light shaft pass enabled',
-        initialValue: renderer.lightShaftPass.parameters.enabled,
-        onChange: (value) => (renderer.lightShaftPass.parameters.enabled = value),
-    });
-
-    lightShaftDebuggerGroup.addSliderDebugger({
-        label: 'blend rate',
-        minValue: 0,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.lightShaftPass.parameters.blendRate,
-        onChange: (value) => {
-            renderer.lightShaftPass.parameters.blendRate = value;
-        },
-    });
-
-    lightShaftDebuggerGroup.addSliderDebugger({
-        label: 'pass scale',
-        minValue: 0.001,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.lightShaftPass.parameters.passScaleBase,
-        onChange: (value) => {
-            renderer.lightShaftPass.parameters.passScaleBase = value;
-        },
-    });
-
-    lightShaftDebuggerGroup.addSliderDebugger({
-        label: 'ray step strength',
-        minValue: 0.001,
-        maxValue: 0.05,
-        stepValue: 0.001,
-        initialValue: renderer.lightShaftPass.parameters.rayStepStrength,
-        onChange: (value) => {
-            renderer.lightShaftPass.parameters.rayStepStrength = value;
-        },
-    });
-
-    //
-    // light shaft
-    //
-
-    debuggerGUI.addBorderSpacer();
-
-    const fogDebuggerGroup = debuggerGUI.addGroup('fog');
-
-    // fogDebuggerGroup.addToggleDebugger({
-    //     label: 'fog pass enabled',
-    //     initialValue: renderer.lightShaftPass.enabled,
-    //     onChange: (value) => (renderer.lightShaftPass.enabled = value),
-    // });
-
-    // fogDebuggerGroup.addSliderDebugger({
-    //     label: 'strength',
-    //     minValue: 0,
-    //     maxValue: 0.2,
-    //     stepValue: 0.0001,
-    //     initialValue: renderer.fogPass.fogStrength,
-    //     onChange: (value) => {
-    //         renderer.fogPass.fogStrength = value;
-    //     },
-    // });
-
-    fogDebuggerGroup.addSliderDebugger({
-        label: 'density',
-        minValue: 0,
-        maxValue: 1,
-        stepValue: 0.0001,
-        initialValue: renderer.fogPass.parameters.fogDensity,
-        onChange: (value) => {
-            renderer.fogPass.parameters.fogDensity = value;
-        },
-    });
-
-    fogDebuggerGroup.addSliderDebugger({
-        label: 'attenuation',
-        minValue: 0,
-        maxValue: 1,
-        stepValue: 0.0001,
-        initialValue: renderer.fogPass.parameters.fogDensityAttenuation,
-        onChange: (value) => {
-            renderer.fogPass.parameters.fogDensityAttenuation = value;
-        },
-    });
-
-    // fogDebuggerGroup.addSliderDebugger({
-    //     label: 'fog end height',
-    //     minValue: -5,
-    //     maxValue: 5,
-    //     stepValue: 0.0001,
-    //     initialValue: renderer.fogPass.fogEndHeight,
-    //     onChange: (value) => {
-    //         renderer.fogPass.fogEndHeight = value;
-    //     },
-    // });
-
-    //
-    // depth of field
-    //
-
-    debuggerGUI.addBorderSpacer();
-
-    const dofDebuggerGroup = debuggerGUI.addGroup('depth of field', false);
-
-    dofDebuggerGroup.addToggleDebugger({
-        label: 'DoF pass enabled',
-        initialValue: renderer.depthOfFieldPass.enabled,
-        onChange: (value) => (renderer.depthOfFieldPass.enabled = value),
-    });
-
-    dofDebuggerGroup.addSliderDebugger({
-        label: 'DoF focus distance',
-        minValue: 0.1,
-        maxValue: 100,
-        stepValue: 0.001,
-        initialValue: renderer.depthOfFieldPass.parameters.focusDistance,
-        onChange: (value) => {
-            renderer.depthOfFieldPass.parameters.focusDistance = value;
-        },
-    });
-
-    dofDebuggerGroup.addSliderDebugger({
-        label: 'DoF focus range',
-        minValue: 0.1,
-        maxValue: 20,
-        stepValue: 0.001,
-        initialValue: renderer.depthOfFieldPass.parameters.focusRange,
-        onChange: (value) => {
-            renderer.depthOfFieldPass.parameters.focusRange = value;
-        },
-    });
-
-    dofDebuggerGroup.addSliderDebugger({
-        label: 'DoF bokeh radius',
-        minValue: 0.01,
-        maxValue: 10,
-        stepValue: 0.001,
-        initialValue: renderer.depthOfFieldPass.parameters.bokehRadius,
-        onChange: (value) => {
-            renderer.depthOfFieldPass.parameters.bokehRadius = value;
-        },
-    });
-
-    //
-    // bloom
-    //
-
-    debuggerGUI.addBorderSpacer();
-
-    const bloomDebuggerGroup = debuggerGUI.addGroup('bloom', false);
-
-    bloomDebuggerGroup.addToggleDebugger({
-        label: 'Bloom pass enabled',
-        initialValue: renderer.bloomPass.parameters.enabled,
-        onChange: (value) => (renderer.bloomPass.parameters.enabled = value),
-    });
-
-    bloomDebuggerGroup.addSliderDebugger({
-        label: 'bloom amount',
-        minValue: 0,
-        maxValue: 4,
-        stepValue: 0.001,
-        initialValue: renderer.bloomPass.parameters.bloomAmount,
-        onChange: (value) => {
-            renderer.bloomPass.parameters.bloomAmount = value;
-        },
-    });
-
-    bloomDebuggerGroup.addSliderDebugger({
-        label: 'bloom threshold',
-        minValue: 0,
-        maxValue: 2,
-        stepValue: 0.001,
-        initialValue: renderer.bloomPass.parameters.threshold,
-        onChange: (value) => {
-            renderer.bloomPass.parameters.threshold = value;
-        },
-    });
-
-    bloomDebuggerGroup.addSliderDebugger({
-        label: 'bloom tone',
-        minValue: 0,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.bloomPass.parameters.tone,
-        onChange: (value) => {
-            renderer.bloomPass.parameters.tone = value;
-        },
-    });
-
-    //
-    // ssr debuggers
-    //
-
-    debuggerGUI.addBorderSpacer();
-
-    const ssrDebuggerGroup = debuggerGUI.addGroup('ssr', false);
-
-    ssrDebuggerGroup.addToggleDebugger({
-        label: 'ssr pass enabled',
-        initialValue: renderer.ssrPass.parameters.enabled,
-        onChange: (value) => (renderer.ssrPass.parameters.enabled = value),
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'depth bias',
-        minValue: 0.001,
-        maxValue: 0.1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.rayDepthBias,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.rayDepthBias = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'ray nearest distance',
-        minValue: 0.001,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.rayNearestDistance,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.rayNearestDistance = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'ray max distance',
-        minValue: 0.001,
-        maxValue: 10,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.rayMaxDistance,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.rayMaxDistance = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'ray thickness',
-        minValue: 0.001,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionRayThickness,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionRayThickness = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'jitter size x',
-        minValue: 0.001,
-        maxValue: 0.1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionRayJitterSizeX,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionRayJitterSizeX = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'jitter size y',
-        minValue: 0.001,
-        maxValue: 0.1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionRayJitterSizeY,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionRayJitterSizeY = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'fade min distance',
-        minValue: 0.001,
-        maxValue: 10,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionFadeMinDistance,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionFadeMinDistance = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'fade max distance',
-        minValue: 0.001,
-        maxValue: 10,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionFadeMaxDistance,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionFadeMaxDistance = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'edge fade factor min x',
-        minValue: 0.001,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionScreenEdgeFadeFactorMinX,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionScreenEdgeFadeFactorMinX = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'edge fade factor max x',
-        minValue: 0.001,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionScreenEdgeFadeFactorMaxX,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionScreenEdgeFadeFactorMaxX = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'edge fade factor min y',
-        minValue: 0.001,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionScreenEdgeFadeFactorMinY,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionScreenEdgeFadeFactorMinY = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'edge fade factor max y',
-        minValue: 0.001,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.ssrPass.parameters.reflectionScreenEdgeFadeFactorMaxY,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionScreenEdgeFadeFactorMaxY = value;
-        },
-    });
-
-    ssrDebuggerGroup.addSliderDebugger({
-        label: 'additional rate',
-        minValue: 0.01,
-        maxValue: 1,
-        stepValue: 0.01,
-        initialValue: renderer.ssrPass.parameters.reflectionAdditionalRate,
-        onChange: (value) => {
-            renderer.ssrPass.parameters.reflectionAdditionalRate = value;
-        },
-    });
-
-    //
-    // add debugger ui
-    //
-
-    wrapperElement.appendChild(debuggerGUI.domElement);
-}
-
-// console.log(import.meta.env);
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 main();
