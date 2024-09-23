@@ -29,7 +29,7 @@ import { MouseInputController } from '@/PaleGL/inputs/MouseInputController';
 // others
 import {
     RenderTargetTypes,
-    TextureDepthPrecisionType,
+    TextureDepthPrecisionType, TextureFilterTypes,
     // TextureFilterTypes,
     // TextureFilterTypes,
     // TextureFilterTypes, TextureWrapTypes,
@@ -57,11 +57,11 @@ import {
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
 import { initDebugger } from './initDebugger.ts';
-// import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
-// import { Texture } from '@/PaleGL/core/Texture.ts';
-// import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
-// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.png?url';
-// import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.json';
+import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
+import { Texture } from '@/PaleGL/core/Texture.ts';
+import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
+import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.png?url';
+import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.json';
 
 const stylesText = `
 :root {
@@ -409,59 +409,59 @@ const load = async () => {
         initHotReloadAndParseScene();
     }
 
-    // //
-    // // text mesh
-    // //
+    //
+    // text mesh
+    //
 
-    // const fontAtlasImg = await loadImg(fontAtlasImgUrl);
-    // const fontAtlasTexture = new Texture({
-    //     gpu,
-    //     img: fontAtlasImg,
-    //     flipY: false,
-    //     minFilter: TextureFilterTypes.Linear,
-    //     magFilter: TextureFilterTypes.Linear,
-    // });
-    // const textMesh1 = new TextMesh({
-    //     gpu,
-    //     text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-    //     fontTexture: fontAtlasTexture,
-    //     fontAtlas: fontAtlasJson,
-    //     castShadow: true,
-    //     align: TextAlignType.Center,
-    //     // characterSpacing: -0.2
-    // });
-    // captureScene.add(textMesh1);
-    // textMesh1.transform.position = new Vector3(0, 1, 6);
-    // textMesh1.transform.rotation.setRotationX(-90);
-    // textMesh1.transform.scale = Vector3.fill(0.4);
+    const fontAtlasImg = await loadImg(fontAtlasImgUrl);
+    const fontAtlasTexture = new Texture({
+        gpu,
+        img: fontAtlasImg,
+        flipY: false,
+        minFilter: TextureFilterTypes.Linear,
+        magFilter: TextureFilterTypes.Linear,
+    });
+    const textMesh1 = new TextMesh({
+        gpu,
+        text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: true,
+        align: TextAlignType.Center,
+        // characterSpacing: -0.2
+    });
+    captureScene.add(textMesh1);
+    textMesh1.transform.position = new Vector3(0, 1, 6);
+    textMesh1.transform.rotation.setRotationX(-90);
+    textMesh1.transform.scale = Vector3.fill(0.4);
 
-    // const textMesh2 = new TextMesh({
-    //     gpu,
-    //     text: 'abcdefghijklmnopqrstuvwxyz',
-    //     fontTexture: fontAtlasTexture,
-    //     fontAtlas: fontAtlasJson,
-    //     castShadow: true,
-    //     align: TextAlignType.Center,
-    //     characterSpacing: -0.16,
-    // });
-    // captureScene.add(textMesh2);
-    // textMesh2.transform.position = new Vector3(0, 2, 8);
-    // textMesh2.transform.rotation.setRotationX(-90);
-    // textMesh2.transform.scale = Vector3.fill(0.4);
+    const textMesh2 = new TextMesh({
+        gpu,
+        text: 'abcdefghijklmnopqrstuvwxyz',
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: true,
+        align: TextAlignType.Center,
+        characterSpacing: -0.16,
+    });
+    captureScene.add(textMesh2);
+    textMesh2.transform.position = new Vector3(0, 2, 8);
+    textMesh2.transform.rotation.setRotationX(-90);
+    textMesh2.transform.scale = Vector3.fill(0.4);
 
-    // const textMesh3 = new TextMesh({
-    //     gpu,
-    //     text: '0123456789',
-    //     fontTexture: fontAtlasTexture,
-    //     fontAtlas: fontAtlasJson,
-    //     castShadow: true,
-    //     align: TextAlignType.Left,
-    //     characterSpacing: 0.2,
-    // });
-    // captureScene.add(textMesh3);
-    // textMesh3.transform.position = new Vector3(0, 0.01, 9);
-    // textMesh3.transform.rotation.setRotationX(-90);
-    // textMesh3.transform.scale = Vector3.fill(0.4);
+    const textMesh3 = new TextMesh({
+        gpu,
+        text: '0123456789',
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: true,
+        align: TextAlignType.Left,
+        characterSpacing: 0.2,
+    });
+    captureScene.add(textMesh3);
+    textMesh3.transform.position = new Vector3(0, 0.01, 9);
+    textMesh3.transform.rotation.setRotationX(-90);
+    textMesh3.transform.scale = Vector3.fill(0.4);
 
     setLoadingPercentile(100);
 
