@@ -85,7 +85,7 @@ export class TransformFeedbackBuffer {
         const outputBuffers = varyings.map(({ data, usageType }) => {
             const buffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-            gl.bufferData(gl.ARRAY_BUFFER, data, getAttributeUsage(gl, usageType || AttributeUsageType.DynamicDraw));
+            gl.bufferData(gl.ARRAY_BUFFER, data, getAttributeUsage(usageType || AttributeUsageType.DynamicDraw));
             gl.bindBuffer(gl.ARRAY_BUFFER, null);
             this.outputs.push({
                 // name,

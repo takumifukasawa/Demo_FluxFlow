@@ -528,6 +528,52 @@ export type ShaderPragmas = (typeof ShaderPragmas)[keyof typeof ShaderPragmas];
 export const GL_EXT_color_buffer_float = 'EXT_color_buffer_float';
 
 export const GL_TEXTURE_2D = 3553;
+export const GL_TEXTURE_CUBE_MAP = 34067;
+
+export const GL_TEXTURE0 = 33984;
+
+export const GL_FRAMEBUFFER = 36160;
+
+export const GL_DEPTH_BUFFER_BIT = 256;
+
+export const GL_COLOR_BUFFER_BIT = 16384;
+
+export const GL_POINTS = 0;
+export const GL_LINES = 1;
+export const GL_TRIANGLES = 4;
+
+export const GL_RASTERIZER_DISCARD = 35977;
+
+export const GL_TRANSFORM_FEEDBACK = 36386;
+export const GL_TRANSFORM_FEEDBACK_BUFFER = 35982;
+
+export const GL_CULL_FACE = 2884;
+export const GL_BACK = 1029;
+export const GL_CCW = 2305;
+export const GL_FRONT = 1028;
+export const GL_EQUAL = 514;
+export const GL_LEQUAL = 515;
+export const GL_DEPTH_TEST = 2929;
+
+export const GL_BLEND = 3042;
+export const GL_SRC_ALPHA = 770;
+export const GL_ONE_MINUS_SRC_ALPHA = 771;
+export const GL_ONE = 1;
+
+export const GL_UNSIGNED_SHORT = 5123;
+
+export const GL_UNIFORM_OFFSET = 35387;
+
+export const GL_STATIC_DRAW = 35044;
+export const GL_DYNAMIC_DRAW = 35048;
+export const GL_DYNAMIC_COPY = 35050;
+
+export const GL_UNIFORM_BLOCK_DATA_SIZE = 35392;
+
+export const GL_ARRAY_BUFFER = 34962;
+
+export const GL_FLOAT = 5126;
+
 
 // filter -----------------------------------
 

@@ -4,7 +4,15 @@
     BlendTypes,
     DepthFuncType,
     DepthFuncTypes,
-    FaceSide,
+    FaceSide, GL_BACK, GL_BLEND, GL_CCW,
+    GL_COLOR_BUFFER_BIT, GL_CULL_FACE,
+    GL_DEPTH_BUFFER_BIT, GL_DEPTH_TEST, GL_DYNAMIC_COPY, GL_DYNAMIC_DRAW, GL_EQUAL,
+    GL_FRAMEBUFFER, GL_FRONT, GL_LEQUAL,
+    GL_LINES, GL_ONE, GL_ONE_MINUS_SRC_ALPHA,
+    GL_POINTS, GL_RASTERIZER_DISCARD, GL_SRC_ALPHA, GL_STATIC_DRAW,
+    GL_TEXTURE0,
+    GL_TEXTURE_2D, GL_TEXTURE_CUBE_MAP, GL_TRANSFORM_FEEDBACK,
+    GL_TRIANGLES, GL_UNIFORM_BLOCK_DATA_SIZE, GL_UNIFORM_OFFSET, GL_UNSIGNED_SHORT,
     PrimitiveType,
     PrimitiveTypes,
     TextureWrapTypes,
@@ -46,14 +54,14 @@ export const create1x1 = (color: string = 'black'): HTMLCanvasElement => {
     return canvas;
 };
 
-export const getAttributeUsage = (gl: WebGL2RenderingContext, usageType: AttributeUsageType) => {
+export const getAttributeUsage = (usageType: AttributeUsageType) => {
     switch (usageType) {
         case AttributeUsageType.StaticDraw:
-            return gl.STATIC_DRAW;
+            return GL_STATIC_DRAW;
         case AttributeUsageType.DynamicDraw:
-            return gl.DYNAMIC_DRAW;
+            return GL_DYNAMIC_DRAW;
         case AttributeUsageType.DynamicCopy:
-            return gl.DYNAMIC_COPY;
+            return GL_DYNAMIC_COPY;
         default:
             console.error('[getAttributeUsage] invalid usage');
             return -1;
@@ -145,10 +153,10 @@ export class GPU {
     setFramebuffer(framebuffer: Framebuffer | null) {
         const gl = this.gl;
         if (!framebuffer) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.bindFramebuffer(GL_FRAMEBUFFER, null);
             return;
         }
-        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer.glObject);
+        gl.bindFramebuffer(GL_FRAMEBUFFER, framebuffer.glObject);
         if (framebuffer.hasMultipleDrawBuffers) {
             gl.drawBuffers(framebuffer.drawBufferList);
         }
@@ -178,7 +186,7 @@ export class GPU {
         gl.depthMask(true);
         gl.colorMask(false, false, false, false);
         gl.clearColor(r, g, b, a);
-        gl.clear(gl.DEPTH_BUFFER_BIT);
+        gl.clear(GL_DEPTH_BUFFER_BIT);
     }
 
     /**
@@ -193,7 +201,7 @@ export class GPU {
         gl.depthMask(false);
         gl.colorMask(true, true, true, true);
         gl.clearColor(r, g, b, a);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clear(GL_COLOR_BUFFER_BIT);
     }
 
     /**
@@ -249,14 +257,13 @@ export class GPU {
      * @private
      */
     #getGLPrimitive(primitiveType: PrimitiveType) {
-        const gl = this.gl;
         switch (primitiveType) {
             case PrimitiveTypes.Points:
-                return gl.POINTS;
+                return GL_POINTS;
             case PrimitiveTypes.Lines:
-                return gl.LINES;
+                return GL_LINES;
             case PrimitiveTypes.Triangles:
-                return gl.TRIANGLES;
+                return GL_TRIANGLES;
             default:
                 console.error('invalid primitive type');
                 return -1;
@@ -335,8 +342,8 @@ export class GPU {
                     }
                     break;
                 case UniformTypes.Texture:
-                    gl.activeTexture(gl.TEXTURE0 + activeTextureIndex);
-                    gl.bindTexture(gl.TEXTURE_2D, value ? (value as Texture).glObject : this.dummyTexture.glObject);
+                    gl.activeTexture(GL_TEXTURE0 + activeTextureIndex);
+                    gl.bindTexture(GL_TEXTURE_2D, value ? (value as Texture).glObject : this.dummyTexture.glObject);
                     gl.uniform1i(location, activeTextureIndex);
                     activeTextureIndex++;
                     break;
@@ -351,8 +358,8 @@ export class GPU {
                     const textureArrayIndices: number[] = [];
                     (value as Texture[]).forEach((texture) => {
                         textureArrayIndices.push(activeTextureIndex);
-                        gl.activeTexture(gl.TEXTURE0 + activeTextureIndex);
-                        gl.bindTexture(gl.TEXTURE_2D, texture ? texture.glObject : this.dummyTexture.glObject);
+                        gl.activeTexture(GL_TEXTURE0 + activeTextureIndex);
+                        gl.bindTexture(GL_TEXTURE_2D, texture ? texture.glObject : this.dummyTexture.glObject);
                         activeTextureIndex++;
                     });
                     if(textureArrayIndices.length < 1) {
@@ -363,14 +370,14 @@ export class GPU {
                     break;
                 case UniformTypes.CubeMap:
                     // TODO: valueのguardなくて大丈夫なはず
-                    gl.activeTexture(gl.TEXTURE0 + activeTextureIndex);
+                    gl.activeTexture(GL_TEXTURE0 + activeTextureIndex);
                     // if (value != null) {
                     //     gl.bindTexture(gl.TEXTURE_CUBE_MAP, (value as CubeMap).glObject);
                     // } else {
                     //     gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.dummyCubeTexture.glObject);
                     // }
                     gl.bindTexture(
-                        gl.TEXTURE_CUBE_MAP,
+                        GL_TEXTURE_CUBE_MAP,
                         value ? (value as CubeMap).glObject : this.dummyCubeTexture.glObject
                     );
                     gl.uniform1i(location, activeTextureIndex);
@@ -446,15 +453,15 @@ export class GPU {
 
         this.setUniformValues();
 
-        gl.enable(gl.RASTERIZER_DISCARD);
+        gl.enable(GL_RASTERIZER_DISCARD);
 
-        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, transformFeedback.glObject);
-        gl.beginTransformFeedback(gl.POINTS);
-        gl.drawArrays(gl.POINTS, 0, drawCount);
+        gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, transformFeedback.glObject);
+        gl.beginTransformFeedback(GL_POINTS);
+        gl.drawArrays(GL_POINTS, 0, drawCount);
         gl.endTransformFeedback();
-        gl.bindTransformFeedback(gl.TRANSFORM_FEEDBACK, null);
+        gl.bindTransformFeedback(GL_TRANSFORM_FEEDBACK, null);
 
-        gl.disable(gl.RASTERIZER_DISCARD);
+        gl.disable(GL_RASTERIZER_DISCARD);
 
         gl.useProgram(null);
 
@@ -507,18 +514,18 @@ export class GPU {
         // culling
         switch (faceSide) {
             case FaceSide.Front:
-                gl.enable(gl.CULL_FACE);
-                gl.cullFace(gl.BACK);
-                gl.frontFace(gl.CCW);
+                gl.enable(GL_CULL_FACE);
+                gl.cullFace(GL_BACK);
+                gl.frontFace(GL_CCW);
                 break;
             case FaceSide.Back:
-                gl.enable(gl.CULL_FACE);
-                gl.cullFace(gl.FRONT);
-                gl.frontFace(gl.CCW);
+                gl.enable(GL_CULL_FACE);
+                gl.cullFace(GL_FRONT);
+                gl.frontFace(GL_CCW);
                 break;
             case FaceSide.Double:
-                gl.disable(gl.CULL_FACE);
-                gl.frontFace(gl.CCW);
+                gl.disable(GL_CULL_FACE);
+                gl.frontFace(GL_CCW);
                 break;
             default:
                 console.error('invalid face side');
@@ -536,16 +543,16 @@ export class GPU {
             gl.enable(gl.DEPTH_TEST);
             switch (depthFuncType) {
                 case DepthFuncTypes.Equal:
-                    gl.depthFunc(gl.EQUAL);
+                    gl.depthFunc(GL_EQUAL);
                     break;
                 case DepthFuncTypes.Lequal:
-                    gl.depthFunc(gl.LEQUAL);
+                    gl.depthFunc(GL_LEQUAL);
                     break;
                 default:
                     console.error('invalid depth func type');
             }
         } else {
-            gl.disable(gl.DEPTH_TEST);
+            gl.disable(GL_DEPTH_TEST);
         }
 
         // TODO: renderer側でやるべき？
@@ -555,18 +562,18 @@ export class GPU {
         // - dest: drawn
         switch (blendType) {
             case BlendTypes.Opaque:
-                gl.disable(gl.BLEND);
+                gl.disable(GL_BLEND);
                 // pattern_2: for enabled blend
                 // gl.enable(gl.BLEND);
                 // gl.blendFunc(gl.ONE, gl.ZERO);
                 break;
             case BlendTypes.Transparent:
-                gl.enable(gl.BLEND);
-                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+                gl.enable(GL_BLEND);
+                gl.blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 break;
             case BlendTypes.Additive:
-                gl.enable(gl.BLEND);
-                gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+                gl.enable(GL_BLEND);
+                gl.blendFunc(GL_SRC_ALPHA, GL_ONE);
                 break;
             default:
                 console.error('invalid blend type');
@@ -584,9 +591,9 @@ export class GPU {
             // draw by indices
             // drawCount ... use indices count
             if (instanceCount) {
-                gl.drawElementsInstanced(glPrimitiveType, drawCount, gl.UNSIGNED_SHORT, startOffset, instanceCount);
+                gl.drawElementsInstanced(glPrimitiveType, drawCount, GL_UNSIGNED_SHORT, startOffset, instanceCount);
             } else {
-                gl.drawElements(glPrimitiveType, drawCount, gl.UNSIGNED_SHORT, startOffset);
+                gl.drawElements(glPrimitiveType, drawCount, GL_UNSIGNED_SHORT, startOffset);
             }
         } else {
             // draw by array
@@ -599,8 +606,8 @@ export class GPU {
         }
 
         // unbind when end render
-        gl.bindTexture(gl.TEXTURE_2D, null);
-        gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+        gl.bindTexture(GL_TEXTURE_2D, null);
+        gl.bindTexture(GL_TEXTURE_CUBE_MAP, null);
     }
 
     createUniformBufferObject(
@@ -638,12 +645,12 @@ export class GPU {
         const blockSize = gl.getActiveUniformBlockParameter(
             shader.glObject,
             blockIndex,
-            gl.UNIFORM_BLOCK_DATA_SIZE
+            GL_UNIFORM_BLOCK_DATA_SIZE
         ) as number;
         console.log('[GPU.createUniformBufferObject] blockSize', blockSize);
         const indices = gl.getUniformIndices(shader.glObject, variableNames) as number[];
         console.log('[GPU.createUniformBufferObject] indices', indices);
-        const offsets = gl.getActiveUniforms(shader.glObject, indices, gl.UNIFORM_OFFSET) as number[];
+        const offsets = gl.getActiveUniforms(shader.glObject, indices, GL_UNIFORM_OFFSET) as number[];
         console.log('[GPU.createUniformBufferObject] offsets', offsets);
         const uniformBufferObject = new UniformBufferObject(
             this,
