@@ -8,10 +8,11 @@ import {
     TextureFilterType,
     TextureFilterTypes,
     TextureTypes,
-    GLColorAttachment,
     TextureDepthPrecisionType,
     TextureWrapTypes,
-    TextureWrapType,
+    TextureWrapType
+} from '@/PaleGL/constants';
+import {
     GL_FRAMEBUFFER_COMPLETE,
     GL_EXT_color_buffer_float,
     GL_FRAMEBUFFER,
@@ -20,8 +21,13 @@ import {
     GL_TEXTURE_2D,
     GL_READ_FRAMEBUFFER,
     GL_DRAW_FRAMEBUFFER,
-    GL_DEPTH_BUFFER_BIT, GLTextureFilter,
-} from '@/PaleGL/constants';
+    GL_DEPTH_BUFFER_BIT,
+    GL_COLOR_ATTACHMENT0,
+    GL_NEAREST,
+    glFramebufferRenderbuffer,
+    glFramebufferTexture2D,
+    glBindFramebuffer, glClear, glCheckFramebufferStatus, glBlitFramebuffer,
+} from '@/PaleGL/core/webglWrapper';
 import { AbstractRenderTarget } from '@/PaleGL/core/AbstractRenderTarget';
 import { GPU } from '@/PaleGL/core/GPU';
 
@@ -128,7 +134,8 @@ export class RenderTarget extends AbstractRenderTarget {
 
         // depth as render buffer
         if (this.depthRenderbuffer) {
-            gl.framebufferRenderbuffer(
+            glFramebufferRenderbuffer(
+                gl,
                 GL_FRAMEBUFFER,
                 GL_DEPTH_ATTACHMENT,
                 GL_RENDERBUFFER,
@@ -153,7 +160,7 @@ export class RenderTarget extends AbstractRenderTarget {
                     wrapS,
                     wrapT,
                 });
-                gl.framebufferTexture2D(GL_FRAMEBUFFER, GLColorAttachment.COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
+                glFramebufferTexture2D(gl, GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
                 break;
 
             // RGBA16F浮動小数点バッファ
@@ -173,7 +180,7 @@ export class RenderTarget extends AbstractRenderTarget {
                     wrapS,
                     wrapT,
                 });
-                gl.framebufferTexture2D(GL_FRAMEBUFFER, GLColorAttachment.COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
+                gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
                 break;
 
             // R11G11B10F浮動小数点バッファ
@@ -195,7 +202,7 @@ export class RenderTarget extends AbstractRenderTarget {
                     wrapT,
                 });
 
-                gl.framebufferTexture2D(GL_FRAMEBUFFER, GLColorAttachment.COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
+                gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
                 break;
 
             case RenderTargetTypes.R16F:
@@ -211,7 +218,7 @@ export class RenderTarget extends AbstractRenderTarget {
                     wrapT,
                 });
 
-                gl.framebufferTexture2D(GL_FRAMEBUFFER, GLColorAttachment.COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
+                gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
                 break;
 
             default:
@@ -224,7 +231,7 @@ export class RenderTarget extends AbstractRenderTarget {
             if (checkFramebufferStatus !== GL_FRAMEBUFFER_COMPLETE) {
                 throw 'framebuffer not completed';
             }
-            this._framebuffer.registerDrawBuffer(GLColorAttachment.COLOR_ATTACHMENT0);
+            this._framebuffer.registerDrawBuffer(GL_COLOR_ATTACHMENT0);
         }
 
         // 深度バッファをテクスチャとして扱う場合
@@ -296,7 +303,7 @@ export class RenderTarget extends AbstractRenderTarget {
         const gl = this.gpu.gl;
         this._texture = texture;
         gl.bindFramebuffer(GL_FRAMEBUFFER, this._framebuffer.glObject);
-        gl.framebufferTexture2D(GL_FRAMEBUFFER, GLColorAttachment.COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
+        gl.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this._texture.glObject, 0);
         gl.bindFramebuffer(GL_FRAMEBUFFER, null);
     }
 
@@ -335,17 +342,17 @@ export class RenderTarget extends AbstractRenderTarget {
         height: number;
     }) {
         const gl = gpu.gl;
-        gl.bindFramebuffer(GL_READ_FRAMEBUFFER, sourceRenderTarget.framebuffer.glObject);
-        gl.bindFramebuffer(GL_DRAW_FRAMEBUFFER, destRenderTarget.framebuffer.glObject);
+        glBindFramebuffer(gl, GL_READ_FRAMEBUFFER, sourceRenderTarget.framebuffer.glObject);
+        glBindFramebuffer(gl, GL_DRAW_FRAMEBUFFER, destRenderTarget.framebuffer.glObject);
         // gl.clearColor(0, 0, 0, 1);
         // gl.clear(gl.DEPTH_BUFFER_BIT | gl.COLOR_BUFFER_BIT);
-        gl.clear(GL_DEPTH_BUFFER_BIT);
-        if (gl.checkFramebufferStatus(GL_READ_FRAMEBUFFER) !== GL_FRAMEBUFFER_COMPLETE) {
+        glClear(gl, GL_DEPTH_BUFFER_BIT);
+        if (glCheckFramebufferStatus(gl, GL_READ_FRAMEBUFFER) !== GL_FRAMEBUFFER_COMPLETE) {
             console.error('[RenderTarget.blitDepth] invalid state');
             return;
         }
-        gl.blitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GLTextureFilter.NEAREST);
-        gl.bindFramebuffer(GL_READ_FRAMEBUFFER, null);
-        gl.bindFramebuffer(GL_DRAW_FRAMEBUFFER, null);
+        glBlitFramebuffer(gl, 0, 0, width, height, 0, 0, width, height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        glBindFramebuffer(gl, GL_READ_FRAMEBUFFER, null);
+        glBindFramebuffer(gl, GL_DRAW_FRAMEBUFFER, null);
     }
 }

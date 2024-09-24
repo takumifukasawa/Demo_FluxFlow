@@ -1,6 +1,19 @@
 ﻿import { GLObject } from '@/PaleGL/core/GLObject';
 import { GPU } from '@/PaleGL/core/GPU';
-import { GL_FRAGMENT_SHADER, GL_SEPARATE_ATTRIBS, GL_VERTEX_SHADER } from '@/PaleGL/constants.ts';
+import {
+    GL_FRAGMENT_SHADER,
+    GL_SEPARATE_ATTRIBS,
+    GL_VERTEX_SHADER,
+    glAttachShader,
+    glCompileShader,
+    glCreateProgram,
+    glDeleteShader,
+    glGetProgramInfoLog,
+    glGetShaderInfoLog,
+    glLinkProgram,
+    glShaderSource,
+    glTransformFeedbackVaryings,
+} from '@/PaleGL/core/webglWrapper.ts';
 
 type ShaderParams = { gpu: GPU; vertexShader: string; fragmentShader: string; transformFeedbackVaryings?: string[] };
 
@@ -12,11 +25,11 @@ function createShader(gl: WebGL2RenderingContext, type: number, src: string) {
     //     return;
     // }
     // set shader source (string)
-    gl.shaderSource(shader, src);
+    glShaderSource(gl, shader, src);
     // compile shader
-    gl.compileShader(shader);
+    glCompileShader(gl, shader);
     // check shader info log
-    const info = gl.getShaderInfoLog(shader);
+    const info = glGetShaderInfoLog(gl, shader);
     if (!!info && info.length > 0) {
         console.error(Shader.buildErrorInfo(info, src, '[Shader] shader has error'));
     }
@@ -38,7 +51,7 @@ export class Shader extends GLObject {
         this.gpu = gpu;
 
         const { gl } = gpu;
-        const program = gl.createProgram()!;
+        const program = glCreateProgram(gl)!;
 
         // if (!program) {
         //     console.error('invalid program');
@@ -50,21 +63,22 @@ export class Shader extends GLObject {
         //
 
         const vs = createShader(gl, GL_VERTEX_SHADER, vertexShader);
-        gl.attachShader(program, vs);
+        glAttachShader(gl, program, vs);
 
         //
         // fragment shader
         //
 
         const fs = createShader(gl, GL_FRAGMENT_SHADER, fragmentShader);
-        gl.attachShader(program, fs);
+        glAttachShader(gl, program, fs);
 
         //
         // transform feedback
         //
 
         if (transformFeedbackVaryings && transformFeedbackVaryings.length > 0) {
-            gl.transformFeedbackVaryings(
+            glTransformFeedbackVaryings(
+                gl,
                 program,
                 transformFeedbackVaryings,
                 // bufferと頂点属性が別の場合に限定している
@@ -77,14 +91,14 @@ export class Shader extends GLObject {
         //
 
         // program link to gl context
-        gl.linkProgram(program);
+        glLinkProgram(gl, program);
 
         // for debug
         // console.log(vertexShader)
         // console.log(fragmentShader)
 
         // check program info log
-        const programInfo = gl.getProgramInfoLog(program);
+        const programInfo = glGetProgramInfoLog(gl, program);
         if (!!programInfo && programInfo.length > 0) {
             console.error('program error: ', vertexShader, fragmentShader);
             throw programInfo;
@@ -94,7 +108,7 @@ export class Shader extends GLObject {
     }
 
     dispose() {
-        this.gpu.gl.deleteShader(this.program);
+        glDeleteShader(this.gpu.gl, this.program);
         this.program = null;
     }
 

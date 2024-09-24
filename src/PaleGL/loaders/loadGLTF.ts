@@ -6,7 +6,7 @@ import { Mesh } from '@/PaleGL/actors/Mesh';
 import { Vector3 } from '@/PaleGL/math/Vector3';
 import { Matrix4 } from '@/PaleGL/math/Matrix4';
 import { AnimationClip } from '@/PaleGL/core/AnimationClip';
-import { AnimationKeyframeType, AnimationKeyframeTypes, GLTextureFilter, GLTextureWrap } from '@/PaleGL/constants';
+import { AnimationKeyframeType, AnimationKeyframeTypes } from '@/PaleGL/constants';
 import { AnimationKeyframes } from '@/PaleGL/core/AnimationKeyframes';
 import { Quaternion } from '@/PaleGL/math/Quaternion';
 // import { Rotator } from '@/PaleGL/math/Rotator';
@@ -14,7 +14,12 @@ import { Attribute } from '@/PaleGL/core/Attribute';
 import { GPU } from '@/PaleGL/core/GPU';
 import { GBufferMaterial } from '@/PaleGL/materials/GBufferMaterial.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
-import { resolveGLEnumTextureFilterType, resolveGLEnumTextureWrapType, Texture } from '@/PaleGL/core/Texture.ts';
+import {
+    GLTextureFilter, GLTextureWrap,
+    resolveGLEnumTextureFilterType,
+    resolveGLEnumTextureWrapType,
+    Texture
+} from '@/PaleGL/core/Texture.ts';
 import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
 // import {GBufferMaterial} from "@/PaleGL/materials/GBufferMaterial.ts";
 
@@ -245,10 +250,10 @@ export async function loadGLTF({ gpu, dir, path }: { gpu: GPU; dir?: string; pat
             gltf.textures.map(async ({ source, sampler }) => {
                 // TODO: 別ファイルな前提. bufferに格納されているときの出し分けをしていない
                 const imgUrl = gltf.images[source].uri!;
-                const minFilterEnum = gltf.samplers[sampler].minFilter;
-                const magFilterEnum = gltf.samplers[sampler].magFilter;
-                const wrapSEnum = gltf.samplers[sampler].wrapS;
-                const wrapTEnum = gltf.samplers[sampler].wrapT;
+                const minFilterEnum = gltf.samplers[sampler].minFilter as GLTextureFilter;
+                const magFilterEnum = gltf.samplers[sampler].magFilter as GLTextureFilter;
+                const wrapSEnum = gltf.samplers[sampler].wrapS as GLTextureWrap;
+                const wrapTEnum = gltf.samplers[sampler].wrapT as GLTextureWrap;
                 const minFilter = minFilterEnum ? resolveGLEnumTextureFilterType(minFilterEnum) : undefined;
                 const magFilter = magFilterEnum ? resolveGLEnumTextureFilterType(magFilterEnum) : undefined;
                 const wrapS = wrapSEnum ? resolveGLEnumTextureWrapType(wrapSEnum) : undefined;

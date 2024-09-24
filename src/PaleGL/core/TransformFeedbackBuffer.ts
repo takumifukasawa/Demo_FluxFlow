@@ -5,7 +5,8 @@ import { getAttributeUsage, GPU } from '@/PaleGL/core/GPU';
 import { Shader } from '@/PaleGL/core/Shader.ts';
 import { TransformFeedback } from '@/PaleGL/core/TransformFeedback.ts';
 import transformFeedbackFragmentShader from '@/PaleGL/shaders/transform-feedback-fragment.glsl';
-import { AttributeUsageType, GL_ARRAY_BUFFER } from '@/PaleGL/constants.ts';
+import { AttributeUsageType } from '@/PaleGL/constants.ts';
+import {GL_ARRAY_BUFFER, glBindBuffer, glBufferData, glCreateBuffer} from '@/PaleGL/core/webglWrapper.ts';
 import { Uniforms, UniformsData } from '@/PaleGL/core/Uniforms.ts';
 
 // TODO: location, divisorをいい感じに指定したい
@@ -83,10 +84,10 @@ export class TransformFeedbackBuffer {
         });
 
         const outputBuffers = varyings.map(({ data, usageType }) => {
-            const buffer = gl.createBuffer();
-            gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
-            gl.bufferData(GL_ARRAY_BUFFER, data, getAttributeUsage(usageType || AttributeUsageType.DynamicDraw));
-            gl.bindBuffer(GL_ARRAY_BUFFER, null);
+            const buffer = glCreateBuffer(gl);
+            glBindBuffer(gl, GL_ARRAY_BUFFER, buffer);
+            glBufferData(gl, GL_ARRAY_BUFFER, data, getAttributeUsage(usageType || AttributeUsageType.DynamicDraw));
+            glBindBuffer(gl, GL_ARRAY_BUFFER, null);
             this.outputs.push({
                 // name,
                 buffer: buffer!,

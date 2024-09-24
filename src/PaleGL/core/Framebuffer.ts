@@ -1,6 +1,28 @@
 ﻿import { GLObject } from '@/PaleGL/core/GLObject';
-import {GL_FRAMEBUFFER, GLColorAttachment} from '@/PaleGL/constants';
+import {
+    GL_COLOR_ATTACHMENT0,
+    GL_COLOR_ATTACHMENT1,
+    GL_COLOR_ATTACHMENT2,
+    GL_COLOR_ATTACHMENT3,
+    GL_COLOR_ATTACHMENT4,
+    GL_COLOR_ATTACHMENT5,
+    GL_COLOR_ATTACHMENT6,
+    GL_COLOR_ATTACHMENT7,
+    GL_FRAMEBUFFER,
+    glBindFramebuffer,
+    glCreateFramebuffer,
+} from '@/PaleGL/core/webglWrapper.ts';
 import { GPU } from '@/PaleGL/core/GPU';
+
+type GLColorAttachment =
+    | GL_COLOR_ATTACHMENT0
+    | GL_COLOR_ATTACHMENT1
+    | GL_COLOR_ATTACHMENT2
+    | GL_COLOR_ATTACHMENT3
+    | GL_COLOR_ATTACHMENT4
+    | GL_COLOR_ATTACHMENT5
+    | GL_COLOR_ATTACHMENT6
+    | GL_COLOR_ATTACHMENT7;
 
 export class Framebuffer extends GLObject {
     #framebuffer: WebGLFramebuffer;
@@ -29,7 +51,7 @@ export class Framebuffer extends GLObject {
         this.#gpu = gpu;
         const gl = this.#gpu.gl;
 
-        const fb = gl.createFramebuffer()!;
+        const fb = glCreateFramebuffer(gl)!;
         // if (!fb) {
         //     console.error('invalid framebuffer');
         // }
@@ -38,11 +60,11 @@ export class Framebuffer extends GLObject {
 
     bind() {
         const gl = this.#gpu.gl;
-        gl.bindFramebuffer(GL_FRAMEBUFFER, this.#framebuffer);
+        glBindFramebuffer(gl, GL_FRAMEBUFFER, this.#framebuffer);
     }
 
     unbind() {
         const gl = this.#gpu.gl;
-        gl.bindFramebuffer(GL_FRAMEBUFFER, null);
+        glBindFramebuffer(gl, GL_FRAMEBUFFER, null);
     }
 }
