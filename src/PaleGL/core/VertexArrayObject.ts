@@ -3,13 +3,7 @@
 import { IndexBufferObject } from '@/PaleGL/core/IndexBufferObject';
 import { getAttributeUsage, GPU } from '@/PaleGL/core/GPU';
 import { Attribute } from '@/PaleGL/core/Attribute';
-import {
-    GL_ARRAY_BUFFER,
-    GL_FLOAT,
-    GL_UNSIGNED_SHORT, glBindBuffer,
-    glBindVertexArray, glBufferData, glBufferSubData, glCreateBuffer,
-    glCreateVertexArray, glEnableVertexAttribArray, glVertexAttribDivisor, glVertexAttribIPointer, glVertexAttribPointer
-} from '@/PaleGL/core/webglWrapper.ts';
+import { GL_ARRAY_BUFFER, GL_FLOAT, GL_UNSIGNED_SHORT } from '@/PaleGL/constants.ts';
 
 type VertexBufferObject = {
     name: string;
@@ -46,7 +40,7 @@ export class VertexArrayObject extends GLObject {
         this.gpu = gpu;
 
         const gl = this.gpu.gl;
-        const vao = glCreateVertexArray(gl)!;
+        const vao = gl.createVertexArray()!;
         // if (!vao) {
         //     console.error('invalid vao');
         // }
@@ -100,7 +94,7 @@ export class VertexArrayObject extends GLObject {
      */
     bind() {
         const { gl } = this.gpu;
-        glBindVertexArray(gl, this.glObject);
+        gl.bindVertexArray(this.glObject);
     }
 
     /**
@@ -108,7 +102,7 @@ export class VertexArrayObject extends GLObject {
      */
     unbind() {
         const { gl } = this.gpu;
-        glBindVertexArray(gl, null);
+        gl.bindVertexArray(null);
     }
 
     /**
@@ -122,43 +116,43 @@ export class VertexArrayObject extends GLObject {
 
         // if (push) {
         // bind vertex array to webgl context
-        glBindVertexArray(gl, this.vao);
+        gl.bindVertexArray(this.vao);
         // }
 
         const { name, data, size, location, usageType, divisor } = attribute;
         const newLocation = location !== null && location !== undefined ? location : this.vboList.length;
-        const vbo = glCreateBuffer(gl)!;
+        const vbo = gl.createBuffer()!;
         // if (!vbo) {
         //     throw 'invalid vbo';
         // }
-        glBindBuffer(gl, GL_ARRAY_BUFFER, vbo);
+        gl.bindBuffer(GL_ARRAY_BUFFER, vbo);
         const usage = getAttributeUsage(usageType);
-        glBufferData(gl, GL_ARRAY_BUFFER, data, usage);
-        glEnableVertexAttribArray(gl, newLocation);
+        gl.bufferData(GL_ARRAY_BUFFER, data, usage);
+        gl.enableVertexAttribArray(newLocation);
 
         switch (data.constructor) {
             case Float32Array:
                 // size ... 頂点ごとに埋める数
                 // stride is always 0 because buffer is not interleaved.
                 // ref: https://developer.mozilla.org/ja/docs/Web/API/WebGLRenderingContext/vertexAttribPointer
-                glVertexAttribPointer(gl, newLocation, size, GL_FLOAT, false, 0, 0);
+                gl.vertexAttribPointer(newLocation, size, GL_FLOAT, false, 0, 0);
                 break;
             case Uint16Array:
-                glVertexAttribIPointer(gl, newLocation, size, GL_UNSIGNED_SHORT, 0, 0);
+                gl.vertexAttribIPointer(newLocation, size, GL_UNSIGNED_SHORT, 0, 0);
                 break;
             default:
                 throw '[VertexArrayObject.setAttribute] invalid data type';
         }
 
         if (divisor) {
-            glVertexAttribDivisor(gl, newLocation, divisor);
+            gl.vertexAttribDivisor(newLocation, divisor);
         }
 
         this.vboList.push({ name, vbo, usage, location, size, divisor });
 
         // if (push) {
-        glBindVertexArray(gl, null);
-        glBindBuffer(gl, GL_ARRAY_BUFFER, null);
+        gl.bindVertexArray(null);
+        gl.bindBuffer(GL_ARRAY_BUFFER, null);
         // }
     }
 
@@ -177,9 +171,9 @@ export class VertexArrayObject extends GLObject {
         // gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         // optimize
-        glBindBuffer(gl, GL_ARRAY_BUFFER, vboInfo.vbo);
-        glBufferSubData(gl, GL_ARRAY_BUFFER, 0, data);
-        glBindBuffer(gl, GL_ARRAY_BUFFER, null);
+        gl.bindBuffer(GL_ARRAY_BUFFER, vboInfo.vbo);
+        gl.bufferSubData(GL_ARRAY_BUFFER, 0, data);
+        gl.bindBuffer(GL_ARRAY_BUFFER, null);
     }
 
     /**
@@ -196,15 +190,15 @@ export class VertexArrayObject extends GLObject {
 
         this.bind();
 
-        glBindBuffer(gl, GL_ARRAY_BUFFER, buffer);
-        glEnableVertexAttribArray(gl, location);
+        gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
+        gl.enableVertexAttribArray(location);
         // TODO: 毎フレームやるの重くない？大丈夫？
-        glVertexAttribPointer(gl, location, size, GL_FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(location, size, GL_FLOAT, false, 0, 0);
         // divisorはもう一度指定しなくてもいいっぽい
         // if (divisor) {
         //     gl.vertexAttribDivisor(location, divisor);
         // }
-        glBindBuffer(gl, GL_ARRAY_BUFFER, null);
+        gl.bindBuffer(GL_ARRAY_BUFFER, null);
 
         this.unbind();
 

@@ -1,7 +1,6 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { TransformFeedbackBuffer } from '@/PaleGL/core/TransformFeedbackBuffer.ts';
 import { AttributeUsageType, UniformTypes } from '@/PaleGL/constants.ts';
-import { GL_TRANSFORM_FEEDBACK_BUFFER, glGetBufferSubData } from '@/PaleGL/core/webglWrapper.ts';
 
 // ------------------------------------------------------------------------------
 // ref:
@@ -251,7 +250,7 @@ export function createGLSLSound(gpu: GPU, vertexShader: string, duration: number
             drawCount: SAMPLES,
         });
 
-        glGetBufferSubData(gl, GL_TRANSFORM_FEEDBACK_BUFFER, 0, data);
+        gpu.gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, data);
 
         for (let j = 0; j < SAMPLES; j++) {
             outputL[i * SAMPLES + j] = data[j * 2 + 0];

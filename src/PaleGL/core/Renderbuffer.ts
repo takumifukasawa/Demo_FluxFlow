@@ -1,12 +1,6 @@
 ﻿import { GLObject } from '@/PaleGL/core/GLObject';
 import { RenderbufferType, RenderbufferTypes } from '@/PaleGL/constants';
 import { GPU } from '@/PaleGL/core/GPU';
-import {
-    GL_DEPTH_COMPONENT16,
-    GL_RENDERBUFFER,
-    glBindRenderbuffer,
-    glRenderbufferStorage,
-} from '@/PaleGL/core/webglWrapper.ts';
 
 export class Renderbuffer extends GLObject {
     #gpu: GPU;
@@ -28,31 +22,31 @@ export class Renderbuffer extends GLObject {
         const rb = gl.createRenderbuffer()!;
         this.#renderbuffer = rb;
 
-        glBindRenderbuffer(gl, GL_RENDERBUFFER, this.#renderbuffer);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.#renderbuffer);
 
         switch (this.#type) {
             case RenderbufferTypes.Depth:
-                glRenderbufferStorage(gl, GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
                 break;
             default:
                 throw '[Renderbuffer.constructor] invalid render buffer type.';
         }
 
         // TODO: あったほうがよい？
-        glBindRenderbuffer(gl, GL_RENDERBUFFER, null);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     }
 
     setSize(width: number, height: number) {
         const gl = this.#gpu.gl;
 
-        glBindRenderbuffer(gl, GL_RENDERBUFFER, this.#renderbuffer);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.#renderbuffer);
 
         switch (this.#type) {
             case RenderbufferTypes.Depth:
-                glRenderbufferStorage(gl, GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, width, height);
+                gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
                 break;
         }
 
-        glBindRenderbuffer(gl, GL_RENDERBUFFER, null);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     }
 }

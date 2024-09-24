@@ -1,29 +1,12 @@
 ﻿import { GLObject } from '@/PaleGL/core/GLObject';
 import {
-    TextureDepthPrecisionType,
-    TextureFilterType,
-    TextureFilterTypes,
-    TextureType,
-    TextureTypes,
-    TextureWrapType,
-    TextureWrapTypes,
-} from '@/PaleGL/constants';
-import {
-    GL_CLAMP_TO_EDGE,
     GL_DEPTH_COMPONENT,
     GL_DEPTH_COMPONENT16,
     GL_DEPTH_COMPONENT32F,
     GL_FLOAT,
-    GL_LINEAR,
-    GL_LINEAR_MIPMAP_LINEAR,
-    GL_LINEAR_MIPMAP_NEAREST,
-    GL_NEAREST,
-    GL_NEAREST_MIPMAP_LINEAR,
-    GL_NEAREST_MIPMAP_NEAREST,
     GL_R11F_G11F_B10F,
     GL_R16F,
     GL_RED,
-    GL_REPEAT,
     GL_RGB,
     GL_RGBA,
     GL_RGBA16F,
@@ -36,14 +19,16 @@ import {
     GL_UNPACK_FLIP_Y_WEBGL,
     GL_UNSIGNED_BYTE,
     GL_UNSIGNED_SHORT,
-    glBindTexture,
-    glCreateTexture,
-    glGenerateMipmap,
-    glPixelStorei,
-    glTexImage2D,
-    glTexImage2D_withSize,
-    glTexParameteri,
-} from '@/PaleGL/core/webglWrapper';
+    GLTextureFilter,
+    GLTextureWrap,
+    TextureDepthPrecisionType,
+    TextureFilterType,
+    TextureFilterTypes,
+    TextureType,
+    TextureTypes,
+    TextureWrapType,
+    TextureWrapTypes,
+} from '@/PaleGL/constants';
 import { GPU } from './GPU';
 
 export type TextureArgs = {
@@ -63,43 +48,26 @@ export type TextureArgs = {
     depthPrecision?: TextureDepthPrecisionType;
 };
 
-export type GLTextureFilter =
-    GL_NEAREST |
-    GL_LINEAR |
-    GL_NEAREST_MIPMAP_NEAREST |
-    GL_LINEAR_MIPMAP_NEAREST |
-    GL_NEAREST_MIPMAP_LINEAR |
-    GL_LINEAR_MIPMAP_LINEAR;
-
-export type GLTextureWrap =
-    GL_TEXTURE_WRAP_S |
-    GL_TEXTURE_WRAP_T;
-    
-
 /**
  *
  * @param glTextureFilter
  */
-export function resolveGLEnumTextureFilterType(glTextureFilter: GLTextureFilter):
-| TextureFilterType
-    {
+export function resolveGLEnumTextureFilterType(glTextureFilter: GLTextureFilter) {
     switch (glTextureFilter) {
-        case GL_NEAREST:
+        case GLTextureFilter.NEAREST:
             return TextureFilterTypes.Nearest;
-        case GL_LINEAR:
+        case GLTextureFilter.LINEAR:
             return TextureFilterTypes.Linear;
-        case GL_NEAREST_MIPMAP_NEAREST:
+        case GLTextureFilter.NEAREST_MIPMAP_NEAREST:
             return TextureFilterTypes.NearestMipmapNearest;
-        case GL_LINEAR_MIPMAP_NEAREST:
+        case GLTextureFilter.LINEAR_MIPMAP_NEAREST:
             return TextureFilterTypes.LinearMipmapNearest;
-        case GL_NEAREST_MIPMAP_LINEAR:
+        case GLTextureFilter.NEAREST_MIPMAP_LINEAR:
             return TextureFilterTypes.NearestMipmapLinear;
-        case GL_LINEAR_MIPMAP_LINEAR:
+        case GLTextureFilter.LINEAR_MIPMAP_LINEAR:
             return TextureFilterTypes.LinearMipmapLinear;
         default:
-            // TODO: 本当はthrowにしたい
             console.error('[resolveGLEnumTextureFilterType] invalid glTextureFilter');
-            return TextureFilterTypes.Linear;
     }
 }
 
@@ -186,18 +154,18 @@ export class Texture extends GLObject {
             console.error('[Texture.constructor] invalid width or height');
         }
 
-        const texture = glCreateTexture(gl)!
+        const texture = gl.createTexture()!;
         // if (!texture) {
         //     console.error('[Texture.constructor] invalid texture');
         // }
         this.texture = texture;
 
         // bind texture object to gl
-        glBindTexture(gl, GL_TEXTURE_2D, this.texture);
+        gl.bindTexture(GL_TEXTURE_2D, this.texture);
 
         // mipmap settings
         if (mipmap) {
-            glGenerateMipmap(gl, GL_TEXTURE_2D);
+            gl.generateMipmap(GL_TEXTURE_2D);
         }
 
         //
@@ -214,35 +182,35 @@ export class Texture extends GLObject {
                 // min filter settings
                 switch (this.minFilter) {
                     case TextureFilterTypes.Nearest:
-                        glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTextureFilter.NEAREST);
                         break;
                     case TextureFilterTypes.Linear:
-                        glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTextureFilter.LINEAR);
                         break;
                     default:
                         console.warn('[Texture.constructor] invalid min filter type and fallback to LINEAR');
-                        glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTextureFilter.LINEAR);
                         break;
                 }
                 // mag filter settings
                 switch (this.magFilter) {
                     case TextureFilterTypes.Nearest:
-                        glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLTextureFilter.NEAREST);
                         break;
                     case TextureFilterTypes.Linear:
-                        glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLTextureFilter.LINEAR);
                         break;
                     default:
                         console.warn('[Texture.constructor] invalid mag filter type and fallback to LINEAR');
-                        glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                        gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLTextureFilter.LINEAR);
                         break;
                 }
                 break;
 
             // TODO: depthの場合nearest必須？
             case TextureTypes.Depth:
-                glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GLTextureFilter.NEAREST);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GLTextureFilter.NEAREST);
                 break;
 
             // // 「filterできない」で合っているはず？
@@ -261,26 +229,26 @@ export class Texture extends GLObject {
 
         switch (wrapS) {
             case TextureWrapTypes.ClampToEdge:
-                glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLTextureWrap.CLAMP_TO_EDGE);
                 break;
             case TextureWrapTypes.Repeat:
-                glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLTextureWrap.REPEAT);
                 break;
             default:
                 console.warn('[Texture.constructor] invalid wrapS type and fallback to REPEAT');
-                glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GLTextureWrap.REPEAT);
                 break;
         }
         switch (wrapT) {
             case TextureWrapTypes.ClampToEdge:
-                glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLTextureWrap.CLAMP_TO_EDGE);
                 break;
             case TextureWrapTypes.Repeat:
-                glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLTextureWrap.REPEAT);
                 break;
             default:
                 console.warn('[Texture.constructor] invalid wrapT type and fallback to REPEAT');
-                glTexParameteri(gl, GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+                gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GLTextureWrap.REPEAT);
                 break;
         }
 
@@ -295,9 +263,9 @@ export class Texture extends GLObject {
             // (0, 0) - (1, 0)     (0, 1) - (1, 1)
             //   |         |         |         |
             // (0, 1) - (1, 1)     (0, 0) - (1, 0)
-            glPixelStorei(gl, GL_UNPACK_FLIP_Y_WEBGL, true);
+            gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, true);
         } else {
-            glPixelStorei(gl, GL_UNPACK_FLIP_Y_WEBGL, false);
+            gl.pixelStorei(GL_UNPACK_FLIP_Y_WEBGL, false);
         }
 
         //
@@ -310,14 +278,14 @@ export class Texture extends GLObject {
                 if (width && height) {
                     // for render target
                     if (this.img) {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this.img);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this.img);
                     } else {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
                     }
                 } else {
                     // set img to texture
                     if (this.img) {
-                        glTexImage2D(gl, GL_TEXTURE_2D, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, this.img);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, this.img);
                     } else {
                         // TODO: fix type
                         // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE,null);
@@ -330,8 +298,7 @@ export class Texture extends GLObject {
                     // for render target
                     // 1: use 16bit
                     if (this.img) {
-                        glTexImage2D_withSize(
-                            gl,
+                        gl.texImage2D(
                             GL_TEXTURE_2D,
                             0,
                             this.depthPrecision === TextureDepthPrecisionType.High
@@ -345,8 +312,7 @@ export class Texture extends GLObject {
                             this.img
                         );
                     } else {
-                        glTexImage2D_withSize(
-                            gl,
+                        gl.texImage2D(
                             GL_TEXTURE_2D,
                             0,
                             this.depthPrecision === TextureDepthPrecisionType.High
@@ -367,8 +333,7 @@ export class Texture extends GLObject {
                     // 1: use 16bit
                     // TODO: fix img nullable
                     if (this.img) {
-                        glTexImage2D(
-                            gl,
+                        gl.texImage2D(
                             GL_TEXTURE_2D,
                             0,
                             this.depthPrecision === TextureDepthPrecisionType.High
@@ -389,13 +354,13 @@ export class Texture extends GLObject {
             case TextureTypes.RGBA16F:
                 if (width && height) {
                     if (this.img) {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, this.img);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, this.img);
                     } else {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, null);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, null);
                     }
                 } else {
                     if (this.img) {
-                        glTexImage2D(gl, GL_TEXTURE_2D, 0, GL_RGBA16F, GL_RGBA, GL_FLOAT, this.img);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, GL_RGBA, GL_FLOAT, this.img);
                         // TODO: fix type
                         // } else {
                         // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, gl.RGBA, gl.FLOAT, null);
@@ -406,13 +371,13 @@ export class Texture extends GLObject {
             case TextureTypes.RGBA32F:
                 if (width && height) {
                     if (this.img) {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, this.img);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, this.img);
                     } else {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, null);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, null);
                     }
                 } else {
                     if (this.img) {
-                        glTexImage2D(gl, GL_TEXTURE_2D, 0, GL_RGBA32F, GL_RGBA, GL_FLOAT, this.img);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, GL_RGBA, GL_FLOAT, this.img);
                     } else {
                         // TODO: fix type
                         // gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, gl.RGBA, gl.FLOAT, null);
@@ -423,8 +388,7 @@ export class Texture extends GLObject {
             case TextureTypes.R11F_G11F_B10F:
                 if (width && height) {
                     if (this.img) {
-                        glTexImage2D_withSize(
-                            gl,
+                        gl.texImage2D(
                             GL_TEXTURE_2D,
                             0,
                             GL_R11F_G11F_B10F,
@@ -436,11 +400,11 @@ export class Texture extends GLObject {
                             this.img
                         );
                     } else {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGB, GL_FLOAT, null);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGB, GL_FLOAT, null);
                     }
                 } else {
                     if (this.img) {
-                        glTexImage2D(gl, GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, this.img);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, GL_RGB, GL_FLOAT, this.img);
                     } else {
                         // TODO: fix type
                         // gl.texImage2D(gl.TEXTURE_2D, 0, gl.R11F_G11F_B10F, gl.RGB, gl.FLOAT, null);
@@ -451,13 +415,13 @@ export class Texture extends GLObject {
             case TextureTypes.R16F:
                 if (width && height) {
                     if (this.img) {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, this.img);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, this.img);
                     } else {
-                        glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, null);
+                        gl.texImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, null);
                     }
                 } else {
                     if (this.img) {
-                        glTexImage2D(gl, GL_TEXTURE_2D, 0, gl.R16F, gl.RED, gl.FLOAT, this.img);
+                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, gl.RED, gl.FLOAT, this.img);
                     } else {
                         // TODO: fix type
                         // gl.texImage2D(gl.TEXTURE_2D, 0, gl.R16F, gl.RED, gl.FLOAT, null);
@@ -471,7 +435,7 @@ export class Texture extends GLObject {
 
         // TODO: あった方がよい？
         // unbind img
-        glBindTexture(gl, GL_TEXTURE_2D, null);
+        gl.bindTexture(GL_TEXTURE_2D, null);
     }
 
     /**
@@ -490,23 +454,22 @@ export class Texture extends GLObject {
         // }
 
         const gl = this.gpu.gl;
-        glBindTexture(gl, GL_TEXTURE_2D, this.texture);
+        gl.bindTexture(GL_TEXTURE_2D, this.texture);
 
         // bind texture data
         switch (this.type) {
             case TextureTypes.RGBA:
                 if (this.img) {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this.img);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, this.img);
                 } else {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null);
                 }
                 break;
 
             case TextureTypes.Depth:
                 // 1: use 16bit
                 if (this.img) {
-                    glTexImage2D_withSize(
-                        gl,
+                    gl.texImage2D(
                         GL_TEXTURE_2D,
                         0,
                         this.depthPrecision === TextureDepthPrecisionType.High
@@ -520,8 +483,7 @@ export class Texture extends GLObject {
                         this.img
                     );
                 } else {
-                    glTexImage2D_withSize(
-                        gl,
+                    gl.texImage2D(
                         GL_TEXTURE_2D,
                         0,
                         this.depthPrecision === TextureDepthPrecisionType.High
@@ -541,33 +503,33 @@ export class Texture extends GLObject {
 
             case TextureTypes.RGBA16F:
                 if (this.img) {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, this.img);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, this.img);
                 } else {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, null);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, null);
                 }
                 break;
 
             case TextureTypes.RGBA32F:
                 if (this.img) {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, this.img);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, this.img);
                 } else {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, null);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, null);
                 }
                 break;
 
             case TextureTypes.R11F_G11F_B10F:
                 if (this.img) {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGB, GL_FLOAT, this.img);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGB, GL_FLOAT, this.img);
                 } else {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGB, GL_FLOAT, null);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_R11F_G11F_B10F, width, height, 0, GL_RGB, GL_FLOAT, null);
                 }
                 break;
 
             case TextureTypes.R16F:
                 if (this.img) {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, this.img);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, this.img);
                 } else {
-                    glTexImage2D_withSize(gl, GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, null);
+                    gl.texImage2D(GL_TEXTURE_2D, 0, GL_R16F, width, height, 0, GL_RED, GL_FLOAT, null);
                 }
                 break;
 
@@ -575,7 +537,7 @@ export class Texture extends GLObject {
                 console.error('[Texture.setSize] invalid type');
         }
 
-        glBindTexture(gl, GL_TEXTURE_2D, null);
+        gl.bindTexture(GL_TEXTURE_2D, null);
     }
 
     /**

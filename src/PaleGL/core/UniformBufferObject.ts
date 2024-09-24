@@ -1,13 +1,6 @@
 import { GLObject } from '@/PaleGL/core/GLObject';
 import { GPU } from '@/PaleGL/core/GPU';
-import { UniformTypes } from '@/PaleGL/constants.ts';
-import {
-    GL_DYNAMIC_DRAW,
-    GL_UNIFORM_BUFFER, glBindBuffer,
-    glBindBufferBase,
-    glBufferData,
-    glCreateBuffer
-} from '@/PaleGL/core/webglWrapper.ts';
+import { GL_DYNAMIC_DRAW, GL_UNIFORM_BUFFER, UniformTypes } from '@/PaleGL/constants.ts';
 import {
     UniformBufferObjectElementValueArray,
     UniformBufferObjectElementValueNoNeedsPadding,
@@ -91,17 +84,17 @@ export class UniformBufferObject extends GLObject {
         this.bindingPoint = bindingPoint;
         const { gl } = this.gpu;
 
-        this.ubo = glCreateBuffer(gl)!;
+        this.ubo = gl.createBuffer()!;
 
         this.bind();
 
         // 必要なbyte数を確保しておく
-        glBufferData(gl, GL_UNIFORM_BUFFER, this.dataSize, GL_DYNAMIC_DRAW);
+        gl.bufferData(GL_UNIFORM_BUFFER, this.dataSize, GL_DYNAMIC_DRAW);
 
         this.unbind();
 
         // uboとbindingPointを関連付ける
-        glBindBufferBase(gl, GL_UNIFORM_BUFFER, this.bindingPoint, this.ubo);
+        gl.bindBufferBase(GL_UNIFORM_BUFFER, this.bindingPoint, this.ubo);
 
         // console.log(gpu, blockName, blockSize, variableNames, indices, offsets, dataSize, bindingPoint);
 
@@ -116,12 +109,12 @@ export class UniformBufferObject extends GLObject {
 
     bind() {
         const { gl } = this.gpu;
-        glBindBuffer(gl, GL_UNIFORM_BUFFER, this.ubo);
+        gl.bindBuffer(GL_UNIFORM_BUFFER, this.ubo);
     }
 
     unbind() {
         const { gl } = this.gpu;
-        glBindBuffer(gl, GL_UNIFORM_BUFFER, null);
+        gl.bindBuffer(GL_UNIFORM_BUFFER, null);
     }
 
     updateBufferData(variableName: string, data: Float32Array | Uint16Array, showLog: boolean = false) {
