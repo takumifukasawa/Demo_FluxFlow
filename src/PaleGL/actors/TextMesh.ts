@@ -87,6 +87,10 @@ export class TextMesh extends Actor {
             if (!charInfo) {
                 continue;
             }
+            
+            // TODO: 任意のスペースのサイズを指定したい
+            const additionalOffsetX = (i > 0 && charArray[i - 1] === " " ? fontAtlas.common.base * .5 : 0);
+
             const mesh = new CharMesh({
                 gpu,
                 name: `char-${char}`,
@@ -103,15 +107,15 @@ export class TextMesh extends Actor {
                     y: charInfo.y,
                     width: charInfo.width,
                     height: charInfo.height,
-                    xOffset: charInfo.xoffset,
+                    xOffset: charInfo.xoffset + additionalOffsetX,
                     yOffset: charInfo.yoffset,
                 },
                 castShadow,
             });
             this.addChild(mesh);
             this.charMeshes.push(mesh);
-
-            accWidth += (mesh.charWidth + mesh.charOffsetX);
+          
+            accWidth += mesh.charWidth + mesh.charOffsetX;
             // accHeight += mesh.charHeight;
         }
 
@@ -205,12 +209,12 @@ class CharMesh extends Mesh {
         const pixelSizeW = maxWidth / atlasInfo.lineHeight;
         const pixelSizeH = maxHeight / atlasInfo.lineHeight;
         const planeHeight = charInfo.height * pixelSizeH;
-        const planeWidth =  charInfo.width * pixelSizeW;
-        const topPadding = (maxHeight - planeHeight) * .5;
+        const planeWidth = charInfo.width * pixelSizeW;
+        const topPadding = (maxHeight - planeHeight) * 0.5;
         // 上下: 上に揃えてからoffsetYする. yOffsetは左上が原点なので反転
         const offsetY = topPadding - charInfo.yOffset * pixelSizeH;
         // 左右: widthの時点で幅調整がかかっているので、xOffsetのみでよい
-        const offsetX = charInfo.xOffset * pixelSizeW; 
+        const offsetX = charInfo.xOffset * pixelSizeW;
 
         const geometry = new PlaneGeometry({
             gpu,
