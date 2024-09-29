@@ -1,15 +1,15 @@
 vec3 toLocal(vec3 p, mat4 WtoO, vec3 scale) {
-    // return (WtoO * vec4(p, 1.)).xyz * abs(scale);
+    // scale = vec3(1.);
     return (WtoO * vec4(p, 1.)).xyz * scale;
-    // return p; 
 }
 
 vec2 objectSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale) {
+    // scale = vec3(1.);
     return dfScene(toLocal(worldPos, WtoO, scale));
-    // return dfScene(worldPos);
 }
 
 vec3 getNormalObjectSpaceDfScene(vec3 p, mat4 WtoO, vec3 scale) {
+    // scale = vec3(1.);
     const float eps = .0001;
     vec3 n = vec3(
         objectSpaceDfScene(p + vec3(eps, 0, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(-eps, 0, 0), WtoO, scale).x,
@@ -31,6 +31,7 @@ vec3 getNormalDfScene(vec3 p) {
 }
 
 bool isDfInnerBox(vec3 p, vec3 scale) {
+    // scale = vec3(1.);
     // 0 だとマッハバンドっぽい境目が出るのでちょっと余裕を持たせる
     const float eps = .0001;
     return

@@ -85,7 +85,8 @@ import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
 // import { Rotator } from '@/PaleGL/math/Rotator.ts';
 // import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 
-const MAX_INSTANCE_NUM = 10;
+// const MAX_INSTANCE_NUM = 512;
+const MAX_INSTANCE_NUM = 16;
 
 const stylesText = `
 :root {
@@ -608,7 +609,7 @@ const createMetaMorphMesh = (instanceNum: number) => {
         },
         castShadow: true,
     });
-    // mesh.transform.scale = new Vector3(3, 3, 3);
+    // mesh.transform.scale = new Vector3(.75, .75, .75);
     // mesh.transform.position = new Vector3(1.5, 1.5, 0);
     // const rot = new Rotator(Quaternion.identity());
     // rot.setRotationX(90);
@@ -733,6 +734,7 @@ const createMetaMorphMesh = (instanceNum: number) => {
         });
         transformFeedbackDoubleBuffer.swap();
 
+        // 更新する場合
         mesh.geometry.vertexArrayObject.replaceBuffer(
             AttributeNames.InstancePosition,
             transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer('aPosition')

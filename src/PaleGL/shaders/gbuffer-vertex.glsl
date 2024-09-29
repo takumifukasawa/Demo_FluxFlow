@@ -157,6 +157,7 @@ void main() {
         instanceRotationZ;
     
     // instanceごとのvelocityが必要なことに注意
+    // TODO: 追従率をuniformで渡したい
     #ifdef USE_INSTANCE_LOOK_DIRECTION
         instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
     #endif

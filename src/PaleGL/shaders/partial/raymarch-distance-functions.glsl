@@ -7,7 +7,13 @@
 
 //
 // operators
+// TRSをしたいときは基本的に opTrasnalte -> opRotaet -> opPreScale -> distanceFunction -> opPostScale の順でやる 
 //
+
+// ref: https://www.shadertoy.com/view/ldlcRf
+vec2 minMat(vec2 d1, vec2 d2) {
+    return (d1.x < d2.x) ? d1 : d2;
+}
 
 mat2 rot(float a) {
     float s = sin(a), c = cos(a);
@@ -40,8 +46,8 @@ float opPostScale(float d, vec3 s) {
 }
 
 vec2 opFoldRotate(in vec2 p, float s) {
-    float a = pi / s - atan(p.x, p.y);
-    float n = pi * 2. / s;
+    float a = PI / s - atan(p.x, p.y);
+    float n = PI * 2. / s;
     a = floor(a / n) * n;
     p = opRot(p, -a);
     return p;

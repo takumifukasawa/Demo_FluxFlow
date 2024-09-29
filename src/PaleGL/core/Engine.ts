@@ -43,6 +43,7 @@ export class Engine {
     // timers
     #fixedUpdateFrameTimer: TimeAccumulator;
     #updateFrameTimer: TimeSkipper;
+    #renderFrameTimer: TimeSkipper;
     // callbacks
     #onBeforeStart: EngineOnBeforeStartCallback | null = null;
     #onAfterStart: EngineOnAfterStartCallback | null = null;
@@ -93,6 +94,9 @@ export class Engine {
     constructor({
         gpu,
         renderer,
+        fixedUpdateFps = 60,
+        updateFps = 60,
+        renderFps = 60,
         onBeforeFixedUpdate,
         onBeforeUpdate,
         onRender,
@@ -100,6 +104,9 @@ export class Engine {
     }: {
         gpu: GPU;
         renderer: Renderer;
+        fixedUpdateFps?: number;
+        updateFps?: number;
+        renderFps?: number;
         onBeforeFixedUpdate?: EngineOnBeforeFixedUpdateCallback;
         onBeforeUpdate?: EngineOnBeforeUpdateCallback;
         onRender?: EngineOnRenderCallback;
@@ -112,8 +119,9 @@ export class Engine {
         this.#renderer.setStats(this.#stats);
 
         // TODO: 外からfps変えられるようにしたい
-        this.#fixedUpdateFrameTimer = new TimeAccumulator(60, this.fixedUpdate.bind(this));
-        this.#updateFrameTimer = new TimeSkipper(60, this.update.bind(this));
+        this.#fixedUpdateFrameTimer = new TimeAccumulator(fixedUpdateFps, this.fixedUpdate.bind(this));
+        this.#updateFrameTimer = new TimeSkipper(updateFps, this.update.bind(this));
+        this.#renderFrameTimer = new TimeSkipper(renderFps, this.render.bind(this));
 
         this.#onBeforeFixedUpdate = onBeforeFixedUpdate || null;
         this.#onBeforeUpdate = onBeforeUpdate || null;
@@ -141,6 +149,7 @@ export class Engine {
         const t = performance.now() / 1000;
         this.#fixedUpdateFrameTimer.start(t);
         this.#updateFrameTimer.start(t);
+        this.#renderFrameTimer.start(t);
         if (this.#onAfterStart) {
             this.#onAfterStart();
         }
@@ -250,11 +259,11 @@ export class Engine {
             actor.updateTransform();
         });
         
-        //
-        // render
-        //
+        // //
+        // // render
+        // //
 
-        this.render(time, deltaTime);
+        // this.render(time, deltaTime);
     }
 
     /**
@@ -297,5 +306,6 @@ export class Engine {
     run(time: number) {
         this.#fixedUpdateFrameTimer.exec(time / 1000);
         this.#updateFrameTimer.exec(time / 1000);
+        this.#renderFrameTimer.exec(time / 1000);
     }
 }
