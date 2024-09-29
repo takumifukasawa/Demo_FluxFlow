@@ -86,7 +86,7 @@ import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
 // import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 
 // const MAX_INSTANCE_NUM = 512;
-const MAX_INSTANCE_NUM = 16;
+const MAX_INSTANCE_NUM = 256;
 
 const stylesText = `
 :root {
@@ -169,7 +169,7 @@ const renderer = new Renderer({
     pixelRatio,
 });
 
-const engine = new Engine({ gpu, renderer });
+const engine = new Engine({ gpu, renderer, updateFps: 30 });
 
 engine.setScene(captureScene);
 
@@ -352,6 +352,8 @@ const buildScene = (sceneJson: MarionetterScene) => {
     captureSceneCamera.setPostProcess(cameraPostProcess);
 
     // parseScene(sceneJson);
+    
+    console.log("hogehoge", actors)
 
     console.log('scene', actors);
 };
