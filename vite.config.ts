@@ -220,7 +220,8 @@ export default defineConfig(async (config) => {
                 // },
             },
             minify: 'terser',
-            target: 'es2022',
+            // target: 'es2022',
+            target: 'esnext',
             terserOptions: {
                 mangle: {
                     toplevel: true,
