@@ -73,6 +73,8 @@ import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh
 import litObjectSpaceRaymarchMetaMorphFrag from '@/PaleGL/shaders/lit-object-space-raymarch-meta-morph-fragment.glsl';
 import gBufferObjectSpaceRaymarchMetaMorphDepthFrag from '@/PaleGL/shaders/gbuffer-object-space-raymarch-meta-morph-depth-fragment.glsl';
 import demoMetaMorphTransformFeedbackVertex from '@/PaleGL/shaders/demo-meta-morph-transform-feedback-vertex.glsl';
+import litScreenSpaceRaymarchFrag from '@/PaleGL/shaders/lit-screen-space-raymarch-fragment.glsl';
+import gBufferScreenSpaceRaymarchDepthFrag from '@/PaleGL/shaders/gbuffer-screen-space-raymarch-depth-fragment.glsl';
 
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
@@ -84,6 +86,7 @@ import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
 import { UnlitMaterial } from '@/PaleGL/materials/UnlitMaterial.ts';
 import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
+import {ScreenSpaceRaymarchMesh} from "@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts";
 // import { Rotator } from '@/PaleGL/math/Rotator.ts';
 // import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 
@@ -127,6 +130,56 @@ canvas {
   height: 100%;
   background-color: black;
 }
+
+#w {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  z-index: 9999;
+}
+#o {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  width: 200px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 5px solid white;
+}
+#i {
+  width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  background-color: white;
+  position: absolute;
+  border: 1px solid black;
+  transition: width 1s ease-out;
+}
+#c {
+  display: none;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  flex-direction: column;
+}
+#c button {
+  display: block;
+}
+#p {
+  margin-top: 1em;
+}
+
 `;
 const styleElement = document.createElement('style');
 styleElement.innerText = stylesText;
@@ -354,8 +407,6 @@ const buildScene = (sceneJson: MarionetterScene) => {
     captureSceneCamera.setPostProcess(cameraPostProcess);
 
     // parseScene(sceneJson);
-    
-    console.log("hogehoge", actors)
 
     console.log('scene', actors);
 };
@@ -383,25 +434,45 @@ const initHotReloadAndParseScene = () => {
     hotReloadScene();
 };
 
-const startupWrapperElement = document.getElementById('w');
-const loadingContentElement = document.getElementById('o');
-const loadingGageElement = document.getElementById('i');
-const menuContentElement = document.getElementById('c');
-const fullscreenButtonElement = document.getElementById('f');
-const playButtonElement = document.getElementById('p');
+const startupWrapperElement = document.createElement('div');
+startupWrapperElement.id = "w";
+
+const loadingContentElement = document.createElement('div');
+loadingContentElement.id = "o";
+startupWrapperElement.appendChild(loadingContentElement);
+
+const loadingGageElement = document.createElement('div');
+loadingGageElement.id = 'i';
+loadingContentElement.appendChild(loadingGageElement);
+
+const menuContentElement = document.createElement('div');
+menuContentElement.id = "c";
+startupWrapperElement.appendChild(menuContentElement);
+
+const fullscreenButtonElement = document.createElement('button');
+fullscreenButtonElement.id = 'f';
+fullscreenButtonElement.textContent = "FULL SCREEN";
+menuContentElement.appendChild(fullscreenButtonElement);
+
+const playButtonElement = document.createElement('button');
+playButtonElement.id = 'p';
+playButtonElement.textContent = "PLAY";
+menuContentElement.appendChild(playButtonElement);
+
+document.body.appendChild(startupWrapperElement);
 
 const hideLoading = () => {
-    loadingContentElement!.style.display = 'none';
+    loadingContentElement.style.display = 'none';
 };
 const setLoadingPercentile = (percent: number) => {
-    loadingGageElement!.style.width = `${percent}%`;
+    loadingGageElement.style.width = `${percent}%`;
 };
 const showMenu = () => {
-    menuContentElement!.style.display = 'flex';
+    menuContentElement.style.display = 'flex';
 };
 
 const hideStartupWrapper = () => {
-    startupWrapperElement!.style.display = 'none';
+    startupWrapperElement.style.display = 'none';
 };
 
 let metaMorphMesh: ObjectSpaceRaymarchMesh;
@@ -755,6 +826,26 @@ const createMetaMorphMesh = (instanceNum: number) => {
     return mesh;
 };
 
+let screenSpaceRaymarchMesh: Mesh;
+const createScreenSpaceRaymarchMesh = () => {
+    const mesh = new ScreenSpaceRaymarchMesh({
+        gpu,
+        materialArgs: {
+            fragmentShader: litScreenSpaceRaymarchFrag,
+            depthFragmentShader: gBufferScreenSpaceRaymarchDepthFrag,
+            metallic: 0,
+            roughness: 0,
+            receiveShadow: true,
+            emissiveColor: Color.white
+        },
+        // castShadow: true,
+    });
+    mesh.transform.scale = new Vector3(2, 2, 2);
+    mesh.transform.position = new Vector3(0, 4, 0);
+    
+    return mesh;
+}
+
 const load = async () => {
     setLoadingPercentile(10);
 
@@ -827,6 +918,13 @@ const load = async () => {
 
     metaMorphMesh = createMetaMorphMesh(MAX_INSTANCE_NUM);
     captureScene.add(metaMorphMesh);
+    
+    //
+    // screen space object
+    //
+    
+    screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh();
+    captureScene.add(screenSpaceRaymarchMesh);
 
     //
     // text mesh
@@ -887,7 +985,7 @@ const load = async () => {
     await wait(1);
     // await wait(1200);
 
-    fullscreenButtonElement!.addEventListener('click', () => {
+    fullscreenButtonElement.addEventListener('click', () => {
         if (!document.fullscreenElement) {
             // eslint-disable-next-line
             document.documentElement.requestFullscreen().then(() => {
@@ -896,7 +994,7 @@ const load = async () => {
         }
     });
 
-    playButtonElement!.addEventListener('click', () => {
+    playButtonElement.addEventListener('click', () => {
         hideStartupWrapper();
         playDemo();
     });

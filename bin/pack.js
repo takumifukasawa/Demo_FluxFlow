@@ -21,9 +21,19 @@ const pack = async (filePath) => {
     const id = `${padTime(date.getFullYear())}${padTime(date.getMonth() + 1)}${padTime(date.getDate())}${padTime(date.getHours())}${padTime(date.getMinutes())}`;
     
     return new Promise((resolve) => {
+        // // pattern1: packer.js
         const packShellPath = path.join(process.cwd(), 'libs/packer.js');
         const distPath = path.join(process.cwd(), `dist/packed-${id}.html`);
         const command = `node ${packShellPath} ${filePath} ${distPath}`;
+        // // pattern2: jsexe
+        // const packShellPath = path.join(process.cwd(), 'libs/jsexe.exe');
+        // const distPath = path.join(process.cwd(), `dist/packed-${id}.html`);
+        // const command = `${packShellPath} -po -cn ./dist/assets/main.js ./dist/packed-${id}.html`;
+        // pattern2: pnginator
+        // const packShellPath = path.join(process.cwd(), 'libs/pnginator.rb');
+        // const distPath = path.join(process.cwd(), `dist/packed-${id}.html`);
+        // const command = `ruby ${packShellPath} ./dist/assets/main.js ./dist/packed-${id}.png.html`;
+
         console.log(`run: ${command}`);
         exec(command, (error, stdout, stderr) => {
             if (error) {

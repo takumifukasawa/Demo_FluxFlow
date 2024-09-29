@@ -4,67 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Demo</title>
-    <style>
-      #w {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: black;
-        z-index: 9999;
-      }
-      #o {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        margin: auto;
-        width: 200px;
-        height: 20px;
-        box-sizing: border-box;
-        border: 5px solid white;
-      }
-      #i {
-        width: 0;
-        height: 100%;
-        box-sizing: border-box;
-        background-color: white;
-        position: absolute;
-        border: 1px solid black;
-        transition: width 1s ease-out;
-      }
-      #c {
-        display: none;
-        justify-content: center;
-        align-items: center;
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        margin: auto;
-        flex-direction: column;
-      }
-      #c button {
-        display: block;
-      }
-      #p {
-        margin-top: 1em;
-      }
-    </style>
   </head>
   <body>
-    <div id="w">
-      <div id="o">
-        <div id="i"></div>
-      </div>
-      <div id="c">
-        <button id="f">FULL SCREEN</button>
-        <button id="p">PLAY</button>
-      </div>
-    </div>
     <script type="module" src="./main.ts"></script>
   </body>
 </html>

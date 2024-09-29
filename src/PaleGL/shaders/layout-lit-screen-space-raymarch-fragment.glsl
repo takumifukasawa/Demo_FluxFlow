@@ -65,7 +65,7 @@ in vec3 vWorldPosition;
 
 void main() {
     vec4 resultColor = vec4(0, 0, 0, 1);
-    vec4 emissiveColor = vec4(0., 0., 0., 1.);
+    vec4 emissiveColor = vec4(1., 1., 1., 1.);
     
     vec3 worldNormal = vec3(0., 0., 1.);
 

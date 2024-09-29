@@ -1,16 +1,22 @@
 import { MaterialArgs, Material } from '@/PaleGL/materials/Material';
-import {DepthFuncTypes, ShadingModelIds, UniformBlockNames, UniformNames, UniformTypes} from '@/PaleGL/constants';
+import { DepthFuncTypes, ShadingModelIds, UniformBlockNames, UniformNames, UniformTypes } from '@/PaleGL/constants';
 import postprocessVert from '@/PaleGL/shaders/postprocess-pass-vertex.glsl';
 // import postprocessVert from '@/PaleGL/shaders/gbuffer-vertex.glsl';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
+import { Color } from '@/PaleGL/math/Color.ts';
 
 // TODO: uniformsは一旦まっさらにしている。metallic,smoothnessの各種パラメーター、必要になりそうだったら適宜追加する
 export type ScreenSpaceRaymarchMaterialArgs = {
     shadingModelId?: ShadingModelIds;
-} & MaterialArgs & {
-        fragmentShader: string;
-        depthFragmentShader: string;
-    };
+    fragmentShader: string;
+    depthFragmentShader: string;
+
+    // TODO: GBufferから引っ張ってきたい
+    diffuseColor?: Color;
+    metallic?: number;
+    roughness?: number;
+    emissiveColor?: Color;
+} & MaterialArgs;
 
 export class ScreenSpaceRaymarchMaterial extends Material {
     constructor({
@@ -19,13 +25,17 @@ export class ScreenSpaceRaymarchMaterial extends Material {
         depthFragmentShader,
         shadingModelId = ShadingModelIds.Lit,
         uniforms = [],
+        diffuseColor,
+        emissiveColor,
+        metallic,
+        roughness,
         ...options
     }: ScreenSpaceRaymarchMaterialArgs) {
         const commonUniforms: UniformsData = [
             {
                 name: UniformNames.DepthTexture,
                 type: UniformTypes.Texture,
-                value: null
+                value: null,
             },
             // {
             //     name: UniformNames.CameraNear,
@@ -37,6 +47,27 @@ export class ScreenSpaceRaymarchMaterial extends Material {
             //     type: UniformTypes.Float,
             //     value: 0,
             // }
+
+            {
+                name: 'uDiffuseColor',
+                type: UniformTypes.Color,
+                value: diffuseColor || Color.white,
+            },
+            {
+                name: UniformNames.Metallic,
+                type: UniformTypes.Float,
+                value: metallic || 0,
+            },
+            {
+                name: UniformNames.Roughness,
+                type: UniformTypes.Float,
+                value: roughness || 0,
+            },
+            {
+                name: 'uEmissiveColor',
+                type: UniformTypes.Color,
+                value: emissiveColor || Color.black,
+            },
         ];
         const shadingUniforms: UniformsData = [
             {
@@ -67,10 +98,7 @@ export class ScreenSpaceRaymarchMaterial extends Material {
             depthWrite: true,
             depthFuncType: DepthFuncTypes.Lequal,
             skipDepthPrePass: true,
-            uniformBlockNames: [
-                UniformBlockNames.Transformations,
-                UniformBlockNames.Camera
-            ]
+            uniformBlockNames: [UniformBlockNames.Transformations, UniformBlockNames.Camera],
         });
     }
 }

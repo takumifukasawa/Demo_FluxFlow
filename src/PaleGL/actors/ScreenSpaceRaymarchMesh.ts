@@ -3,7 +3,10 @@ import { PrimitiveTypes, UniformNames, UniformTypes } from '@/PaleGL/constants.t
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { PlaneGeometry } from '@/PaleGL/geometries/PlaneGeometry.ts';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
-import { ScreenSpaceRaymarchMaterial } from '@/PaleGL/materials/ScreenSpaceRaymarchMaterial.ts';
+import {
+    ScreenSpaceRaymarchMaterial,
+    ScreenSpaceRaymarchMaterialArgs,
+} from '@/PaleGL/materials/ScreenSpaceRaymarchMaterial.ts';
 import { PostProcessPassBase } from '@/PaleGL/postprocess/PostProcessPassBase.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 // import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
@@ -13,37 +16,31 @@ import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera.ts';
 type ScreenSpaceRaymarchMeshArgs = {
     gpu: GPU;
     name?: string;
-    fragmentShader: string;
-    depthFragmentShader: string;
     uniforms?: UniformsData;
+    materialArgs: ScreenSpaceRaymarchMaterialArgs;
 };
 
 export class ScreenSpaceRaymarchMesh extends Mesh {
-    constructor({ gpu, name = '', fragmentShader, depthFragmentShader, uniforms = [] }: ScreenSpaceRaymarchMeshArgs) {
+    constructor({
+        gpu,
+        name = '',
+        uniforms = [],
+        materialArgs,
+    }: ScreenSpaceRaymarchMeshArgs) {
         const mergedUniforms: UniformsData = [
             {
                 name: UniformNames.ViewDirection,
                 type: UniformTypes.Vector3,
                 value: Vector3.zero,
             },
-            // {
-            //     name: 'uAspect',
-            //     type: UniformTypes.Float,
-            //     value: 0,
-            // },
-            // {
-            //     name: 'uFov',
-            //     type: UniformTypes.Float,
-            //     value: 0,
-            // },
             ...uniforms,
             ...PostProcessPassBase.commonUniforms,
         ];
         // NOTE: geometryは親から渡して使いまわしてもよい
         const geometry = new PlaneGeometry({ gpu });
         const material = new ScreenSpaceRaymarchMaterial({
-            fragmentShader,
-            depthFragmentShader,
+            ...materialArgs,
+            // overrides
             uniforms: mergedUniforms,
             // receiveShadow: !!receiveShadow,
             primitiveType: PrimitiveTypes.Triangles,
@@ -51,7 +48,7 @@ export class ScreenSpaceRaymarchMesh extends Mesh {
 
         super({ name, geometry, material });
     }
-    
+
     setSize(width: number, height: number) {
         super.setSize(width, height);
         this.mainMaterial.uniforms.setValue(UniformNames.TargetWidth, width);

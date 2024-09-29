@@ -35,7 +35,7 @@ void main() {
     //
 
     vec3 rayOrigin = uViewPosition;
-    vec3 rayDirection =vec3(0., 0., -1.);
+    vec3 rayDirection = vec3(0., 0., -1.);
     // vec3 rayDirection = normalize(vWorldPosition - uViewPosition);
     float distance = 0.;
     float accLen = 0.;
