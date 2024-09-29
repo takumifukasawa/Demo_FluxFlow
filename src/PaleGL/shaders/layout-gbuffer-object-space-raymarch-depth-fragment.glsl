@@ -40,6 +40,7 @@ uniform float uAlphaTestThreshold;
 in vec2 vUv;
 in vec3 vLocalPosition;
 in vec3 vWorldPosition;
+in mat4 vInverseWorldMatrix;
 
 #ifdef USE_VERTEX_COLOR
 in vec4 vVertexColor;
@@ -74,10 +75,12 @@ void main() {
     float minDistance = .0001;
     for(int i = 0; i < 64; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
-        distance = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
+        // distance = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale).x;
+        distance = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale).x;
         accLen += distance;
         if(
-            !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
+            // !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
+            !isDfInnerBox(toLocal(currentRayPosition, vInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
             distance <= minDistance
         ) {
             break;

@@ -28,8 +28,14 @@ import { MouseInputController } from '@/PaleGL/inputs/MouseInputController';
 
 // others
 import {
+    AttributeNames,
+    AttributeUsageType,
+    FaceSide,
     RenderTargetTypes,
-    TextureDepthPrecisionType, TextureFilterTypes,
+    TextureDepthPrecisionType,
+    TextureFilterTypes,
+    UniformBlockNames,
+    UniformTypes,
     // TextureFilterTypes,
     // TextureFilterTypes,
     // TextureFilterTypes, TextureWrapTypes,
@@ -62,6 +68,24 @@ import { Texture } from '@/PaleGL/core/Texture.ts';
 import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
 import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.png?url';
 import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.json';
+import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
+
+import litObjectSpaceRaymarchMetaMorphFrag from '@/PaleGL/shaders/lit-object-space-raymarch-meta-morph-fragment.glsl';
+import gBufferObjectSpaceRaymarchMetaMorphDepthFrag from '@/PaleGL/shaders/gbuffer-object-space-raymarch-meta-morph-depth-fragment.glsl';
+import { maton } from '@/PaleGL/utilities/maton.ts';
+import { Color } from '@/PaleGL/math/Color.ts';
+import { Attribute } from '@/PaleGL/core/Attribute.ts';
+import { TransformFeedbackDoubleBuffer } from '@/PaleGL/core/TransformFeedbackDoubleBuffer.ts';
+import { Vector2 } from '@/PaleGL/math/Vector2.ts';
+import { clamp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
+import { Mesh } from '@/PaleGL/actors/Mesh.ts';
+import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
+import { UnlitMaterial } from '@/PaleGL/materials/UnlitMaterial.ts';
+import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
+// import { Rotator } from '@/PaleGL/math/Rotator.ts';
+// import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
+
+const MAX_INSTANCE_NUM = 1;
 
 const stylesText = `
 :root {
@@ -109,6 +133,7 @@ let width: number, height: number;
 let glslSound: GLSLSound | null;
 let marionetterTimeline: MarionetterTimeline | null = null;
 let bufferVisualizerPass: BufferVisualizerPass;
+let attractorMesh: Mesh;
 
 const marionetter: Marionetter = createMarionetter({ showLog: false });
 
@@ -374,6 +399,355 @@ const hideStartupWrapper = () => {
     startupWrapperElement!.style.display = 'none';
 };
 
+let metaMorphMesh: ObjectSpaceRaymarchMesh;
+
+const createInstanceUpdater = (instanceNum: number) => {
+    //
+    // begin create mesh
+    //
+
+    // const planeNum = 512;
+
+    const initialPosition = new Float32Array(
+        maton
+            .range(instanceNum)
+            .map(() => {
+                const range = 10;
+                return [
+                    Math.random() * range - range * 0.5,
+                    Math.random() * 4 + 2,
+                    Math.random() * range - range * 0.5,
+                ];
+            })
+            .flat()
+    );
+
+    const initialVelocity = new Float32Array(
+        maton
+            .range(instanceNum)
+            .map(() => {
+                return [0, 0, 0];
+            })
+            .flat()
+    );
+
+    const initialSeed = new Float32Array(
+        maton
+            .range(instanceNum, true)
+            .map((i) => {
+                return [
+                    i,
+                    i,
+                    // i + Math.floor(Math.random() * 100000),
+                    // // Math.floor(Math.random() * 10000),
+                    // Math.floor(Math.random() * 100000)
+                ];
+            })
+            .flat()
+    );
+
+    const transformFeedbackDoubleBuffer = new TransformFeedbackDoubleBuffer({
+        gpu,
+        attributes: [
+            new Attribute({
+                name: 'aPosition',
+                data: initialPosition,
+                size: 3,
+                usageType: AttributeUsageType.DynamicDraw,
+            }),
+            new Attribute({
+                name: 'aVelocity',
+                data: initialVelocity,
+                size: 3,
+                usageType: AttributeUsageType.DynamicDraw,
+            }),
+            new Attribute({
+                name: 'aSeed',
+                data: initialSeed,
+                size: 2,
+                usageType: AttributeUsageType.StaticDraw,
+            }),
+        ],
+        varyings: [
+            {
+                name: 'vPosition',
+                data: new Float32Array(initialPosition),
+            },
+            {
+                name: 'vVelocity',
+                data: new Float32Array(initialVelocity),
+            },
+        ],
+        vertexShader: `#version 300 es
+
+        precision highp float;
+
+        // TODO: ここ動的に構築してもいい
+        layout(location = 0) in vec3 aPosition;
+        layout(location = 1) in vec3 aVelocity;
+        layout(location = 2) in vec2 aSeed;
+
+        out vec3 vPosition;
+        // out mat4 vTransform;
+        out vec3 vVelocity;
+
+
+layout (std140) uniform ubCommon {
+    float uTime;
+};
+
+        // uniform float uTime;
+        uniform vec2 uNormalizedInputPosition;
+        uniform vec3 uAttractTargetPosition;
+        uniform float uAttractRate;
+
+        // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+        float noise(vec2 seed)
+        {
+            return fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453);
+        }
+        
+        void main() {
+            vPosition = aPosition + aVelocity;
+            vec3 target = uAttractTargetPosition;
+            vec2 seed = aSeed;
+            float rand = noise(seed);
+            target += vec3(
+                cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
+                sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.) + 1.,
+                cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
+            );
+            vec3 v = target - vPosition;
+            vec3 dir = normalize(v);
+            vVelocity = mix(
+                aVelocity,
+                dir * (.1 + uAttractRate * .1),
+                .03 + sin(uTime * .2 + rand * 100.) * .02
+            );
+        }
+        `,
+        // fragmentShader: `#version 300 es
+
+        // precision highp float;
+
+        // void main() {
+        // }
+        // `,
+        uniforms: [
+            // {
+            //     name: UniformNames.Time,
+            //     type: UniformTypes.Float,
+            //     value: 0,
+            // },
+            {
+                name: 'uNormalizedInputPosition',
+                type: UniformTypes.Vector2,
+                value: Vector2.zero,
+            },
+            {
+                name: 'uAttractTargetPosition',
+                type: UniformTypes.Vector3,
+                value: Vector3.zero,
+            },
+            {
+                name: 'uAttractRate',
+                type: UniformTypes.Float,
+                value: 0,
+            },
+        ],
+        uniformBlockNames: [UniformBlockNames.Common],
+        drawCount: instanceNum,
+    });
+
+    // TODO: rendererかgpuでまとめたい
+    transformFeedbackDoubleBuffer.uniformBlockNames.forEach((blockName) => {
+        const targetGlobalUniformBufferObject = renderer.globalUniformBufferObjects.find(
+            ({ uniformBufferObject }) => uniformBufferObject.blockName === blockName
+        );
+        if (!targetGlobalUniformBufferObject) {
+            return;
+        }
+        const blockIndex = gpu.bindUniformBlockAndGetBlockIndex(
+            targetGlobalUniformBufferObject.uniformBufferObject,
+            transformFeedbackDoubleBuffer.shader,
+            blockName
+        );
+        // console.log("hogehoge", blockName, blockIndex)
+        // for debug
+        // console.log(
+        //     material.name,
+        //     'addUniformBlock',
+        //     material.uniformBlockNames,
+        //     targetUniformBufferObject.blockName,
+        //     blockIndex
+        // );
+        transformFeedbackDoubleBuffer.uniforms.addUniformBlock(
+            blockIndex,
+            targetGlobalUniformBufferObject.uniformBufferObject,
+            []
+        );
+    });
+
+    return transformFeedbackDoubleBuffer;
+};
+
+const createMetaMorphMesh = (instanceNum: number) => {
+    const mesh = new ObjectSpaceRaymarchMesh({
+        gpu,
+        materialArgs: {
+            fragmentShader: litObjectSpaceRaymarchMetaMorphFrag,
+            depthFragmentShader: gBufferObjectSpaceRaymarchMetaMorphDepthFrag,
+            metallic: 0,
+            roughness: 0,
+            receiveShadow: true,
+
+            isInstancing: true,
+            useInstanceLookDirection: true,
+            useVertexColor: false,
+            faceSide: FaceSide.Double,
+        },
+        castShadow: true,
+    });
+    // mesh.transform.scale = new Vector3(3, 3, 3);
+    // mesh.transform.position = new Vector3(1.5, 1.5, 0);
+    // const rot = new Rotator(Quaternion.identity());
+    // rot.setRotationX(90);
+    // mesh.transform.rotation = rot;
+
+    const instanceInfo: {
+        position: number[][];
+        scale: number[][];
+        rotation: number[][];
+        velocity: number[][];
+        color: number[][];
+    } = {
+        position: [],
+        scale: [],
+        rotation: [],
+        velocity: [],
+        color: [],
+    };
+    maton.range(instanceNum).forEach(() => {
+        instanceInfo.position.push([0, 0, 0]);
+
+        // const baseScale = 0.25;
+        const baseScale = 2;
+        const randomScaleRange = 0.25;
+        const s = Math.random() * randomScaleRange + baseScale;
+        instanceInfo.scale.push([s, s, s]);
+
+        instanceInfo.rotation.push([0, 0, 0]);
+
+        instanceInfo.velocity.push([0, 0, 0]);
+
+        const c = Color.fromRGB(
+            Math.floor(Math.random() * 180 + 20),
+            Math.floor(Math.random() * 20 + 20),
+            Math.floor(Math.random() * 180 + 20)
+        );
+        instanceInfo.color.push([...c.elements]);
+    });
+    const animationOffsetInfo = maton
+        .range(instanceNum)
+        .map(() => {
+            return Math.random() * 30;
+        })
+        .flat();
+
+    mesh.castShadow = true;
+    mesh.geometry.instanceCount = instanceNum;
+
+    // TODO: instanceのoffset回りは予約語にしてもいいかもしれない
+    mesh.geometry.setAttribute(
+        new Attribute({
+            name: AttributeNames.InstancePosition,
+            data: new Float32Array(instanceInfo.position.flat()),
+            size: 3,
+            divisor: 1,
+        })
+    );
+    mesh.geometry.setAttribute(
+        new Attribute({
+            name: AttributeNames.InstanceScale,
+            data: new Float32Array(instanceInfo.scale.flat()),
+            size: 3,
+            divisor: 1,
+        })
+    );
+    mesh.geometry.setAttribute(
+        new Attribute({
+            name: AttributeNames.InstanceRotation,
+            data: new Float32Array(instanceInfo.rotation.flat()),
+            size: 3,
+            divisor: 1,
+        })
+    );
+    // aInstanceAnimationOffsetは予約語
+    mesh.geometry.setAttribute(
+        new Attribute({
+            name: AttributeNames.InstanceAnimationOffset,
+            data: new Float32Array(animationOffsetInfo),
+            size: 1,
+            divisor: 1,
+        })
+    );
+    mesh.geometry.setAttribute(
+        new Attribute({
+            name: AttributeNames.InstanceVertexColor,
+            data: new Float32Array(instanceInfo.color.flat()),
+            size: 4,
+            divisor: 1,
+        })
+    );
+    mesh.geometry.setAttribute(
+        new Attribute({
+            name: AttributeNames.InstanceVelocity,
+            data: new Float32Array(instanceInfo.velocity.flat()),
+            size: 3,
+            divisor: 1,
+        })
+    );
+
+    const transformFeedbackDoubleBuffer = createInstanceUpdater(MAX_INSTANCE_NUM);
+
+    let attractRate = 0;
+    mesh.onUpdate = ({ deltaTime }) => {
+        transformFeedbackDoubleBuffer.uniforms.setValue(
+            'uNormalizedInputPosition',
+            inputController.normalizedInputPosition
+        );
+        transformFeedbackDoubleBuffer.uniforms.setValue(
+            'uAttractTargetPosition',
+            Vector3.addVectors(attractorMesh.transform.position, new Vector3(0, 0, 0))
+        );
+
+        attractRate += (inputController.isDown ? 1 : -1) * deltaTime * 2;
+        attractRate = saturate(attractRate);
+        transformFeedbackDoubleBuffer.uniforms.setValue('uAttractRate', attractRate);
+        gpu.updateTransformFeedback({
+            shader: transformFeedbackDoubleBuffer.shader,
+            uniforms: transformFeedbackDoubleBuffer.uniforms,
+            vertexArrayObject: transformFeedbackDoubleBuffer.write.vertexArrayObject,
+            transformFeedback: transformFeedbackDoubleBuffer.write.transformFeedback,
+            drawCount: transformFeedbackDoubleBuffer.drawCount,
+        });
+        transformFeedbackDoubleBuffer.swap();
+
+        mesh.geometry.vertexArrayObject.replaceBuffer(
+            AttributeNames.InstancePosition,
+            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer('aPosition')
+        );
+        mesh.geometry.vertexArrayObject.replaceBuffer(
+            AttributeNames.InstanceVelocity,
+            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer('aVelocity')
+        );
+
+        mesh.geometry.instanceCount = MAX_INSTANCE_NUM;
+    };
+
+    return mesh;
+};
+
 const load = async () => {
     setLoadingPercentile(10);
 
@@ -410,6 +784,44 @@ const load = async () => {
     }
 
     //
+    // attract mesh
+    //
+
+    attractorMesh = new Mesh({
+        geometry: new BoxGeometry({ gpu }),
+        material: new UnlitMaterial({
+            emissiveColor: new Color(3, 3, 3, 1),
+        }),
+        castShadow: true,
+    });
+    attractorMesh.subscribeOnStart(({ actor }) => {
+        actor.transform.setScaling(Vector3.fill(0.5));
+    });
+    attractorMesh.onFixedUpdate = () => {
+        if (captureSceneCamera) {
+            const ray = captureSceneCamera.viewpointToRay(
+                new Vector2(inputController.normalizedInputPosition.x, 1 - inputController.normalizedInputPosition.y)
+            );
+            const plane = new Plane(Vector3.zero, Vector3.up);
+            const intersectOnPlane = intersectRayWithPlane(ray, plane);
+            if (intersectOnPlane) {
+                const x = clamp(intersectOnPlane.x, -5, 5);
+                const z = clamp(intersectOnPlane.z, -5, 5);
+                const p = new Vector3(x, 1, z);
+                attractorMesh.transform.setTranslation(p);
+            }
+        }
+    };
+    captureScene.add(attractorMesh);
+
+    //
+    // meta morph object
+    //
+
+    metaMorphMesh = createMetaMorphMesh(MAX_INSTANCE_NUM);
+    captureScene.add(metaMorphMesh);
+
+    //
     // text mesh
     //
 
@@ -423,7 +835,7 @@ const load = async () => {
     });
     const textMesh1 = new TextMesh({
         gpu,
-        text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        text: 'ABCDEFGHIJKLMNOPQR STUVWXYZ',
         fontTexture: fontAtlasTexture,
         fontAtlas: fontAtlasJson,
         castShadow: true,
@@ -435,37 +847,38 @@ const load = async () => {
     textMesh1.transform.rotation.setRotationX(-90);
     textMesh1.transform.scale = Vector3.fill(0.4);
 
-    const textMesh2 = new TextMesh({
-        gpu,
-        text: 'abcdefghijklmnopqrstuvwxyz',
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: true,
-        align: TextAlignType.Center,
-        characterSpacing: -0.16,
-    });
-    captureScene.add(textMesh2);
-    textMesh2.transform.position = new Vector3(0, 2, 8);
-    textMesh2.transform.rotation.setRotationX(-90);
-    textMesh2.transform.scale = Vector3.fill(0.4);
+    // const textMesh2 = new TextMesh({
+    //     gpu,
+    //     text: 'abcdefghijklmnopqrstuvwxyz',
+    //     fontTexture: fontAtlasTexture,
+    //     fontAtlas: fontAtlasJson,
+    //     castShadow: true,
+    //     align: TextAlignType.Center,
+    //     characterSpacing: -0.16,
+    // });
+    // captureScene.add(textMesh2);
+    // textMesh2.transform.position = new Vector3(0, 2, 8);
+    // textMesh2.transform.rotation.setRotationX(-90);
+    // textMesh2.transform.scale = Vector3.fill(0.4);
 
-    const textMesh3 = new TextMesh({
-        gpu,
-        text: '0123456789',
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: true,
-        align: TextAlignType.Left,
-        characterSpacing: 0.2,
-    });
-    captureScene.add(textMesh3);
-    textMesh3.transform.position = new Vector3(0, 0.01, 9);
-    textMesh3.transform.rotation.setRotationX(-90);
-    textMesh3.transform.scale = Vector3.fill(0.4);
+    // const textMesh3 = new TextMesh({
+    //     gpu,
+    //     text: '0123456789',
+    //     fontTexture: fontAtlasTexture,
+    //     fontAtlas: fontAtlasJson,
+    //     castShadow: true,
+    //     align: TextAlignType.Left,
+    //     characterSpacing: 0.2,
+    // });
+    // captureScene.add(textMesh3);
+    // textMesh3.transform.position = new Vector3(0, 0.01, 9);
+    // textMesh3.transform.rotation.setRotationX(-90);
+    // textMesh3.transform.scale = Vector3.fill(0.4);
 
     setLoadingPercentile(100);
 
-    await wait(1200);
+    await wait(1);
+    // await wait(1200);
 
     fullscreenButtonElement!.addEventListener('click', () => {
         if (!document.fullscreenElement) {
@@ -506,9 +919,10 @@ const playDemo = () => {
     engine.onRender = (time) => {
         if (marionetterTimeline !== null && glslSound) {
             // TODO: prodの時はこっちを使いたい
-            const soundTime = glslSound.getCurrentTime();
-            // marionetterTimeline.execute(marionetter.getCurrentTime());
-            marionetterTimeline.execute(soundTime);
+            // const soundTime = glslSound.getCurrentTime();
+            // marionetterTimeline.execute(soundTime);
+            // // marionetterTimeline.execute(marionetter.getCurrentTime());
+            marionetterTimeline.execute(0);
         }
         if (captureSceneCamera) {
             renderer.render(captureScene, captureSceneCamera, { time });

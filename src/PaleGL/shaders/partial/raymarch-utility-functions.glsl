@@ -4,7 +4,7 @@ vec3 toLocal(vec3 p, mat4 WtoO, vec3 scale) {
     // return p; 
 }
 
-float objectSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale) {
+vec2 objectSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale) {
     return dfScene(toLocal(worldPos, WtoO, scale));
     // return dfScene(worldPos);
 }
@@ -12,9 +12,9 @@ float objectSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale) {
 vec3 getNormalObjectSpaceDfScene(vec3 p, mat4 WtoO, vec3 scale) {
     const float eps = .0001;
     vec3 n = vec3(
-        objectSpaceDfScene(p + vec3(eps, 0, 0), WtoO, scale) - objectSpaceDfScene(p + vec3(-eps, 0, 0), WtoO, scale),
-        objectSpaceDfScene(p + vec3(0, eps, 0), WtoO, scale) - objectSpaceDfScene(p + vec3(0, -eps, 0), WtoO, scale),
-        objectSpaceDfScene(p + vec3(0, 0, eps), WtoO, scale) - objectSpaceDfScene(p + vec3(0, 0, -eps), WtoO, scale)
+        objectSpaceDfScene(p + vec3(eps, 0, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(-eps, 0, 0), WtoO, scale).x,
+        objectSpaceDfScene(p + vec3(0, eps, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(0, -eps, 0), WtoO, scale).x,
+        objectSpaceDfScene(p + vec3(0, 0, eps), WtoO, scale).x - objectSpaceDfScene(p + vec3(0, 0, -eps), WtoO, scale).x
     );
     return normalize(n);
 }

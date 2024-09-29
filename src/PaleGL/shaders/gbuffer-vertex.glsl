@@ -19,6 +19,7 @@ out vec2 vUv;
 out vec3 vLocalPosition;
 out vec3 vWorldPosition;
 out vec3 vNormal;
+out mat4 vInverseWorldMatrix;
 
 #include ./partial/normal-map-vertex-varyings.glsl
 #include ./partial/receive-shadow-vertex-varyings.glsl
@@ -166,6 +167,7 @@ void main() {
     #pragma WORLD_POSITION_POST_PROCESS
 
     vWorldPosition = worldPosition.xyz;
+    vInverseWorldMatrix = inverse(worldMatrix);
 
     #include ./partial/normal-map-vertex-calc.glsl;
 

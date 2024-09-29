@@ -1,14 +1,15 @@
-import {GPU} from '@/PaleGL/core/GPU.ts';
-import {PrimitiveTypes, UniformNames} from '@/PaleGL/constants.ts';
-import {Mesh, MeshOptionsArgs} from '@/PaleGL/actors/Mesh.ts';
+import { GPU } from '@/PaleGL/core/GPU.ts';
+import {FaceSide, PrimitiveTypes, UniformNames} from '@/PaleGL/constants.ts';
+import { Mesh, MeshOptionsArgs } from '@/PaleGL/actors/Mesh.ts';
 // import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import {
     ObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterialArgs,
 } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
-import {BoxGeometry} from '@/PaleGL/geometries/BoxGeometry.ts';
-import {Camera} from '@/PaleGL/actors/Camera.ts';
-import {ActorUpdateArgs} from "@/PaleGL/actors/Actor.ts";
+import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
+import { Camera } from '@/PaleGL/actors/Camera.ts';
+import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
+// import {GBufferMaterial} from "@/PaleGL/materials/GBufferMaterial.ts";
 
 type ObjectSpaceRaymarchMeshArgs = {
     gpu: GPU;
@@ -25,44 +26,63 @@ type ObjectSpaceRaymarchMeshArgs = {
 export class ObjectSpaceRaymarchMesh extends Mesh {
     constructor(args: ObjectSpaceRaymarchMeshArgs) {
         // const { gpu, fragmentShader, depthFragmentShader, uniforms = [], castShadow } = args;
-        const {gpu, materialArgs, castShadow} = args;
-        const {fragmentShader, depthFragmentShader, uniforms = []} = materialArgs;
-        const geometry = new BoxGeometry({gpu});
+        const {gpu, materialArgs, castShadow } = args;
+        // const {gpu, castShadow } = args;
+        const geometry = new BoxGeometry({ gpu });
+
+        // const { fragmentShader, depthFragmentShader, uniforms = [] } = materialArgs;
         const material = new ObjectSpaceRaymarchMaterial({
-            fragmentShader,
-            depthFragmentShader,
-            uniforms,
-            // metallic,
-            // roughness,
-            // receiveShadow,
-            // receiveShadow: !!receiveShadow,
+            // tmp
+            // fragmentShader,
+            // depthFragmentShader,
+            // uniforms,
+            // // metallic,
+            // // roughness,
+            // // receiveShadow,
+            // // receiveShadow: !!receiveShadow,
+            // primitiveType: PrimitiveTypes.Triangles,
+            // uniformBlockNames: [
+            //     UniformBlockNames.Common
+            // ]
+
+            // new
+            ...materialArgs,
+            // override
             primitiveType: PrimitiveTypes.Triangles,
+            faceSide: FaceSide.Double,
         });
 
-        super({geometry, material, castShadow});
-    }
+        // NOTE
+        // const material = new GBufferMaterial({
+        //     metallic: 0,
+        //     roughness: 1,
+        //     receiveShadow: true,
+        //     isSkinning: false,
+        //     gpuSkinning: false,
+        //     isInstancing: true,
+        //     useInstanceLookDirection: true,
+        //     useVertexColor: true,
+        //     faceSide: FaceSide.Double,
+        //     primitiveType: PrimitiveTypes.Triangles,
+        // });
 
+        super({ geometry, material, castShadow });
+    }
 
     update(args: ActorUpdateArgs) {
         super.update(args);
 
-        this.material.uniforms.setValue(
-            UniformNames.ObjectSpaceRaymarchBoundsScale,
-            this.transform.scale
-        );
-        this.depthMaterial!.uniforms.setValue(
-            UniformNames.ObjectSpaceRaymarchBoundsScale,
-            this.transform.scale
-        );
+        this.material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+        this.depthMaterial!.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
     }
 
-    updateMaterial({camera}: { camera: Camera }) {
-        super.updateMaterial({camera});
+    updateMaterial({ camera }: { camera: Camera }) {
+        super.updateMaterial({ camera });
         this.mainMaterial.uniforms.setValue('uIsPerspective', camera.isPerspective() ? 1 : 0);
     }
 
-    updateDepthMaterial({camera}: { camera: Camera }) {
-        super.updateMaterial({camera});
+    updateDepthMaterial({ camera }: { camera: Camera }) {
+        super.updateMaterial({ camera });
         this.depthMaterial?.uniforms.setValue('uIsPerspective', camera.isPerspective() ? 1 : 0);
     }
 }

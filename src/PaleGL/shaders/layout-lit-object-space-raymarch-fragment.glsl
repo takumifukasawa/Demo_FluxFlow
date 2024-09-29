@@ -4,6 +4,8 @@ precision highp float;
 
 #pragma DEFINES
 
+#include ./partial/uniform-block-common.glsl
+
 // raymarch
 #include ./partial/raymarch-distance-functions.glsl
 
@@ -66,6 +68,7 @@ in vec3 vNormal;
 #include ./partial/normal-map-fragment-varyings.glsl
 
 in vec3 vWorldPosition;
+in mat4 vInverseWorldMatrix;
 
 #include ./partial/vertex-color-fragment-varyings.glsl
 
@@ -131,23 +134,25 @@ void main() {
     vec3 rayDirection = uIsPerspective > .5
         ? normalize(vWorldPosition - uViewPosition)
         : normalize(-uViewPosition);
-    float distance = 0.;
+    vec2 result = vec2(0.);
     float accLen = 0.;
     vec3 currentRayPosition = rayOrigin;
     float minDistance = .0001;
     for(int i = 0; i < 64; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
-        distance = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
-        accLen += distance;
+        // result = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
+        result = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale);
+        accLen += result.x;
         if(
-            !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
-            distance <= minDistance
+            // !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
+            !isDfInnerBox(toLocal(currentRayPosition, vInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
+            result.x <= minDistance
         ) {
             break;
         }
     }
     
-    if(distance > minDistance) {
+    if(result.x > minDistance) {
         discard;
     }
 
@@ -166,8 +171,9 @@ void main() {
     float newDepth = (rayClipPosition.z / rayClipPosition.w) * .5 + .5;
     gl_FragDepth = newDepth;
 
-    if(distance > 0.) {
-        worldNormal = getNormalObjectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
+    if(result.x > 0.) {
+        // worldNormal = getNormalObjectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
+        worldNormal = getNormalObjectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale);
     }
  
     //

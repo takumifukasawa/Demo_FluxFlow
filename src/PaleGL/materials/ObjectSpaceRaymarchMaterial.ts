@@ -1,5 +1,5 @@
-import {MaterialArgs, Material, MaterialTypes} from '@/PaleGL/materials/Material';
-import {DepthFuncTypes, ShadingModelIds, UniformBlockNames, UniformNames, UniformTypes} from '@/PaleGL/constants';
+import { MaterialArgs, Material, MaterialTypes } from '@/PaleGL/materials/Material';
+import { DepthFuncTypes, ShadingModelIds, UniformBlockNames, UniformNames, UniformTypes } from '@/PaleGL/constants';
 import raymarchVert from '@/PaleGL/shaders/gbuffer-vertex.glsl';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
@@ -56,10 +56,10 @@ export class ObjectSpaceRaymarchMaterial extends Material {
                 value: roughness || 0,
             },
             {
-                name: "uIsPerspective",
+                name: 'uIsPerspective',
                 type: UniformTypes.Float,
                 value: 0,
-            }
+            },
         ];
         const shadingUniforms: UniformsData = [
             {
@@ -91,10 +91,8 @@ export class ObjectSpaceRaymarchMaterial extends Material {
             depthWrite: true,
             depthFuncType: DepthFuncTypes.Lequal,
             skipDepthPrePass: true,
-            uniformBlockNames: [
-                UniformBlockNames.Transformations,
-                UniformBlockNames.Camera
-            ]
+            // TODO: 追加のものを渡せるようにしたい
+            uniformBlockNames: [UniformBlockNames.Common, UniformBlockNames.Transformations, UniformBlockNames.Camera],
         });
     }
 }
