@@ -234,4 +234,9 @@ export class Rotator {
         r.rawMatrix = m;
         return r;
     }
+    
+    clone() {
+        // return new Rotator(this.x, this.y, this.z);
+        return new Rotator(this.quaternion);
+    }
 }

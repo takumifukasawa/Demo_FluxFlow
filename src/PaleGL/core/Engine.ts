@@ -7,6 +7,9 @@ import { Scene } from '@/PaleGL/core/Scene';
 import { Renderer } from '@/PaleGL/core/Renderer';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { createSharedTextures, SharedTextures } from '@/PaleGL/core/createSharedTextures.ts';
+import { Vector3 } from '@/PaleGL/math/Vector3.ts';
+import {Actor} from "@/PaleGL/actors/Actor.ts";
+import {Rotator} from "@/PaleGL/math/Rotator.ts";
 
 type EngineOnStartCallbackArgs = void;
 
@@ -206,11 +209,11 @@ export class Engine {
         //
         // before render
         //
-        
+
         if (this.#onBeforeUpdate) {
             this.#onBeforeUpdate({ time, deltaTime });
         }
-        
+
         //
         // update and before render
         //
@@ -235,7 +238,7 @@ export class Engine {
                     break;
             }
         });
-        
+
         //
         // last update
         //
@@ -246,7 +249,7 @@ export class Engine {
         this.#scene?.traverse((actor) => {
             actor.lastUpdate({ gpu: this.#gpu, time, deltaTime });
         });
-        
+
         //
         // update transform
         //
@@ -254,7 +257,7 @@ export class Engine {
         this.#scene?.traverse((actor) => {
             actor.updateTransform();
         });
-        
+
         //
         // render
         //
@@ -277,6 +280,9 @@ export class Engine {
      * @param deltaTime[sec]
      */
     render(time: number, deltaTime: number) {
+        // for debug
+        // console.log(`[Engine.render]`);
+
         this.#stats.clear();
 
         // update and render shared textures
@@ -293,6 +299,34 @@ export class Engine {
         // this.#renderer.renderScene(this.#scene!);
 
         this.#stats.update(time);
+    }
+
+    warmRender() {
+        // for debug
+        // console.log(`[Engine.warmRender]`);
+        
+        // TODO: カメラをいい感じの位置に置きたい
+        // 描画させたいので全部中央に置いちゃう
+        const tmpTransformPair: { actor: Actor, p: Vector3, r: Rotator }[] = [];
+        this.#scene?.traverse((actor) => {
+            const tmpP = actor.transform.position.clone();
+            const tmpR = actor.transform.rotation.clone();
+            if (actor.type === ActorTypes.Camera) {
+                actor.transform.position = new Vector3(0, 10, 10);
+                actor.transform.lookAt(Vector3.zero);
+            } else {
+                actor.transform.position = Vector3.zero;
+            }
+            tmpTransformPair.push({ actor, p: tmpP, r: tmpR });
+        });
+       
+        this.fixedUpdate(0, 0);
+        this.update(0, 0);
+        
+        tmpTransformPair.forEach((pair) => {
+            pair.actor.transform.position = pair.p;
+            pair.actor.transform.rotation = pair.r;
+        });
     }
 
     /**

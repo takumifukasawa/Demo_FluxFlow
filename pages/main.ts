@@ -49,7 +49,6 @@ import { Camera } from '@/PaleGL/actors/Camera';
 import { OrthographicCamera } from '@/PaleGL/actors/OrthographicCamera';
 import { PostProcess } from '@/PaleGL/postprocess/PostProcess.ts';
 import soundVertexShader from '@/PaleGL/shaders/sound-vertex-demo.glsl';
-import { createGLSLSound, GLSLSound } from '@/PaleGL/core/GLSLSound.ts';
 import { wait } from '@/utilities/wait.ts';
 import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
 // import { Mesh } from '@/PaleGL/actors/Mesh.ts';
@@ -86,12 +85,13 @@ import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
 import { UnlitMaterial } from '@/PaleGL/materials/UnlitMaterial.ts';
 import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
-import {ScreenSpaceRaymarchMesh} from "@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts";
+import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
+import {initGLSLSound} from "./initGLSLSound.ts";
 // import { Rotator } from '@/PaleGL/math/Rotator.ts';
 // import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 
 // const MAX_INSTANCE_NUM = 512;
-const MAX_INSTANCE_NUM = 256;
+const MAX_INSTANCE_NUM = 128;
 
 const stylesText = `
 :root {
@@ -186,7 +186,6 @@ styleElement.innerText = stylesText;
 document.head.appendChild(styleElement);
 
 let width: number, height: number;
-let glslSound: GLSLSound | null;
 let marionetterTimeline: MarionetterTimeline | null = null;
 let bufferVisualizerPass: BufferVisualizerPass;
 let attractorMesh: Mesh;
@@ -214,6 +213,8 @@ if (!gl) {
 
 const gpu = new GPU({ gl });
 
+const glslSoundWrapper = initGLSLSound(gpu, soundVertexShader, 144);
+
 const captureScene = new Scene();
 
 const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
@@ -236,21 +237,6 @@ engine.setScene(captureScene);
 let captureSceneCamera: PerspectiveCamera | null;
 // let orbitCameraController: OrbitCameraController | null;
 
-const loadSound = () => {
-    glslSound = createGLSLSound(gpu, soundVertexShader, 144);
-};
-
-const playSound = () => {
-    stopSound();
-    // 120BPM x 64measure = 128sec
-    // 120BPM x 72measure = 144sec
-    loadSound();
-    glslSound?.play(0);
-};
-
-const stopSound = () => {
-    glslSound?.stop();
-};
 
 const initMarionetter = () => {
     marionetter.connect();
@@ -435,10 +421,10 @@ const initHotReloadAndParseScene = () => {
 };
 
 const startupWrapperElement = document.createElement('div');
-startupWrapperElement.id = "w";
+startupWrapperElement.id = 'w';
 
 const loadingContentElement = document.createElement('div');
-loadingContentElement.id = "o";
+loadingContentElement.id = 'o';
 startupWrapperElement.appendChild(loadingContentElement);
 
 const loadingGageElement = document.createElement('div');
@@ -446,17 +432,17 @@ loadingGageElement.id = 'i';
 loadingContentElement.appendChild(loadingGageElement);
 
 const menuContentElement = document.createElement('div');
-menuContentElement.id = "c";
+menuContentElement.id = 'c';
 startupWrapperElement.appendChild(menuContentElement);
 
 const fullscreenButtonElement = document.createElement('button');
 fullscreenButtonElement.id = 'f';
-fullscreenButtonElement.textContent = "FULL SCREEN";
+fullscreenButtonElement.textContent = 'FULL SCREEN';
 menuContentElement.appendChild(fullscreenButtonElement);
 
 const playButtonElement = document.createElement('button');
 playButtonElement.id = 'p';
-playButtonElement.textContent = "PLAY";
+playButtonElement.textContent = 'PLAY';
 menuContentElement.appendChild(playButtonElement);
 
 document.body.appendChild(startupWrapperElement);
@@ -555,54 +541,54 @@ const createInstanceUpdater = (instanceNum: number) => {
             },
         ],
         vertexShader: demoMetaMorphTransformFeedbackVertex,
-//         vertexShader: `#version 300 es
-// 
-//         precision highp float;
-// 
-//         // TODO: ここ動的に構築してもいい
-//         layout(location = 0) in vec3 aPosition;
-//         layout(location = 1) in vec3 aVelocity;
-//         layout(location = 2) in vec2 aSeed;
-// 
-//         out vec3 vPosition;
-//         // out mat4 vTransform;
-//         out vec3 vVelocity;
-// 
-// 
-// layout (std140) uniform ubCommon {
-//     float uTime;
-// };
-// 
-//         // uniform float uTime;
-//         uniform vec2 uNormalizedInputPosition;
-//         uniform vec3 uAttractTargetPosition;
-//         uniform float uAttractRate;
-// 
-//         // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
-//         float noise(vec2 seed)
-//         {
-//             return fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453);
-//         }
-//         
-//         void main() {
-//             vPosition = aPosition + aVelocity;
-//             vec3 target = uAttractTargetPosition;
-//             vec2 seed = aSeed;
-//             float rand = noise(seed);
-//             target += vec3(
-//                 cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
-//                 sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.) + 1.,
-//                 cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
-//             );
-//             vec3 v = target - vPosition;
-//             vec3 dir = normalize(v);
-//             vVelocity = mix(
-//                 aVelocity,
-//                 dir * (.1 + uAttractRate * .1),
-//                 .03 + sin(uTime * .2 + rand * 100.) * .02
-//             );
-//         }
-//         `,
+        //         vertexShader: `#version 300 es
+        //
+        //         precision highp float;
+        //
+        //         // TODO: ここ動的に構築してもいい
+        //         layout(location = 0) in vec3 aPosition;
+        //         layout(location = 1) in vec3 aVelocity;
+        //         layout(location = 2) in vec2 aSeed;
+        //
+        //         out vec3 vPosition;
+        //         // out mat4 vTransform;
+        //         out vec3 vVelocity;
+        //
+        //
+        // layout (std140) uniform ubCommon {
+        //     float uTime;
+        // };
+        //
+        //         // uniform float uTime;
+        //         uniform vec2 uNormalizedInputPosition;
+        //         uniform vec3 uAttractTargetPosition;
+        //         uniform float uAttractRate;
+        //
+        //         // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+        //         float noise(vec2 seed)
+        //         {
+        //             return fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453);
+        //         }
+        //
+        //         void main() {
+        //             vPosition = aPosition + aVelocity;
+        //             vec3 target = uAttractTargetPosition;
+        //             vec2 seed = aSeed;
+        //             float rand = noise(seed);
+        //             target += vec3(
+        //                 cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
+        //                 sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.) + 1.,
+        //                 cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
+        //             );
+        //             vec3 v = target - vPosition;
+        //             vec3 dir = normalize(v);
+        //             vVelocity = mix(
+        //                 aVelocity,
+        //                 dir * (.1 + uAttractRate * .1),
+        //                 .03 + sin(uTime * .2 + rand * 100.) * .02
+        //             );
+        //         }
+        //         `,
         // fragmentShader: `#version 300 es
 
         // precision highp float;
@@ -836,22 +822,23 @@ const createScreenSpaceRaymarchMesh = () => {
             metallic: 0,
             roughness: 0,
             receiveShadow: true,
-            emissiveColor: Color.white
+            emissiveColor: Color.white,
         },
         // castShadow: true,
     });
     mesh.transform.scale = new Vector3(2, 2, 2);
     mesh.transform.position = new Vector3(0, 4, 0);
-    
+
     return mesh;
-}
+};
 
 const load = async () => {
     setLoadingPercentile(10);
 
     await wait(0);
 
-    loadSound();
+    glslSoundWrapper.load();
+    // glslSoundWrapper.warmup();
 
     await wait(100);
 
@@ -869,11 +856,11 @@ const load = async () => {
             switch (e.code) {
                 case 'KeyP':
                     console.log('===== play sound =====');
-                    playSound();
+                    glslSoundWrapper.play({ reload: true });
                     break;
                 case 'KeyS':
                     console.log('===== stop sound =====');
-                    stopSound();
+                    glslSoundWrapper.stop();
                     break;
             }
         });
@@ -918,11 +905,11 @@ const load = async () => {
 
     metaMorphMesh = createMetaMorphMesh(MAX_INSTANCE_NUM);
     captureScene.add(metaMorphMesh);
-    
+
     //
     // screen space object
     //
-    
+
     screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh();
     captureScene.add(screenSpaceRaymarchMesh);
 
@@ -980,6 +967,42 @@ const load = async () => {
     // textMesh3.transform.rotation.setRotationX(-90);
     // textMesh3.transform.scale = Vector3.fill(0.4);
 
+    // TODO: engine側に移譲したい
+    const onWindowResize = () => {
+        width = wrapperElement.offsetWidth;
+        height = wrapperElement.offsetHeight;
+        inputController.setSize(width, height);
+        engine.setSize(width, height);
+    };
+
+    engine.onBeforeStart = () => {
+        onWindowResize();
+        window.addEventListener('resize', onWindowResize);
+    };
+
+    engine.onBeforeUpdate = () => {
+        inputController.update();
+    };
+
+    engine.onRender = (time) => {
+        if (marionetterTimeline !== null) {
+            // TODO: prodの時はこっちを使いたい
+            // const soundTime = glslSound.getCurrentTime();
+            // marionetterTimeline.execute(soundTime);
+            // // marionetterTimeline.execute(marionetter.getCurrentTime());
+            marionetterTimeline.execute(0);
+        }
+        if (captureSceneCamera) {
+            renderer.render(captureScene, captureSceneCamera, { time });
+        }
+    };
+    
+    engine.start();
+
+    await wait(1);
+
+    engine.warmRender();
+
     setLoadingPercentile(100);
 
     await wait(1);
@@ -1004,51 +1027,20 @@ const load = async () => {
 };
 
 const playDemo = () => {
-    // TODO: engine側に移譲したい
-    const onWindowResize = () => {
-        width = wrapperElement.offsetWidth;
-        height = wrapperElement.offsetHeight;
-        inputController.setSize(width, height);
-        engine.setSize(width, height);
-    };
-
-    engine.onBeforeStart = () => {
-        onWindowResize();
-        window.addEventListener('resize', onWindowResize);
-    };
-
-    engine.onBeforeUpdate = () => {
-        inputController.update();
-    };
-
-    engine.onRender = (time) => {
-        if (marionetterTimeline !== null && glslSound) {
-            // TODO: prodの時はこっちを使いたい
-            // const soundTime = glslSound.getCurrentTime();
-            // marionetterTimeline.execute(soundTime);
-            // // marionetterTimeline.execute(marionetter.getCurrentTime());
-            marionetterTimeline.execute(0);
-        }
-        if (captureSceneCamera) {
-            renderer.render(captureScene, captureSceneCamera, { time });
-        }
-    };
-
     const tick = (time: number) => {
         engine.run(time);
         requestAnimationFrame(tick);
     };
 
-    playSound();
+    glslSoundWrapper.play();
 
-    engine.start();
     requestAnimationFrame(tick);
 
     initDebugger({
         bufferVisualizerPass,
-        glslSound: glslSound!,
-        playSound,
-        stopSound,
+        glslSound: glslSoundWrapper.glslSound!, // 存在しているとみなしちゃう
+        playSound: glslSoundWrapper.play,
+        stopSound: glslSoundWrapper.stop,
         renderer,
         wrapperElement,
     });
