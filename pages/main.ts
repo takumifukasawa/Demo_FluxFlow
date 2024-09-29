@@ -72,6 +72,8 @@ import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh
 
 import litObjectSpaceRaymarchMetaMorphFrag from '@/PaleGL/shaders/lit-object-space-raymarch-meta-morph-fragment.glsl';
 import gBufferObjectSpaceRaymarchMetaMorphDepthFrag from '@/PaleGL/shaders/gbuffer-object-space-raymarch-meta-morph-depth-fragment.glsl';
+import demoMetaMorphTransformFeedbackVertex from '@/PaleGL/shaders/demo-meta-morph-transform-feedback-vertex.glsl';
+
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { Attribute } from '@/PaleGL/core/Attribute.ts';
@@ -169,7 +171,7 @@ const renderer = new Renderer({
     pixelRatio,
 });
 
-const engine = new Engine({ gpu, renderer, updateFps: 30 });
+const engine = new Engine({ gpu, renderer, updateFps: 60 });
 
 engine.setScene(captureScene);
 
@@ -481,54 +483,55 @@ const createInstanceUpdater = (instanceNum: number) => {
                 data: new Float32Array(initialVelocity),
             },
         ],
-        vertexShader: `#version 300 es
-
-        precision highp float;
-
-        // TODO: ここ動的に構築してもいい
-        layout(location = 0) in vec3 aPosition;
-        layout(location = 1) in vec3 aVelocity;
-        layout(location = 2) in vec2 aSeed;
-
-        out vec3 vPosition;
-        // out mat4 vTransform;
-        out vec3 vVelocity;
-
-
-layout (std140) uniform ubCommon {
-    float uTime;
-};
-
-        // uniform float uTime;
-        uniform vec2 uNormalizedInputPosition;
-        uniform vec3 uAttractTargetPosition;
-        uniform float uAttractRate;
-
-        // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
-        float noise(vec2 seed)
-        {
-            return fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453);
-        }
-        
-        void main() {
-            vPosition = aPosition + aVelocity;
-            vec3 target = uAttractTargetPosition;
-            vec2 seed = aSeed;
-            float rand = noise(seed);
-            target += vec3(
-                cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
-                sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.) + 1.,
-                cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
-            );
-            vec3 v = target - vPosition;
-            vec3 dir = normalize(v);
-            vVelocity = mix(
-                aVelocity,
-                dir * (.1 + uAttractRate * .1),
-                .03 + sin(uTime * .2 + rand * 100.) * .02
-            );
-        }
-        `,
+        vertexShader: demoMetaMorphTransformFeedbackVertex,
+//         vertexShader: `#version 300 es
+// 
+//         precision highp float;
+// 
+//         // TODO: ここ動的に構築してもいい
+//         layout(location = 0) in vec3 aPosition;
+//         layout(location = 1) in vec3 aVelocity;
+//         layout(location = 2) in vec2 aSeed;
+// 
+//         out vec3 vPosition;
+//         // out mat4 vTransform;
+//         out vec3 vVelocity;
+// 
+// 
+// layout (std140) uniform ubCommon {
+//     float uTime;
+// };
+// 
+//         // uniform float uTime;
+//         uniform vec2 uNormalizedInputPosition;
+//         uniform vec3 uAttractTargetPosition;
+//         uniform float uAttractRate;
+// 
+//         // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
+//         float noise(vec2 seed)
+//         {
+//             return fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453);
+//         }
+//         
+//         void main() {
+//             vPosition = aPosition + aVelocity;
+//             vec3 target = uAttractTargetPosition;
+//             vec2 seed = aSeed;
+//             float rand = noise(seed);
+//             target += vec3(
+//                 cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
+//                 sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.) + 1.,
+//                 cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
+//             );
+//             vec3 v = target - vPosition;
+//             vec3 dir = normalize(v);
+//             vVelocity = mix(
+//                 aVelocity,
+//                 dir * (.1 + uAttractRate * .1),
+//                 .03 + sin(uTime * .2 + rand * 100.) * .02
+//             );
+//         }
+//         `,
         // fragmentShader: `#version 300 es
 
         // precision highp float;
