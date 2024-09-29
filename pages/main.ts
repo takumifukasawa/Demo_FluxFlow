@@ -85,7 +85,7 @@ import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
 // import { Rotator } from '@/PaleGL/math/Rotator.ts';
 // import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 
-const MAX_INSTANCE_NUM = 1;
+const MAX_INSTANCE_NUM = 10;
 
 const stylesText = `
 :root {

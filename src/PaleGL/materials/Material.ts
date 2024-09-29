@@ -379,32 +379,8 @@ export class Material {
                 type: UniformTypes.Matrix4,
                 value: Matrix4.identity,
             },
-            // {
-            //     name: UniformNames.WorldMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.ViewMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.ProjectionMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.NormalMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     // TODO: viewmatrixから引っ張ってきてもよい
-            //     name: UniformNames.ViewPosition,
-            //     type: UniformTypes.Vector3,
-            //     value: Vector3.zero,
-            // },
+
+            // TODO: commonを呼んでさえいればいらないはず
             {
                 name: UniformNames.Time,
                 type: UniformTypes.Float,

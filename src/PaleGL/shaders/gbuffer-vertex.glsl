@@ -21,6 +21,10 @@ out vec3 vWorldPosition;
 out vec3 vNormal;
 out mat4 vInverseWorldMatrix;
 
+#ifdef USE_INSTANCING
+out float vInstanceId;
+#endif
+
 #include ./partial/normal-map-vertex-varyings.glsl
 #include ./partial/receive-shadow-vertex-varyings.glsl
 #include ./partial/vertex-color-vertex-varyings.glsl
@@ -152,14 +156,16 @@ void main() {
         instanceRotationX *
         instanceRotationZ;
     
-// instanceごとのvelocityが必要なことに注意
-#ifdef USE_INSTANCE_LOOK_DIRECTION
-    instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
-#endif
-
+    // instanceごとのvelocityが必要なことに注意
+    #ifdef USE_INSTANCE_LOOK_DIRECTION
+        instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
+    #endif
+    
     #pragma INSTANCE_TRANSFORM_PRE_PROCESS
-
+    
     worldMatrix = uWorldMatrix * instanceTranslation * instanceRotation * instanceScaling;
+    
+    vInstanceId = float(gl_InstanceID);
 #endif
 
     vec4 worldPosition = worldMatrix * localPosition;

@@ -4,6 +4,12 @@ precision highp float;
 
 #pragma DEFINES
 
+#include ./partial/uniform-block-common.glsl
+
+#ifdef USE_INSTANCING
+in float vInstanceId;
+#endif
+
 // raymarch
 #include ./partial/raymarch-distance-functions.glsl
 

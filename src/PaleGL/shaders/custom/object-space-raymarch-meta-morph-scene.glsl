@@ -23,7 +23,7 @@ vec2 butterfly(vec3 p) {
 
     // パタパタさせる
     q.x = abs(q.x);
-    q.xz = opRot(q.xz, PI * sin(sin(uTime * 10.) * cos(uTime * 6.)) * .3);
+    q.xz = opRot(q.xz, PI * sin(sin(uTime * 10. + vInstanceId) * cos(uTime * 6. + vInstanceId)) * .3);
 
     // 全体調整用
     float s = .2;

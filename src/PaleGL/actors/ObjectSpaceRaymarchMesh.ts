@@ -1,5 +1,5 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
-import {FaceSide, PrimitiveTypes, UniformNames} from '@/PaleGL/constants.ts';
+import { FaceSide, PrimitiveTypes, UniformNames } from '@/PaleGL/constants.ts';
 import { Mesh, MeshOptionsArgs } from '@/PaleGL/actors/Mesh.ts';
 // import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import {
@@ -26,7 +26,7 @@ type ObjectSpaceRaymarchMeshArgs = {
 export class ObjectSpaceRaymarchMesh extends Mesh {
     constructor(args: ObjectSpaceRaymarchMeshArgs) {
         // const { gpu, fragmentShader, depthFragmentShader, uniforms = [], castShadow } = args;
-        const {gpu, materialArgs, castShadow } = args;
+        const { gpu, materialArgs, castShadow } = args;
         // const {gpu, castShadow } = args;
         const geometry = new BoxGeometry({ gpu });
 
@@ -66,7 +66,7 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
         //     primitiveType: PrimitiveTypes.Triangles,
         // });
 
-        super({ geometry, material, castShadow });
+        super({ name: 'ObjectSpaceRaymarchMesh', geometry, material, castShadow });
     }
 
     update(args: ActorUpdateArgs) {

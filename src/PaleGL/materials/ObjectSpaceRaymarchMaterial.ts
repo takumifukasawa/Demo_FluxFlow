@@ -70,7 +70,7 @@ export class ObjectSpaceRaymarchMaterial extends Material {
         ];
 
         const mergedUniforms: UniformsData = [...commonUniforms, ...shadingUniforms, ...(uniforms ? uniforms : [])];
-
+        
         // TODO: できるだけconstructorの直後に持っていきたい
         super({
             ...options,
@@ -91,6 +91,7 @@ export class ObjectSpaceRaymarchMaterial extends Material {
             depthWrite: true,
             depthFuncType: DepthFuncTypes.Lequal,
             skipDepthPrePass: true,
+            
             // TODO: 追加のものを渡せるようにしたい
             uniformBlockNames: [UniformBlockNames.Common, UniformBlockNames.Transformations, UniformBlockNames.Camera],
         });
