@@ -8,8 +8,8 @@ import { Renderer } from '@/PaleGL/core/Renderer';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { createSharedTextures, SharedTextures } from '@/PaleGL/core/createSharedTextures.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
-import {Actor} from "@/PaleGL/actors/Actor.ts";
-import {Rotator} from "@/PaleGL/math/Rotator.ts";
+import { Actor } from '@/PaleGL/actors/Actor.ts';
+import { Rotator } from '@/PaleGL/math/Rotator.ts';
 
 type EngineOnStartCallbackArgs = void;
 
@@ -304,10 +304,10 @@ export class Engine {
     warmRender() {
         // for debug
         // console.log(`[Engine.warmRender]`);
-        
+
         // TODO: カメラをいい感じの位置に置きたい
         // 描画させたいので全部中央に置いちゃう
-        const tmpTransformPair: { actor: Actor, p: Vector3, r: Rotator }[] = [];
+        const tmpTransformPair: { actor: Actor; p: Vector3; r: Rotator }[] = [];
         this.#scene?.traverse((actor) => {
             const tmpP = actor.transform.position.clone();
             const tmpR = actor.transform.rotation.clone();
@@ -319,10 +319,10 @@ export class Engine {
             }
             tmpTransformPair.push({ actor, p: tmpP, r: tmpR });
         });
-       
+
         this.fixedUpdate(0, 0);
         this.update(0, 0);
-        
+
         tmpTransformPair.forEach((pair) => {
             pair.actor.transform.position = pair.p;
             pair.actor.transform.rotation = pair.r;
