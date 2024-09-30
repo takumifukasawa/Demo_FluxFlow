@@ -11,3 +11,8 @@
         img.src = src;
     });
 }
+
+
+export async function loadImgArraybuffer(src: string) {
+    return fetch(src).then((res) => res.arrayBuffer());
+}

@@ -36,6 +36,7 @@ export type TextureArgs = {
     gpu: GPU;
     // optional
     img?: HTMLImageElement | HTMLCanvasElement | null;
+    arraybuffer?: ArrayBuffer | null;
     type?: TextureType;
     width?: number;
     height?: number;
@@ -46,6 +47,7 @@ export type TextureArgs = {
     wrapT?: TextureWrapType;
     flipY?: boolean;
     depthPrecision?: TextureDepthPrecisionType;
+    dxt1?: boolean
 };
 
 /**
@@ -114,6 +116,7 @@ export class Texture extends GLObject {
     constructor({
         gpu,
         img,
+        arraybuffer,
         type = TextureTypes.RGBA,
         width,
         height,
@@ -124,12 +127,13 @@ export class Texture extends GLObject {
         wrapT = TextureWrapTypes.Repeat,
         flipY,
         depthPrecision,
+        dxt1 = false,
     }: TextureArgs) {
         super();
 
         this.gpu = gpu;
         const gl = this.gpu.gl;
-
+        
         this.img = img || null;
         this.type = type;
         this.mipmap = mipmap;
@@ -150,10 +154,10 @@ export class Texture extends GLObject {
             // throw "invalid img";
         }
 
-        if (!this.img && (!width || !height)) {
+        if (!this.img && !arraybuffer && (!width || !height)) {
             console.error('[Texture.constructor] invalid width or height');
         }
-
+        
         const texture = gl.createTexture()!;
         // if (!texture) {
         //     console.error('[Texture.constructor] invalid texture');
@@ -162,6 +166,68 @@ export class Texture extends GLObject {
 
         // bind texture object to gl
         gl.bindTexture(GL_TEXTURE_2D, this.texture);
+        
+        if(dxt1) {
+            const extDXT1 = gl.getExtension('WEBGL_compressed_texture_s3tc');
+            console.log(`[Texture.constructor] extDXT1`, extDXT1);
+            // const supportedCompressedTextureFormat = gl.getParameter(gl.COMPRESSED_TEXTURE_FORMATS);
+            // const supportsDXT1 = supportedCompressedTextureFormat.includes(extDXT1);
+
+            // ref: https://mklearning.blogspot.com/2014/10/webgldds.html 
+            
+            // FCCを32bit符号付き整数に変換する
+            const fourCCToInt32 = (value: string)=> {
+                return (value.charCodeAt(0) << 0) +
+                    (value.charCodeAt(1) << 8) +
+                    (value.charCodeAt(2) << 16) +
+                    (value.charCodeAt(3) << 24);
+            }
+            
+            const ddsHeader = new Int32Array(arraybuffer!, 0, 32);
+            if(ddsHeader[0] !== fourCCToInt32('DDS ')) {
+                console.error('[Texture.constructor] invalid DDS');
+                return;
+            }
+            
+            const fourCCDXT1 = fourCCToInt32('DXT1');
+            const fourCCDXT3 = fourCCToInt32('DXT3');
+            const fourCCDXT5 = fourCCToInt32('DXT5');
+            let ddsBlockBytes: number = -1;
+            // let ddsFormat = extDXT1.COMPRESSED_RGB_S3TC_DXT1_EXT;
+            let ddsFormat: number | undefined = -1;
+            console.log(`[Texture.constructor] is DXT5: ${ddsHeader[21] === fourCCDXT5}`, ddsHeader[21], fourCCDXT5);
+            switch(ddsHeader[21]) {
+                case fourCCDXT1:
+                    ddsBlockBytes = 8;
+                    ddsFormat = extDXT1?.COMPRESSED_RGBA_S3TC_DXT1_EXT;
+                    break;
+                case fourCCDXT3:
+                    ddsBlockBytes = 16;
+                    ddsFormat = extDXT1?.COMPRESSED_RGBA_S3TC_DXT3_EXT;
+                    break;
+                case fourCCDXT5:
+                    ddsBlockBytes = 16;
+                    ddsFormat = extDXT1?.COMPRESSED_RGBA_S3TC_DXT5_EXT;
+                    break;
+            }
+            const ddsWidth = ddsHeader[4];
+            const ddsHeight = ddsHeader[3];
+            const ddsOffset = ddsHeader[1] + 4;
+            const ddsLength = Math.max(4, ddsWidth) / 4 * Math.max(4, ddsHeight) / 4 * ddsBlockBytes;
+            const ddsBuffer = new Uint8Array(arraybuffer!, ddsOffset, ddsLength);
+            
+            console.log(`[Texture.constructor] ddsBlockBytes: ${ddsBlockBytes}, ddsFormat: ${ddsFormat}, ddsWidth: ${ddsWidth}, ddsHeight: ${ddsHeight}, ddsOffset: ${ddsOffset}, ddsLength: ${ddsLength}, ddsBuffer:`, ddsBuffer);
+            
+            gl.compressedTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                ddsFormat!,
+                ddsWidth,
+                ddsHeight,
+                0,
+                ddsBuffer
+            );
+        }
 
         // mipmap settings
         if (mipmap) {

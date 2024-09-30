@@ -156,6 +156,7 @@ export default defineConfig(async (config) => {
             }),
             ...(isBundle ? [viteSingleFile(), createHtmlPlugin()] : []),
         ],
+        // assetsInclude: ['**/*.gltf', '**/*.dxt'],
         assetsInclude: ['**/*.gltf'],
         root: './pages',
         publicDir: resolve(__dirname, 'public'),

@@ -62,11 +62,20 @@ import {
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
 import { initDebugger } from './initDebugger.ts';
-import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
+import {loadImg} from '@/PaleGL/loaders/loadImg.ts';
+// import {loadImgArraybuffer} from '@/PaleGL/loaders/loadImg.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
 import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
-import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.png?url';
-import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128.json';
+
+// for default img
+import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
+import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.json';
+/*
+// for gpu texture
+import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.dds?url';
+import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.json';
+*/
+
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
 
 import litObjectSpaceRaymarchMetaMorphFrag from '@/PaleGL/shaders/lit-object-space-raymarch-meta-morph-fragment.glsl';
@@ -832,7 +841,9 @@ const createScreenSpaceRaymarchMesh = () => {
     return mesh;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 const load = async () => {
+    
     setLoadingPercentile(10);
 
     await wait(0);
@@ -918,16 +929,25 @@ const load = async () => {
     //
 
     const fontAtlasImg = await loadImg(fontAtlasImgUrl);
+    // const fontAtlasImg = await loadImgArraybuffer(fontAtlasImgUrl);
     const fontAtlasTexture = new Texture({
         gpu,
+        // for default img
         img: fontAtlasImg,
+        /*
+        // for gpu texture
+        img: null,
+        arraybuffer: fontAtlasImg,
+        dxt1: true
+        mipmap: false,
+        */
         flipY: false,
         minFilter: TextureFilterTypes.Linear,
         magFilter: TextureFilterTypes.Linear,
     });
     const textMesh1 = new TextMesh({
         gpu,
-        text: 'ABCDEFGHIJKLMNOPQR STUVWXYZ',
+        text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
         fontTexture: fontAtlasTexture,
         fontAtlas: fontAtlasJson,
         castShadow: true,
@@ -935,37 +955,37 @@ const load = async () => {
         // characterSpacing: -0.2
     });
     captureScene.add(textMesh1);
-    textMesh1.transform.position = new Vector3(0, 1, 6);
+    textMesh1.transform.position = new Vector3(0, 1, 2);
     textMesh1.transform.rotation.setRotationX(-90);
-    textMesh1.transform.scale = Vector3.fill(0.4);
+    textMesh1.transform.scale = Vector3.fill(1);
 
-    // const textMesh2 = new TextMesh({
-    //     gpu,
-    //     text: 'abcdefghijklmnopqrstuvwxyz',
-    //     fontTexture: fontAtlasTexture,
-    //     fontAtlas: fontAtlasJson,
-    //     castShadow: true,
-    //     align: TextAlignType.Center,
-    //     characterSpacing: -0.16,
-    // });
-    // captureScene.add(textMesh2);
-    // textMesh2.transform.position = new Vector3(0, 2, 8);
-    // textMesh2.transform.rotation.setRotationX(-90);
-    // textMesh2.transform.scale = Vector3.fill(0.4);
+    const textMesh2 = new TextMesh({
+        gpu,
+        text: 'abcdefghijklmnopqrstuvwxyz',
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: true,
+        align: TextAlignType.Center,
+        characterSpacing: -0.16,
+    });
+    captureScene.add(textMesh2);
+    textMesh2.transform.position = new Vector3(0, 2, 4);
+    textMesh2.transform.rotation.setRotationX(-90);
+    textMesh2.transform.scale = Vector3.fill(1);
 
-    // const textMesh3 = new TextMesh({
-    //     gpu,
-    //     text: '0123456789',
-    //     fontTexture: fontAtlasTexture,
-    //     fontAtlas: fontAtlasJson,
-    //     castShadow: true,
-    //     align: TextAlignType.Left,
-    //     characterSpacing: 0.2,
-    // });
-    // captureScene.add(textMesh3);
-    // textMesh3.transform.position = new Vector3(0, 0.01, 9);
-    // textMesh3.transform.rotation.setRotationX(-90);
-    // textMesh3.transform.scale = Vector3.fill(0.4);
+    const textMesh3 = new TextMesh({
+        gpu,
+        text: '0123456789',
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: true,
+        align: TextAlignType.Left,
+        characterSpacing: 0.2,
+    });
+    captureScene.add(textMesh3);
+    textMesh3.transform.position = new Vector3(0, 0.01, 6);
+    textMesh3.transform.rotation.setRotationX(-90);
+    textMesh3.transform.scale = Vector3.fill(1);
 
     // TODO: engine側に移譲したい
     const onWindowResize = () => {

@@ -77,7 +77,14 @@ export function initDebugger({
     debuggerGUI.addToggleDebugger({
         label: 'show buffers',
         initialValue: bufferVisualizerPass.parameters.enabled,
-        onChange: (value) => (bufferVisualizerPass.parameters.enabled = value),
+        onChange: (value) => {
+            bufferVisualizerPass.parameters.enabled = value;
+            if(value) {
+                bufferVisualizerPass.showDom();
+            } else {
+                bufferVisualizerPass.hideDom();
+            }
+        }
     });
 
     // bufferVisualizerPass.beforeRender = () => {
