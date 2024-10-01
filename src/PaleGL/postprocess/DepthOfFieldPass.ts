@@ -23,7 +23,6 @@ import {
     PostProcessPassRenderArgs,
 } from '@/PaleGL/postprocess/PostProcessPassBase.ts';
 import { Vector2 } from '@/PaleGL/math/Vector2.ts';
-import { Vector4 } from '@/PaleGL/math/Vector4.ts';
 
 // import { Texture } from '@/PaleGL/core/Texture.ts';
 
@@ -137,11 +136,11 @@ export class DepthOfFieldPass implements IPostProcessPass {
                     type: UniformTypes.Float,
                     value: this.parameters.bokehRadius,
                 },
-                {
-                    name: 'uCocParams',
-                    type: UniformTypes.Vector4,
-                    value: Vector4.zero,
-                },
+                // {
+                //     name: 'uCocParams',
+                //     type: UniformTypes.Vector4,
+                //     value: Vector4.zero,
+                // },
                 ...PostProcessPassBase.commonUniforms,
             ],
             uniformBlockNames: [
@@ -313,10 +312,12 @@ export class DepthOfFieldPass implements IPostProcessPass {
         // kthis.dofBokehPass.setSize(width / 2, height / 2);
         // kthis.bokehBlurPass.setSize(width / 2, height / 2);
         
-        this.circleOfConfusionPass.setSize(width / 2, height / 2);
-        this.preFilterPass.setSize(width / 2, height / 2);
-        this.dofBokehPass.setSize(width / 2, height / 2);
-        this.bokehBlurPass.setSize(width / 2, height / 2);
+        const downResolution = 2.;
+        
+        this.circleOfConfusionPass.setSize(width / downResolution, height / downResolution);
+        this.preFilterPass.setSize(width / downResolution, height / downResolution);
+        this.dofBokehPass.setSize(width / downResolution, height / downResolution);
+        this.bokehBlurPass.setSize(width / downResolution, height / downResolution);
 
         this.compositePass.setSize(width, height);
     }

@@ -96,7 +96,7 @@ function generateBufferVisualizerPassParameters(
 export class BufferVisualizerPass implements IPostProcessPass {
     name: string = 'BufferVisualizerPass';
     type: PostProcessPassType = PostProcessPassType.BufferVisualizer;
-    
+
     dom: HTMLDivElement;
     rowPasses: RowPass[] = [];
     compositePass: FragmentPass;
@@ -117,6 +117,12 @@ export class BufferVisualizerPass implements IPostProcessPass {
     }
 
     constructor({ gpu, parameters }: { gpu: GPU; parameters?: BufferVisualizerPassParametersArgs }) {
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'b') {
+                this.toggleR = !this.toggleR;
+            }
+        });
+
         this.parameters = generateBufferVisualizerPassParameters(parameters);
 
         // NOTE: geometryは親から渡して使いまわしてもよい
@@ -889,12 +895,19 @@ export class BufferVisualizerPass implements IPostProcessPass {
                 this.compositePass.material.uniforms.setValue(`uRow${i}Texture`, pass.renderTarget.read.texture);
             }
         });
+
         this.compositePass.material.uniforms.setValue(
             'uFullViewTexture',
             // renderer.depthOfFieldPass.renderTarget.read.texture
-             renderer.depthOfFieldPass.preFilterPass.renderTarget.read.texture
-        // renderer.depthOfFieldPass.preFilterPass.renderTarget.read.texture
+            // renderer.depthOfFieldPass.circleOfConfusionPass.renderTarget.read.texture
+            this.toggleR
+                ? renderer.depthOfFieldPass.preFilterPass.renderTarget.read.texture
+                : renderer.depthOfFieldPass.circleOfConfusionPass.renderTarget.read.texture
+            // renderer.depthOfFieldPass.dofBokehPass.renderTarget.read.texture
+            // renderer.depthOfFieldPass.preFilterPass.renderTarget.read.texture
         );
+
+
         this.compositePass.material.uniforms.setValue(
             'uFullViewTextureEnabled',
             this.parameters.fullViewTextureEnabled ? 1 : 0
@@ -909,4 +922,6 @@ export class BufferVisualizerPass implements IPostProcessPass {
         // for debug
         // console.log(this.rowPasses)
     }
+
+    toggleR: boolean = true;
 }

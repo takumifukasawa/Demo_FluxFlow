@@ -62,7 +62,7 @@ import {
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
 import { initDebugger } from './initDebugger.ts';
-import {loadImg} from '@/PaleGL/loaders/loadImg.ts';
+import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
 // import {loadImgArraybuffer} from '@/PaleGL/loaders/loadImg.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
 import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
@@ -95,7 +95,7 @@ import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
 import { UnlitMaterial } from '@/PaleGL/materials/UnlitMaterial.ts';
 import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
 import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
-import {initGLSLSound} from "./initGLSLSound.ts";
+import { initGLSLSound } from './initGLSLSound.ts';
 // import { Rotator } from '@/PaleGL/math/Rotator.ts';
 // import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 
@@ -246,7 +246,6 @@ engine.setScene(captureScene);
 let captureSceneCamera: PerspectiveCamera | null;
 // let orbitCameraController: OrbitCameraController | null;
 
-
 const initMarionetter = () => {
     marionetter.connect();
 };
@@ -374,34 +373,16 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     const cameraPostProcess = new PostProcess();
 
-    bufferVisualizerPass = new BufferVisualizerPass({ gpu, parameters: {fullViewTextureEnabled: true} });
+    bufferVisualizerPass = new BufferVisualizerPass({
+        gpu,
+        // parameters: { fullViewTextureEnabled: true },
+    });
     bufferVisualizerPass.parameters.enabled = false;
     cameraPostProcess.addPass(bufferVisualizerPass);
-    // bufferVisualizerPass.beforeRender = () => {
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uDirectionalLightShadowMap',
-    //         directionalLight.shadowMap!.read.depthTexture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uAmbientOcclusionTexture',
-    //         renderer.ambientOcclusionPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uDeferredShadingTexture',
-    //         renderer.deferredShadingPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uLightShaftTexture',
-    //         renderer.lightShaftPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue('uFogTexture', renderer.fogPass.renderTarget.read.texture);
-    // };
 
     cameraPostProcess.enabled = true;
     // TODO: set post process いらないかも
     captureSceneCamera.setPostProcess(cameraPostProcess);
-
-    // parseScene(sceneJson);
 
     console.log('scene', actors);
 };
@@ -843,7 +824,6 @@ const createScreenSpaceRaymarchMesh = () => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 const load = async () => {
-    
     setLoadingPercentile(10);
 
     await wait(0);
@@ -1016,7 +996,7 @@ const load = async () => {
             renderer.render(captureScene, captureSceneCamera, { time });
         }
     };
-    
+
     engine.start();
 
     await wait(1);
