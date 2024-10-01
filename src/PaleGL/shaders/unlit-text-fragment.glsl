@@ -26,7 +26,7 @@ in vec3 vWorldPosition;
 #include ./partial/gbuffer-layout.glsl
 
 const float threshold = .5;
-const float smoothRange = .1;
+const float smoothRange = .01;
 float sdf2alpha(float sdf) {
     float alpha = smoothstep(
         threshold - smoothRange,
@@ -58,7 +58,6 @@ void main() {
 
     float alpha = sdf2alpha(sdf);
     resultColor.a = alpha;
-    // resultColor.a = 1.;
 
 // depth側でdiscardしてるのでなくてもよいが、z-fightな状況だとdiscardしてる部分がちらつく対策
 #ifdef USE_ALPHA_TEST
@@ -70,7 +69,6 @@ void main() {
     // resultColor.rgb = mix(vec3(1., 0., 0.), resultColor.rgb, resultColor.a);
     
     resultColor.rgb = gamma(resultColor.rgb);
-    // resultColor.rgb = vec3(texture(uFontMap, uv).rgb);
     
     outGBufferA = EncodeGBufferA(vec3(0.));
     outGBufferB = EncodeGBufferB(worldNormal, uShadingModelId);

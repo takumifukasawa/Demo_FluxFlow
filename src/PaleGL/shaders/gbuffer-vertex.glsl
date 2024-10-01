@@ -159,11 +159,24 @@ void main() {
     // instanceごとのvelocityが必要なことに注意
     // TODO: 追従率をuniformで渡したい
     #ifdef USE_INSTANCE_LOOK_DIRECTION
-        instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
+        // velocityはnormalizeした方がいいかも
+        // instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
+        instanceRotation = getLookAtMat(aInstancePosition + normalize(aInstanceVelocity) * 1000., aInstancePosition);
+    
+        // for debug
+        // instanceRotation = mat4(
+        //     1., 0., 0., 0.,
+        //     0., 1., 0., 0.,
+        //     0., 0., 1., 0.,
+        //     0., 0., 0., 1.
+        //     
+        // );
     #endif
     
     #pragma INSTANCE_TRANSFORM_PRE_PROCESS
-    
+   
+    // TODO: actor自体のworldMatirxは使わない方がいい
+    // TODO: もしくはちゃんとした順番をかける(scale -> instance scale -> rotation -> ...)
     worldMatrix = uWorldMatrix * instanceTranslation * instanceRotation * instanceScaling;
     
     vInstanceId = float(gl_InstanceID);

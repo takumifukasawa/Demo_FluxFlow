@@ -13,6 +13,7 @@ import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
 
 type ObjectSpaceRaymarchMeshArgs = {
     gpu: GPU;
+    size?: number;
     // fragmentShader: string;
     // depthFragmentShader: string;
     // uniforms?: UniformsData;
@@ -26,9 +27,9 @@ type ObjectSpaceRaymarchMeshArgs = {
 export class ObjectSpaceRaymarchMesh extends Mesh {
     constructor(args: ObjectSpaceRaymarchMeshArgs) {
         // const { gpu, fragmentShader, depthFragmentShader, uniforms = [], castShadow } = args;
-        const { gpu, materialArgs, castShadow } = args;
+        const { gpu, materialArgs, castShadow, size } = args;
         // const {gpu, castShadow } = args;
-        const geometry = new BoxGeometry({ gpu });
+        const geometry = new BoxGeometry({ gpu, size });
 
         // const { fragmentShader, depthFragmentShader, uniforms = [] } = materialArgs;
         const material = new ObjectSpaceRaymarchMaterial({

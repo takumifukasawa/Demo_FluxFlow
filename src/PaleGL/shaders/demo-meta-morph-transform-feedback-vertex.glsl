@@ -20,6 +20,7 @@ layout (std140) uniform ubCommon {
 uniform vec2 uNormalizedInputPosition;
 uniform vec3 uAttractTargetPosition;
 uniform float uAttractRate;
+uniform float uNeedsJumpPosition;
 
 // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
 float noise(vec2 seed)
@@ -28,20 +29,24 @@ float noise(vec2 seed)
 }
 
 void main() {
-    vPosition = aPosition + aVelocity;
+    // vPosition = aPosition + aVelocity;
+    vPosition = aPosition;
     vec3 target = uAttractTargetPosition;
     vec2 seed = aSeed;
     float rand = noise(seed);
     target += vec3(
-    cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
-    sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.) + 1.,
-    cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
+        cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
+        sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.) + 1.,
+        cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
     );
     vec3 v = target - vPosition;
     vec3 dir = normalize(v);
     vVelocity = mix(
-    aVelocity,
-    dir * (.1 + uAttractRate * .1),
-    .03 + sin(uTime * .2 + rand * 100.) * .02
+        aVelocity,
+        dir * (.1 + uAttractRate * .1),
+        .03 + sin(uTime * .2 + rand * 100.) * .02
     );
+    if(uNeedsJumpPosition > .5) {
+        vPosition = uAttractTargetPosition;
+    }
 }

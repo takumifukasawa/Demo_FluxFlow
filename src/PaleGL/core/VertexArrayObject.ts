@@ -176,6 +176,15 @@ export class VertexArrayObject extends GLObject {
         gl.bindBuffer(GL_ARRAY_BUFFER, null);
     }
 
+    updateBufferSubData(key: string, index: number, data: ArrayBufferView | BufferSource) {
+        const { gl } = this.gpu;
+        const vboInfo = this.findVertexBufferObjectInfo(key);
+        const offset = index * data.byteLength;
+        gl.bindBuffer(GL_ARRAY_BUFFER, vboInfo.vbo);
+        gl.bufferSubData(gl.ARRAY_BUFFER, offset, data);
+        gl.bindBuffer(GL_ARRAY_BUFFER, null);
+    }
+
     /**
      *
      * @param key

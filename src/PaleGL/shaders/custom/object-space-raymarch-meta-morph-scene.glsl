@@ -1,3 +1,5 @@
+#define GLOBAL_SIZE 1
+
 // r ... 回転
 float wing(vec3 p, vec3 s, float r, vec2 t) {
     p = opTranslate(p, vec3(t.x, t.y, 0.));
@@ -115,6 +117,9 @@ vec2 flower(vec3 p) {
 }
 
 vec2 dfScene(vec3 p) {
+    // 全体のスケール調整
+    p /= .5;
+    
     vec2 butterflyR = butterfly(p);
     vec2 flowerR = flower(p);
    

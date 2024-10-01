@@ -3,7 +3,9 @@ import { AttributeNames } from '@/PaleGL/constants';
 import { Attribute } from '@/PaleGL/core/Attribute';
 import { GPU } from '@/PaleGL/core/GPU';
 
-export function createBoxGeometryRawData() {
+export function createBoxGeometryRawData(size: number = 1) {
+    const s = size / 2;
+    
     // -----------------------------
     //
     //   6 ---- 4
@@ -14,14 +16,14 @@ export function createBoxGeometryRawData() {
     // 1 ---- 3
     // -----------------------------
 
-    const boxPosition_0 = [-0.5, 0.5, 0.5];
-    const boxPosition_1 = [-0.5, -0.5, 0.5];
-    const boxPosition_2 = [0.5, 0.5, 0.5];
-    const boxPosition_3 = [0.5, -0.5, 0.5];
-    const boxPosition_4 = [0.5, 0.5, -0.5];
-    const boxPosition_5 = [0.5, -0.5, -0.5];
-    const boxPosition_6 = [-0.5, 0.5, -0.5];
-    const boxPosition_7 = [-0.5, -0.5, -0.5];
+    const boxPosition_0 = [-s, s, s];
+    const boxPosition_1 = [-s, -s, s];
+    const boxPosition_2 = [s, s, s];
+    const boxPosition_3 = [s, -s, s];
+    const boxPosition_4 = [s, s, -s];
+    const boxPosition_5 = [s, -s, -s];
+    const boxPosition_6 = [-s, s, -s];
+    const boxPosition_7 = [-s, -s, -s];
 
     const normalsRaw = [
         [0, 0, 1], // front
@@ -85,8 +87,8 @@ export function createBoxGeometryRawData() {
     };
 }
 
-export function createBoxGeometryData() {
-    const rawData = createBoxGeometryRawData();
+export function createBoxGeometryData(size: number) {
+    const rawData = createBoxGeometryRawData(size);
 
     // TODO: uniqでfilter
     const attributes = [
@@ -115,15 +117,16 @@ export function createBoxGeometryData() {
 }
 
 export class BoxGeometry extends Geometry {
-    constructor({ gpu }: { gpu: GPU }) {
-        const boxPosition_0 = [-0.5, 0.5, 0.5];
-        const boxPosition_1 = [-0.5, -0.5, 0.5];
-        const boxPosition_2 = [0.5, 0.5, 0.5];
-        const boxPosition_3 = [0.5, -0.5, 0.5];
-        const boxPosition_4 = [0.5, 0.5, -0.5];
-        const boxPosition_5 = [0.5, -0.5, -0.5];
-        const boxPosition_6 = [-0.5, 0.5, -0.5];
-        const boxPosition_7 = [-0.5, -0.5, -0.5];
+    constructor({ gpu, size = 1 }: { gpu: GPU, size?: number }) {
+        const s = size / 2;
+        const boxPosition_0 = [-s, s, s];
+        const boxPosition_1 = [-s, -s, s];
+        const boxPosition_2 = [s, s, s];
+        const boxPosition_3 = [s, -s, s];
+        const boxPosition_4 = [s, s, -s];
+        const boxPosition_5 = [s, -s, -s];
+        const boxPosition_6 = [-s, s, -s];
+        const boxPosition_7 = [-s, -s, -s];
         // const boxPosition_0 = [-1, 1, 1];
         // const boxPosition_1 = [-1, -1, 1];
         // const boxPosition_2 = [1, 1, 1];

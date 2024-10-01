@@ -20,7 +20,7 @@ out vec4 outColor;
 #include ./partial/alpha-test-functions.glsl
 
 const float threshold = .5;
-const float smoothRange = .1;
+const float smoothRange = .01;
 
 float sdf2alpha(float sdf) {
     float alpha = smoothstep(
@@ -51,7 +51,6 @@ void main() {
 
     float alpha = sdf2alpha(sdf);
     resultColor.a = alpha;
-    // resultColor.a = 1.;
 
 #ifdef USE_ALPHA_TEST
     checkAlphaTest(resultColor.a, uAlphaTestThreshold);
