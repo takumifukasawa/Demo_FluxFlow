@@ -374,7 +374,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     const cameraPostProcess = new PostProcess();
 
-    bufferVisualizerPass = new BufferVisualizerPass({ gpu });
+    bufferVisualizerPass = new BufferVisualizerPass({ gpu, parameters: {fullViewTextureEnabled: true} });
     bufferVisualizerPass.parameters.enabled = false;
     cameraPostProcess.addPass(bufferVisualizerPass);
     // bufferVisualizerPass.beforeRender = () => {

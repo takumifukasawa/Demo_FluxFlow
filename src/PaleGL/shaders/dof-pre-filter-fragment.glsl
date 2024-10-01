@@ -18,6 +18,7 @@ uniform vec2 uTexelSize;
 
 float weight(vec3 c) {
     return 1. / (1. + max(max(c.r, c.g), c.b));
+    // return 1. / max((1. + max(max(c.r, c.g), c.b)), .01);
 }
 
 void main() {

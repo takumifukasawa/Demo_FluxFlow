@@ -25,8 +25,9 @@ uniform float uBokehRadius;
 // #if defined(BOKEH_KERNEL_SMALL)
 // 
 // // ref: https://github.com/keijiro/KinoBokeh/blob/master/Assets/Kino/Bokeh/Shader/DiskKernel.cginc
-// const int KERNEL_SAMPLE_COUNT = 16;
-// const vec2[KERNEL_SAMPLE_COUNT] kernel = vec2[](
+
+// #define KERNEL_SAMPLE_COUNT 16
+// const vec2[16] kernel = vec2[](
 //     // original
 // 	vec2(0, 0),
 // 	vec2(0.54545456, 0),
@@ -45,8 +46,8 @@ uniform float uBokehRadius;
 // 	vec2(0.30901712, -0.9510565),
 // 	vec2(0.80901694, -0.5877853)
 // );
-// 
-// #elif defined (BOKEH_KERNEL_MEDIUM)
+// // 
+// // #elif defined (BOKEH_KERNEL_MEDIUM)
 
 // const int KERNEL_SAMPLE_COUNT = 22;
 #define KERNEL_SAMPLE_COUNT 22
@@ -117,8 +118,15 @@ void main() {
     bgColor *= vec3(1.) / (bgWeight + (bgWeight == 0. ? 1. : 0.)); 
     fgColor *= vec3(1.) / (fgWeight + (fgWeight == 0. ? 1. : 0.));
     
+    // outColor = vec4(vec3(fgWeight), 1.);
+    // outColor = vec4(vec3(coc), 1.);
+    // return;
+
     // 前ボケと後ボケがどのように合成されたか
     float bgfg = min(1., fgWeight * 3.141592 / float(KERNEL_SAMPLE_COUNT));
+    
+    // test
+    // bgfg = max(0., bgfg);
     
     vec3 color = mix(bgColor, fgColor, bgfg);
     

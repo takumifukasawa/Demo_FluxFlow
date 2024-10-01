@@ -307,11 +307,15 @@ export class DepthOfFieldPass implements IPostProcessPass {
         this.width = width;
         this.height = height;
 
-        this.circleOfConfusionPass.setSize(width, height);
+        // tmp
+        // this.circleOfConfusionPass.setSize(width, height);
+        // kthis.preFilterPass.setSize(width / 2, height / 2);
+        // kthis.dofBokehPass.setSize(width / 2, height / 2);
+        // kthis.bokehBlurPass.setSize(width / 2, height / 2);
+        
+        this.circleOfConfusionPass.setSize(width / 2, height / 2);
         this.preFilterPass.setSize(width / 2, height / 2);
-
         this.dofBokehPass.setSize(width / 2, height / 2);
-        // this.bokehBlurPass.setSize(width / 2, height / 2);
         this.bokehBlurPass.setSize(width / 2, height / 2);
 
         this.compositePass.setSize(width, height);
@@ -470,11 +474,11 @@ export class DepthOfFieldPass implements IPostProcessPass {
     // #height = 1;
 
     // #lastPass;
-    private circleOfConfusionPass: FragmentPass;
-    private preFilterPass: FragmentPass;
-    private dofBokehPass: FragmentPass;
-    private bokehBlurPass: FragmentPass;
-    private compositePass: FragmentPass;
+    circleOfConfusionPass: FragmentPass;
+    preFilterPass: FragmentPass;
+    dofBokehPass: FragmentPass;
+    bokehBlurPass: FragmentPass;
+    compositePass: FragmentPass;
 
     private geometry: PlaneGeometry;
 }

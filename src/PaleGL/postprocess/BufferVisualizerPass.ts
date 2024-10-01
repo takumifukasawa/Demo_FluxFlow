@@ -891,9 +891,9 @@ export class BufferVisualizerPass implements IPostProcessPass {
         });
         this.compositePass.material.uniforms.setValue(
             'uFullViewTexture',
-            // this.compositePass.renderTarget.read.texture
-            renderer.gBufferRenderTargets.gBufferBTexture
-            // renderer.ssrPass.renderTarget.read.texture
+            // renderer.depthOfFieldPass.renderTarget.read.texture
+             renderer.depthOfFieldPass.preFilterPass.renderTarget.read.texture
+        // renderer.depthOfFieldPass.preFilterPass.renderTarget.read.texture
         );
         this.compositePass.material.uniforms.setValue(
             'uFullViewTextureEnabled',
