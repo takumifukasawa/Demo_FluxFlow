@@ -13,9 +13,13 @@ import { saturate } from '@/PaleGL/utilities/mathUtilities.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { AbstractInputController } from '@/PaleGL/inputs/AbstractInputController.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
-import {Actor} from "@/PaleGL/actors/Actor.ts";
+import { Actor } from '@/PaleGL/actors/Actor.ts';
 
 const MAX_INSTANCE_NUM = 1024;
+
+const ATTRIBUTE_POSITION_NAME = 'aPosition';
+const ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
+const ATTRIBUTE_SEED_NAME = 'aSeed';
 
 const createInstanceUpdater = ({
     gpu,
@@ -74,19 +78,19 @@ const createInstanceUpdater = ({
         gpu,
         attributes: [
             new Attribute({
-                name: 'aPosition',
+                name: ATTRIBUTE_POSITION_NAME,
                 data: initialPosition,
                 size: 3,
                 usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
-                name: 'aVelocity',
+                name: ATTRIBUTE_VELOCITY_NAME,
                 data: initialVelocity,
                 size: 3,
                 usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
-                name: 'aSeed',
+                name: ATTRIBUTE_SEED_NAME,
                 data: initialSeed,
                 size: 2,
                 usageType: AttributeUsageType.StaticDraw,
@@ -121,9 +125,9 @@ const createInstanceUpdater = ({
             },
             {
                 name: 'uNeedsJumpPosition',
-                type :UniformTypes.Float,
+                type: UniformTypes.Float,
                 value: 0,
-            }
+            },
         ],
         uniformBlockNames: [UniformBlockNames.Common],
         drawCount: instanceNum,
@@ -166,13 +170,13 @@ export const createMetaMorphActor = ({
     renderer,
     inputController,
     instanceNum,
-    attractorActor
+    attractorActor,
 }: {
     gpu: GPU;
     renderer: Renderer;
     instanceNum: number;
     inputController: AbstractInputController;
-    attractorActor: Actor
+    attractorActor: Actor;
 }) => {
     const mesh = new ObjectSpaceRaymarchMesh({
         gpu,
@@ -292,26 +296,31 @@ export const createMetaMorphActor = ({
     );
 
     const transformFeedbackDoubleBuffer = createInstanceUpdater({ gpu, renderer, instanceNum: MAX_INSTANCE_NUM });
-   
+
     let needsJumpPosition: boolean = false;
-    
+
     // const setNeedsJumpPosition = (needsJump: boolean) => {
     //     needsJumpPosition = needsJump;
     // }
-    
+
     // const setInstanceVelocity = () => {
     // };
-    // 
-    // const setInstancePosition = (index: number, p: Vector3) => {
-    // };
-    // 
+    //
+    const setInstancePosition = (index: number, p: Vector3) => {
+        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+            ATTRIBUTE_POSITION_NAME,
+            index,
+            p.elements
+        );
+    };
+    //
     // const setInstanceAttractorTarget = () => {
     // };
-    
+
     window.addEventListener('keydown', (e) => {
-        if(e.key === 'j') {
+        if (e.key === 'j') {
             // setNeedsJumpPosition(true)
-            transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData("aPosition", 0, new Float32Array([0, 0, 0]));
+            setInstancePosition(0, new Vector3(0, 0, 0));
         }
     });
 
@@ -329,10 +338,7 @@ export const createMetaMorphActor = ({
             'uAttractTargetPosition',
             Vector3.addVectors(attractorActor.transform.position, new Vector3(0, 0, 0))
         );
-        transformFeedbackDoubleBuffer.uniforms.setValue(
-            'uNeedsJumpPosition',
-            needsJumpPosition ? 1. : 0.
-        );
+        transformFeedbackDoubleBuffer.uniforms.setValue('uNeedsJumpPosition', needsJumpPosition ? 1 : 0);
         transformFeedbackDoubleBuffer.uniforms.setValue('uAttractRate', attractRate);
         gpu.updateTransformFeedback({
             shader: transformFeedbackDoubleBuffer.shader,
@@ -342,17 +348,17 @@ export const createMetaMorphActor = ({
             drawCount: transformFeedbackDoubleBuffer.drawCount,
         });
         transformFeedbackDoubleBuffer.swap();
-        
+
         attractorActor.transform.position = new Vector3(0, 4, 0);
 
         // インスタンスのメッシュを更新
         mesh.geometry.vertexArrayObject.replaceBuffer(
             AttributeNames.InstancePosition,
-            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer('aPosition')
+            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(ATTRIBUTE_POSITION_NAME)
         );
         mesh.geometry.vertexArrayObject.replaceBuffer(
             AttributeNames.InstanceVelocity,
-            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer('aVelocity')
+            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(ATTRIBUTE_VELOCITY_NAME)
         );
 
         mesh.geometry.instanceCount = MAX_INSTANCE_NUM;
