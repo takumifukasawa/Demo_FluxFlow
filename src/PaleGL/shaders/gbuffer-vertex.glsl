@@ -162,15 +162,16 @@ void main() {
         // velocityはnormalizeした方がいいかも
         // instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
         instanceRotation = getLookAtMat(aInstancePosition + normalize(aInstanceVelocity) * 1000., aInstancePosition);
+        // instanceRotation = getLookAtMat(aInstancePosition + vec3(0., 10., 0.) * 1000., aInstancePosition);
     
         // for debug
-        // instanceRotation = mat4(
-        //     1., 0., 0., 0.,
-        //     0., 1., 0., 0.,
-        //     0., 0., 1., 0.,
-        //     0., 0., 0., 1.
-        //     
-        // );
+        instanceRotation = mat4(
+            1., 0., 0., 0.,
+            0., 1., 0., 0.,
+            0., 0., 1., 0.,
+            0., 0., 0., 1.
+            
+        );
     #endif
     
     #pragma INSTANCE_TRANSFORM_PRE_PROCESS

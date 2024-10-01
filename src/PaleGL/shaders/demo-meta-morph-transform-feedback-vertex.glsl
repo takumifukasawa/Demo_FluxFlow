@@ -29,8 +29,7 @@ float noise(vec2 seed)
 }
 
 void main() {
-    // vPosition = aPosition + aVelocity;
-    vPosition = aPosition;
+    vPosition = aPosition + aVelocity;
     vec3 target = uAttractTargetPosition;
     vec2 seed = aSeed;
     float rand = noise(seed);
@@ -41,11 +40,14 @@ void main() {
     );
     vec3 v = target - vPosition;
     vec3 dir = normalize(v);
-    vVelocity = mix(
-        aVelocity,
-        dir * (.1 + uAttractRate * .1),
-        .03 + sin(uTime * .2 + rand * 100.) * .02
-    );
+    
+    // なにかをattractする場合
+    // vVelocity = mix(
+    //     aVelocity,
+    //     dir * (.1 + uAttractRate * .1),
+    //     .03 + sin(uTime * .2 + rand * 100.) * .02
+    // );
+    vVelocity = aVelocity;
     if(uNeedsJumpPosition > .5) {
         vPosition = uAttractTargetPosition;
     }

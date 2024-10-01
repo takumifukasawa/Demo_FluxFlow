@@ -303,9 +303,6 @@ export const createMetaMorphActor = ({
     //     needsJumpPosition = needsJump;
     // }
 
-    // const setInstanceVelocity = () => {
-    // };
-    //
     const setInstancePosition = (index: number, p: Vector3) => {
         transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
             ATTRIBUTE_POSITION_NAME,
@@ -313,16 +310,35 @@ export const createMetaMorphActor = ({
             p.elements
         );
     };
+
+    const setInstanceVelocity = (index: number, v: Vector3) => {
+        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+            ATTRIBUTE_VELOCITY_NAME,
+            index,
+            v.elements
+        );
+    };
+
     //
     // const setInstanceAttractorTarget = () => {
     // };
 
+    // for debug
+    
     window.addEventListener('keydown', (e) => {
         if (e.key === 'j') {
-            // setNeedsJumpPosition(true)
             setInstancePosition(0, new Vector3(0, 0, 0));
         }
     });
+    window.addEventListener('keydown', (e) => {
+        if(e.key === "v")
+        {
+            setInstanceVelocity(0, new Vector3(0, .1, 0));
+        }
+    });
+    
+    
+    
 
     let attractRate = 0;
     mesh.onUpdate = ({ deltaTime }) => {
