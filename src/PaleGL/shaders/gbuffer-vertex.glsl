@@ -118,7 +118,11 @@ mat4 getScalingMat(vec3 s) {
 }
 
 mat4 getLookAtMat(vec3 lookAt, vec3 p) {
-    vec3 f = normalize(lookAt - p);
+    vec3 f = mix(
+        vec3(0., 1., 0.),// fallback
+        normalize(lookAt - p),
+        step(.01, length(lookAt - p))
+    );
     vec3 r = normalize(cross(vec3(0., 1., 0.), f));
     vec3 u = cross(f, r);
     return mat4(
@@ -163,7 +167,6 @@ void main() {
         // instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
         instanceRotation = getLookAtMat(aInstancePosition + normalize(aInstanceVelocity) * 1000., aInstancePosition);
         // instanceRotation = getLookAtMat(aInstancePosition + vec3(0., 10., 0.) * 1000., aInstancePosition);
-    
         // for debug
         instanceRotation = mat4(
             1., 0., 0., 0.,

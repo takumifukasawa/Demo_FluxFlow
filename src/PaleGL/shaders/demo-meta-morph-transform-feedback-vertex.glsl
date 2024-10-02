@@ -44,21 +44,21 @@ void main() {
         sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.) + 1.,
         cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
     );
-    vec3 v = target - vPosition;
-    vec3 dir = normalize(v);
+    vec3 diffP = target - vPosition;
+    vec3 diffDir = normalize(dffP);
     
-    // なにかをattractする場合
-    vVelocity = mix(
-        aVelocity,
-        mix(
-            aVelocity,
-            dir * (.1 + uAttractRate * .1),
-            .03 + sin(uTime * .2 + rand * 100.) * .02
-        ),
-        step(.5, attractEnabled)
-    );
-    // vVelocity = aVelocity;
-    // if(uNeedsJumpPosition > .5) {
-    //     vPosition = uAttractTargetPosition;
-    // }
+    vec3 acc = diffDir * .01;
+    vec3 newP = target + diffP * .01;
+    vec3 vVelocity = newP - vPosition;
+    
+    // // なにかをattractする場合
+    // vVelocity = mix(
+    //     aVelocity,
+    //     mix(
+    //         aVelocity,
+    //         diffDir * (.1 + uAttractRate * .1),
+    //         .03 + sin(uTime * .2 + rand * 100.) * .02
+    //     ),
+    //     step(.5, attractEnabled)
+    // );
 }
