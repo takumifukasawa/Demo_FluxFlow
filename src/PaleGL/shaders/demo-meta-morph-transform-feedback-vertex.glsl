@@ -5,7 +5,8 @@ precision highp float;
 // TODO: ここ動的に構築してもいい
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aVelocity;
-layout(location = 2) in vec2 aSeed;
+layout(location = 2) in vec3 aAttractTargetPosition;
+layout(location = 3) in vec4 aState;
 
 out vec3 vPosition;
 // out mat4 vTransform;
@@ -29,9 +30,14 @@ float noise(vec2 seed)
 }
 
 void main() {
+    // stateを分割
+    float seed = aState.x;
+    float attractEnabled = aState.y;
+    
     vPosition = aPosition + aVelocity;
-    vec3 target = uAttractTargetPosition;
-    vec2 seed = aSeed;
+    // vec3 target = uAttractTargetPosition;
+    vec3 target = aAttractTargetPosition;
+    vec2 seed = vec2(seed, seed);
     float rand = noise(seed);
     target += vec3(
         cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
@@ -42,13 +48,17 @@ void main() {
     vec3 dir = normalize(v);
     
     // なにかをattractする場合
-    // vVelocity = mix(
-    //     aVelocity,
-    //     dir * (.1 + uAttractRate * .1),
-    //     .03 + sin(uTime * .2 + rand * 100.) * .02
-    // );
-    vVelocity = aVelocity;
-    if(uNeedsJumpPosition > .5) {
-        vPosition = uAttractTargetPosition;
-    }
+    vVelocity = mix(
+        aVelocity,
+        mix(
+            aVelocity,
+            dir * (.1 + uAttractRate * .1),
+            .03 + sin(uTime * .2 + rand * 100.) * .02
+        ),
+        step(.5, attractEnabled)
+    );
+    // vVelocity = aVelocity;
+    // if(uNeedsJumpPosition > .5) {
+    //     vPosition = uAttractTargetPosition;
+    // }
 }

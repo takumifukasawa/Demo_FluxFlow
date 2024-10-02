@@ -19,7 +19,8 @@ const MAX_INSTANCE_NUM = 1024;
 
 const ATTRIBUTE_POSITION_NAME = 'aPosition';
 const ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
-const ATTRIBUTE_SEED_NAME = 'aSeed';
+const ATTRIBUTE_STATE_NAME = 'aState';
+const ATTRIBUTE_ATTRACT_TARGET_NAME = 'aAttractTargetPosition';
 
 const createInstanceUpdater = ({
     gpu,
@@ -59,17 +60,20 @@ const createInstanceUpdater = ({
             .flat()
     );
 
-    const initialSeed = new Float32Array(
+    const initialAttractTargetPosition = new Float32Array(
+        maton
+            .range(instanceNum)
+            .map(() => {
+                return [0, 0, 0];
+            })
+            .flat()
+    );
+
+    const initialState = new Float32Array(
         maton
             .range(instanceNum, true)
             .map((i) => {
-                return [
-                    i,
-                    i,
-                    // i + Math.floor(Math.random() * 100000),
-                    // // Math.floor(Math.random() * 10000),
-                    // Math.floor(Math.random() * 100000)
-                ];
+                return [i, 0, 0, 0];
             })
             .flat()
     );
@@ -90,9 +94,15 @@ const createInstanceUpdater = ({
                 usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
-                name: ATTRIBUTE_SEED_NAME,
-                data: initialSeed,
-                size: 2,
+                name: ATTRIBUTE_ATTRACT_TARGET_NAME,
+                data: initialAttractTargetPosition,
+                size: 3,
+                usageType: AttributeUsageType.StaticDraw,
+            }),
+            new Attribute({
+                name: ATTRIBUTE_STATE_NAME,
+                data: initialState,
+                size: 4,
                 usageType: AttributeUsageType.StaticDraw,
             }),
         ],
@@ -319,31 +329,81 @@ export const createMetaMorphActor = ({
         );
     };
 
-    //
-    // const setInstanceAttractorTarget = () => {
-    // };
+    const setInstanceAttractTargetPosition = (index: number, p: Vector3) => {
+        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+            ATTRIBUTE_ATTRACT_TARGET_NAME,
+            index,
+            p.elements
+        );
+    };
+
+    const updateInstanceState = (index: number, values: { seed?: number; attractEnabled?: boolean }) => {
+        const { seed, attractEnabled } = values;
+        const elementSize = 4;
+        const currentData = transformFeedbackDoubleBuffer.read.vertexArrayObject.getBufferSubData(
+            ATTRIBUTE_STATE_NAME,
+            index,
+            elementSize
+        );
+        const newSeed = seed ?? currentData[0];
+        let newAttractEnabled = currentData[1];
+        if (attractEnabled !== undefined) {
+            newAttractEnabled = attractEnabled ? 1 : 0;
+        }
+        const newStates = new Float32Array([newSeed, newAttractEnabled, 0, 0]);
+        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+            ATTRIBUTE_STATE_NAME,
+            index,
+            newStates
+        );
+    };
+
+    // const setInstanceState = (index: number, state: number) => {
+    //     transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+    //         ATTRIBUTE_ATTRACT_TARGET_NAME,
+    //         index,
+    //         p.elements
+    //     );
+    // }
 
     // for debug
-    
+
     window.addEventListener('keydown', (e) => {
         if (e.key === 'j') {
             setInstancePosition(0, new Vector3(0, 0, 0));
         }
     });
     window.addEventListener('keydown', (e) => {
-        if(e.key === "v")
-        {
-            setInstanceVelocity(0, new Vector3(0, .1, 0));
+        if (e.key === 'v') {
+            setInstanceVelocity(0, new Vector3(0, 0.1, 0));
         }
     });
-    
-    
-    
 
     let attractRate = 0;
     mesh.onUpdate = ({ deltaTime }) => {
         attractRate += (inputController.isDown ? 1 : -1) * deltaTime * 2;
         attractRate = saturate(attractRate);
+
+        for (let i = 0; i < instanceNum; i++) {
+            switch (i % 4) {
+                case 0:
+                    setInstanceAttractTargetPosition(i, new Vector3(4, 2, 0));
+                    updateInstanceState(i, { attractEnabled: true });
+                    break;
+                case 1:
+                    setInstanceAttractTargetPosition(i, new Vector3(4, 2, 0));
+                    updateInstanceState(i, { attractEnabled: false });
+                    break;
+                case 2:
+                    setInstanceAttractTargetPosition(i, new Vector3(-4, 2, 0));
+                    updateInstanceState(i, { attractEnabled: true });
+                    break;
+                case 3:
+                    setInstanceAttractTargetPosition(i, new Vector3(-4, 2, 0));
+                    updateInstanceState(i, { attractEnabled: false });
+                    break;
+            }
+        }
 
         // transform feedback を更新
         transformFeedbackDoubleBuffer.uniforms.setValue(
