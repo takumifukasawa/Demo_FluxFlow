@@ -18,11 +18,13 @@ import {
     MarionetterComponentType,
     MarionetterDirectionalLightComponentInfo,
     MarionetterLightComponentInfo,
+    MarionetterLitMaterialInfo,
     MarionetterMeshFilterComponentInfo,
     MarionetterMeshRendererComponentInfo,
     MarionetterObjectInfo,
     MarionetterPlayableDirectorComponentInfo,
     MarionetterScene,
+    MarionetterSceneStructure,
     MarionetterSpotLightComponentInfo,
     MarionetterTimeline,
     MarionetterVolumeComponentInfo,
@@ -91,7 +93,7 @@ function buildPostProcessVolumeActor({
     name: string;
     volumeComponent: MarionetterVolumeComponentInfo;
 }) {
-    console.log(volumeComponent)
+    console.log(volumeComponent);
     const parameters = maton(
         volumeComponent.vl.map((volumeLayer) => {
             switch (volumeLayer.l) {
@@ -100,7 +102,7 @@ function buildPostProcessVolumeActor({
                     return {
                         type: PostProcessPassType.Bloom,
                         parameters: generateDefaultBloomPassParameters({
-                            bloomAmount: bloomLayer.i,
+                            bloomAmount: bloomLayer.bl_i
                         }),
                     };
                 case 'DepthOfField':
@@ -108,7 +110,7 @@ function buildPostProcessVolumeActor({
                     return {
                         type: PostProcessPassType.DepthOfField,
                         parameters: generateDepthOfFieldPassParameters({
-                            focusDistance: depthOfFieldLayer.f,
+                            focusDistance: depthOfFieldLayer.dof_fd
                         }),
                     };
                 default:
@@ -126,10 +128,7 @@ function buildPostProcessVolumeActor({
  * @param gpu
  * @param scene
  */
-export function buildMarionetterScene(
-    gpu: GPU,
-    scene: MarionetterScene
-): { actors: Actor[]; marionetterTimeline: MarionetterTimeline | null } {
+export function buildMarionetterScene(gpu: GPU, scene: MarionetterScene): MarionetterSceneStructure {
     const actors: Actor[] = [];
 
     function recursiveBuildActor(
@@ -178,14 +177,20 @@ export function buildMarionetterScene(
                     geometry = new BoxGeometry({ gpu });
                     break;
                 case 'Quad':
-                    geometry = new PlaneGeometry({ gpu });
+                    geometry = new PlaneGeometry({ gpu, width: 1, height: 1 });
                     break;
             }
 
             // build material
             switch (meshRenderer.mn) {
                 case 'Lit':
-                    material = new GBufferMaterial();
+                    const m = meshRenderer.m as MarionetterLitMaterialInfo;
+                    material = new GBufferMaterial({
+                        diffuseColor: Color.fromHex(m.c),
+                        metallic: m.m,
+                        roughness: m.r,
+                        receiveShadow: !!m.rs,
+                    });
                     break;
                 default:
                     // TODO: fallback
@@ -243,11 +248,7 @@ export function buildMarionetterScene(
 
         if (actor) {
             // actors.push(actor);
-            actor.transform.scale = new Vector3(
-                obj.t.ls.x,
-                obj.t.ls.y,
-                obj.t.ls.z
-            );
+            actor.transform.scale = new Vector3(obj.t.ls.x, obj.t.ls.y, obj.t.ls.z);
             // euler ver
             // actor.transform.rotation.setV(
             //     new Vector3(obj.transform.localRotation.x, obj.transform.localRotation.y, obj.transform.localRotation.z)
@@ -273,21 +274,12 @@ export function buildMarionetterScene(
             // );
             actor.transform.rotation = Rotator.fromQuaternion(
                 resolveInvertRotationLeftHandAxisToRightHandAxis(
-                    new Quaternion(
-                        obj.t.lr.x,
-                        obj.t.lr.y,
-                        obj.t.lr.z,
-                        obj.t.lr.w
-                    ),
+                    new Quaternion(obj.t.lr.x, obj.t.lr.y, obj.t.lr.z, obj.t.lr.w),
                     actor,
                     needsFlip
                 )
             );
-            actor.transform.position = new Vector3(
-                obj.t.lp.x,
-                obj.t.lp.y,
-                obj.t.lp.z
-            );
+            actor.transform.position = new Vector3(obj.t.lp.x, obj.t.lp.y, obj.t.lp.z);
 
             // 親が存在する場合は親に追加、親がない場合はシーン直下に配置したいので配列に追加
             if (parentActor) {
@@ -298,7 +290,7 @@ export function buildMarionetterScene(
 
             // 子要素があれば再帰的に処理
             for (let i = 0; i < obj.ch.length; i++) {
-                recursiveBuildActor(obj.ch[i] , actor, needsFlip);
+                recursiveBuildActor(obj.ch[i], actor, needsFlip);
             }
 
             return;
@@ -327,19 +319,22 @@ export function buildMarionetterScene(
     // parse timeline
     // NOTE: timelineは一個という想定
     //
+    const marionetterTimeline = buildMarionetterTimelineFromScene(scene, actors);
 
+    return { actors, marionetterTimeline };
+}
+
+export function buildMarionetterTimelineFromScene(scene: MarionetterScene, sceneActors: Actor[]) {
     let marionetterTimeline: MarionetterTimeline | null = null;
-
     scene.o.forEach((obj) => {
         const timelineComponent = obj.co.find((c) => c.t === MarionetterComponentType.PlayableDirector);
         if (timelineComponent) {
             marionetterTimeline = buildMarionetterTimeline(
-                actors,
+                sceneActors,
                 timelineComponent as MarionetterPlayableDirectorComponentInfo
                 // needsSomeActorsConvertLeftHandAxisToRightHandAxis
             );
         }
     });
-
-    return { actors, marionetterTimeline };
+    return marionetterTimeline;
 }

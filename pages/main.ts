@@ -9,7 +9,7 @@ import { GPU } from '@/PaleGL/core/GPU';
 import { RenderTarget } from '@/PaleGL/core/RenderTarget';
 import { Scene } from '@/PaleGL/core/Scene';
 // import { Texture } from '@/PaleGL/core/Texture';
-// import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController';
+import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController';
 
 // loaders
 
@@ -27,11 +27,7 @@ import { TouchInputController } from '@/PaleGL/inputs/TouchInputController';
 import { MouseInputController } from '@/PaleGL/inputs/MouseInputController';
 
 // others
-import {
-    RenderTargetTypes,
-    TextureDepthPrecisionType,
-    TextureFilterTypes,
-} from '@/PaleGL/constants';
+import { RenderTargetTypes, TextureDepthPrecisionType, TextureFilterTypes } from '@/PaleGL/constants';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -49,10 +45,10 @@ import {
     Marionetter,
     // MarionetterPlayableDirectorComponentInfo,
     MarionetterScene,
-    MarionetterTimeline,
+    MarionetterSceneStructure,
 } from '@/Marionetter/types';
-import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
-import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
+import { buildMarionetterScene, buildMarionetterTimelineFromScene } from '@/Marionetter/buildMarionetterScene.ts';
+// import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
 import { initDebugger } from './scripts/initDebugger.ts';
 import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
 // import {loadImgArraybuffer} from '@/PaleGL/loaders/loadImg.ts';
@@ -69,10 +65,6 @@ import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128
 */
 
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
-
-import litScreenSpaceRaymarchFrag from '@/PaleGL/shaders/lit-screen-space-raymarch-fragment.glsl';
-import gBufferScreenSpaceRaymarchDepthFrag from '@/PaleGL/shaders/gbuffer-screen-space-raymarch-depth-fragment.glsl';
-
 import { Color } from '@/PaleGL/math/Color.ts';
 import { Vector2 } from '@/PaleGL/math/Vector2.ts';
 import { clamp } from '@/PaleGL/utilities/mathUtilities.ts';
@@ -80,11 +72,9 @@ import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
 import { UnlitMaterial } from '@/PaleGL/materials/UnlitMaterial.ts';
 import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
-import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
-import {createMetaMorphActor} from "./scripts/createMetaMorphActor.ts";
-// import { Rotator } from '@/PaleGL/math/Rotator.ts';
-// import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
+import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
+import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 
 const stylesText = `
 :root {
@@ -179,7 +169,6 @@ styleElement.innerText = stylesText;
 document.head.appendChild(styleElement);
 
 let width: number, height: number;
-let marionetterTimeline: MarionetterTimeline | null = null;
 let bufferVisualizerPass: BufferVisualizerPass;
 let attractorMesh: Mesh;
 
@@ -228,17 +217,18 @@ engine.setScene(captureScene);
 // captureSceneCamera.name = "Main Camera";
 
 let captureSceneCamera: PerspectiveCamera | null;
-// let orbitCameraController: OrbitCameraController | null;
+const orbitCameraController: OrbitCameraController = new OrbitCameraController();
 
 const initMarionetter = () => {
     marionetter.connect();
 };
 
+let marionetterSceneStructure: MarionetterSceneStructure | null = null;
+
 const buildScene = (sceneJson: MarionetterScene) => {
     // const res = buildMarionetterScene(gpu, sceneJson, false);
-    const res = buildMarionetterScene(gpu, sceneJson);
-    const { actors } = res;
-    marionetterTimeline = res.marionetterTimeline;
+    marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson);
+    const { actors } = marionetterSceneStructure;
 
     for (let i = 0; i < actors.length; i++) {
         captureScene.add(actors[i]);
@@ -248,7 +238,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
     const directionalLight = captureScene.find('DirectionalLight') as DirectionalLight;
     // const plane = captureScene.find('Plane') as Mesh;
 
-    const orbitCameraController = new OrbitCameraController(captureSceneCamera);
+    orbitCameraController.setCamera(captureSceneCamera);
     orbitCameraController.distance = isSP ? 15 : 15;
     orbitCameraController.attenuation = 0.01;
     orbitCameraController.dampingFactor = 0.2;
@@ -263,8 +253,9 @@ const buildScene = (sceneJson: MarionetterScene) => {
     orbitCameraController.defaultAzimuth = 10;
     orbitCameraController.defaultAltitude = -10;
     orbitCameraController.lookAtTarget = new Vector3(0, 3, 0);
+    orbitCameraController.enabled = false;
+    orbitCameraController.enabledUpdateCamera = false;
     orbitCameraController.start();
-    orbitCameraController.enabled = true;
 
     // const orbitCameraController = new OrbitCameraController(captureSceneCamera);
 
@@ -276,9 +267,9 @@ const buildScene = (sceneJson: MarionetterScene) => {
         // actor.transform.position = new Vector3(-7 * 1.1, 4.5 * 1.4, 11 * 1.2);
         // 2: orbit controls
         // if (inputController.isDown && debuggerStates.orbitControlsEnabled) {
-        // if (inputController.isDown && orbitCameraController.enabled) {
-        //     orbitCameraController.setDelta(inputController.deltaNormalizedInputPosition);
-        // }
+        if (inputController.isDown && orbitCameraController.enabled) {
+            orbitCameraController.setDelta(inputController.deltaNormalizedInputPosition);
+        }
         if (inputController.isDown && orbitCameraController.enabled) {
             orbitCameraController.setDelta(inputController.deltaNormalizedInputPosition);
         }
@@ -299,39 +290,15 @@ const buildScene = (sceneJson: MarionetterScene) => {
             type: RenderTargetTypes.Depth,
             depthPrecision: TextureDepthPrecisionType.High,
         });
-        // spotLight.transform.rotation = Rotator.fromRadian(0, 0, 0);
     }
-    // spotLight.transform.rotation = spotLight.transform.rotation.invert();
-    // spotLight.lastUpdate = () => {
-    //     spotLight.transform.rotation = spotLight.transform.rotation.invert();
-    //     // spotLight.transform.rotation = spotLight.transform.rotation;
-    // };
-    //spotLight.transform.position = new Vector3(0, 3, 0);
-    //spotLight.transform.lookAt(new Vector3(0, 0, 0));
-    //spotLight.transform.rotation = Rotator.fromRadian(-90, 0, 0);
-    //console.log("rrr", spotLight.transform.rotation)
-
-    // const plane = captureScene.find('Plane') as Mesh;
-    // plane.transform.rotation = Rotator.fromDegree(0, 0, 0);
-    // plane.material = new UnlitMaterial({emissiveColor: Color.fromRGB(255, 255, 255)});
-
-    // const directionalLight = new DirectionalLight({
-    //     name: 'DirectionalLight',
-    //     intensity: 1.2,
-    //     // color: Color.fromRGB(255, 210, 200),
-    //     color: Color.white,
-    // });
 
     // shadows
     // TODO: directional light は constructor で shadow camera を生成してるのでこのガードいらない
     if (directionalLight && directionalLight.shadowCamera) {
-        // directionalLight.shadowCamera.visibleFrustum = true;
         directionalLight.castShadow = true;
         directionalLight.shadowCamera.near = 1;
         directionalLight.shadowCamera.far = 30;
         (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -12, 12, -12, 12);
-        // (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -5, 5, -5, 5);
-        // (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -7, 7, -7, 7);
         directionalLight.shadowMap = new RenderTarget({
             gpu,
             width: 1024,
@@ -342,24 +309,13 @@ const buildScene = (sceneJson: MarionetterScene) => {
         directionalLight.subscribeOnStart(({ actor }) => {
             actor.transform.setTranslation(new Vector3(-8, 8, -2));
             actor.transform.lookAt(new Vector3(0, 0, 0));
-            // const lightActor = actor as DirectionalLight;
-            // lightActor.castShadow = true;
-            // // lightActor.castShadow = false;
-            // if (lightActor.shadowCamera) {
-            //     lightActor.shadowCamera.near = 1;
-            //     lightActor.shadowCamera.far = 30;
-            //     (lightActor.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -10, 10, -10, 10);
-            //     lightActor.shadowMap = new RenderTarget({gpu, width: 1024, height: 1024, type: RenderTargetTypes.Depth});
-            // }
         });
-        // captureScene.add(directionalLight);
     }
 
     const cameraPostProcess = new PostProcess();
 
     bufferVisualizerPass = new BufferVisualizerPass({
         gpu,
-        // parameters: { fullViewTextureEnabled: true },
     });
     bufferVisualizerPass.parameters.enabled = false;
     cameraPostProcess.addPass(bufferVisualizerPass);
@@ -371,27 +327,26 @@ const buildScene = (sceneJson: MarionetterScene) => {
     console.log('scene', actors);
 };
 
-// const parseScene = (sceneJson: MarionetterScene) => {
-//     const playableDirectorComponentInfo = sceneJson.objects[0]
-//         .components[0] as MarionetterPlayableDirectorComponentInfo;
-//     marionetterTimeline = buildMarionetterTimeline(captureScene, playableDirectorComponentInfo);
-// };
-
 // TODO: この処理はビルド時には捨てたい
 const initHotReloadAndParseScene = () => {
     const hotReloadScene = () => {
         console.log('hot reload scene...');
         void fetch('./assets/data/scene-hot-reload.json').then(async (res) => {
             const sceneJson = (await res.json()) as unknown as MarionetterScene;
-            // TODO: reload hot timeline
-            console.log(sceneJson);
-            // parseScene(sceneJson);
+            console.log('hot reload: scene', sceneJson);
+            if (marionetterSceneStructure) {
+                console.log('hot reload: marionetterSceneStructure', marionetterSceneStructure);
+                marionetterSceneStructure.marionetterTimeline = buildMarionetterTimelineFromScene(
+                    sceneJson,
+                    marionetterSceneStructure.actors
+                );
+            }
         });
     };
     marionetter.setHotReloadCallback(() => {
         hotReloadScene();
     });
-    hotReloadScene();
+    // hotReloadScene();
 };
 
 const startupWrapperElement = document.createElement('div');
@@ -438,24 +393,6 @@ const hideStartupWrapper = () => {
 let metaMorphActor: ObjectSpaceRaymarchMesh;
 
 let screenSpaceRaymarchMesh: Mesh;
-const createScreenSpaceRaymarchMesh = () => {
-    const mesh = new ScreenSpaceRaymarchMesh({
-        gpu,
-        materialArgs: {
-            fragmentShader: litScreenSpaceRaymarchFrag,
-            depthFragmentShader: gBufferScreenSpaceRaymarchDepthFrag,
-            metallic: 0,
-            roughness: 0,
-            receiveShadow: true,
-            emissiveColor: Color.white,
-        },
-        // castShadow: true,
-    });
-    mesh.transform.scale = new Vector3(2, 2, 2);
-    mesh.transform.position = new Vector3(0, 4, 0);
-
-    return mesh;
-};
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 const load = async () => {
@@ -534,7 +471,7 @@ const load = async () => {
         renderer,
         inputController,
         attractorActor: attractorMesh,
-        instanceNum: 4
+        instanceNum: 128,
     });
     captureScene.add(metaMorphActor);
 
@@ -542,7 +479,7 @@ const load = async () => {
     // screen space object
     //
 
-    screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh();
+    screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
     captureScene.add(screenSpaceRaymarchMesh);
 
     //
@@ -626,12 +563,12 @@ const load = async () => {
     };
 
     engine.onRender = (time) => {
-        if (marionetterTimeline !== null) {
+        if (marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
             // TODO: prodの時はこっちを使いたい
             // const soundTime = glslSound.getCurrentTime();
             // marionetterTimeline.execute(soundTime);
-            // // marionetterTimeline.execute(marionetter.getCurrentTime());
-            marionetterTimeline.execute(0);
+            marionetterSceneStructure.marionetterTimeline.execute(marionetter.getCurrentTime());
+            // marionetterTimeline.execute(0);
         }
         if (captureSceneCamera) {
             renderer.render(captureScene, captureSceneCamera, { time });
@@ -684,6 +621,7 @@ const playDemo = () => {
         stopSound: glslSoundWrapper.stop,
         renderer,
         wrapperElement,
+        orbitCameraController,
     });
 };
 

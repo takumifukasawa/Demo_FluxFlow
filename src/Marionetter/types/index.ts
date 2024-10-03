@@ -12,6 +12,8 @@ const NeedsShorten = true;
 // marionetter
 //
 
+export type MarionetterSceneStructure = { actors: Actor[]; marionetterTimeline: MarionetterTimeline | null };
+
 export const MarionetterReceiveDataType = {
     SeekTimeline: 'seekTimeline',
     ExportScene: 'exportScene',
@@ -305,7 +307,7 @@ export type MarionetterVolumeVolumeLayerBase = NeedsShorten extends true
 export type MarionetterVolumeLayerBloom = MarionetterVolumeVolumeLayerBase &
     (NeedsShorten extends true
         ? {
-              i: number;
+              bl_i: number;
           }
         : {
               intensity: number;
@@ -314,19 +316,34 @@ export type MarionetterVolumeLayerBloom = MarionetterVolumeVolumeLayerBase &
 export type MarionetterVolumeLayerDepthOfField = MarionetterVolumeVolumeLayerBase &
     (NeedsShorten extends true
         ? {
-              f: number;
+              dof_fd: number;
           }
         : {
               focusDistance: number;
           });
 
-export type MarionetterVolumeLayerKinds = MarionetterVolumeLayerBloom | MarionetterVolumeLayerDepthOfField;
+export type MarionetterVolumeLayerVignette = MarionetterVolumeVolumeLayerBase &
+    (NeedsShorten extends true
+        ? {
+              vi_i: number;
+          }
+        : {
+              intensity: number;
+          });
 
-export type MarionetterVolumeComponentInfo = MarionetterComponentInfoBase & (NeedsShorten extends true ? {
-    vl: MarionetterVolumeLayerKinds[];
-} : {
-    volumeLayers: MarionetterVolumeLayerKinds[];
-});
+export type MarionetterVolumeLayerKinds =
+    MarionetterVolumeLayerBloom |
+    MarionetterVolumeLayerDepthOfField |
+    MarionetterVolumeLayerVignette;
+
+export type MarionetterVolumeComponentInfo = MarionetterComponentInfoBase &
+    (NeedsShorten extends true
+        ? {
+              vl: MarionetterVolumeLayerKinds[];
+          }
+        : {
+              volumeLayers: MarionetterVolumeLayerKinds[];
+          });
 
 export type MarionetterCameraComponentInfo = MarionetterComponentInfoBase &
     (NeedsShorten extends true
@@ -361,9 +378,15 @@ export type MarionetterMaterialInfo = NeedsShorten extends true
 export type MarionetterLitMaterialInfo = (NeedsShorten extends true
     ? {
           c: string; // hex string
+          m: number;
+          r: number;
+          rs: number;
       }
     : {
           color: string;
+          metallic: number;
+          roughness: number;
+          receiveShadow: number;
       }) &
     MarionetterMaterialInfo;
 

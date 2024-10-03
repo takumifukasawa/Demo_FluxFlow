@@ -3,6 +3,7 @@ import { DebuggerGUI } from '@/DebuggerGUI.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { GLSLSound } from '@/PaleGL/core/GLSLSound.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
+import {OrbitCameraController} from "@/PaleGL/core/OrbitCameraController.ts";
 
 export function initDebugger({
     bufferVisualizerPass,
@@ -10,7 +11,8 @@ export function initDebugger({
     playSound,
     stopSound,
     renderer,
-    wrapperElement
+    wrapperElement,
+    orbitCameraController,
 }: {
     bufferVisualizerPass: BufferVisualizerPass;
     glslSound: GLSLSound;
@@ -18,6 +20,7 @@ export function initDebugger({
     stopSound: () => void;
     renderer: Renderer;
     wrapperElement: HTMLElement;
+    orbitCameraController: OrbitCameraController;
 }) {
     const debuggerGUI = new DebuggerGUI();
 
@@ -86,6 +89,26 @@ export function initDebugger({
             }
         }
     });
+
+    //
+    // orbit controls
+    //
+
+    debuggerGUI.addBorderSpacer();
+
+    debuggerGUI.addToggleDebugger({
+        label: 'sync orbit controls',
+        initialValue: orbitCameraController.enabledUpdateCamera,
+        onChange: (value) => {
+            // TODO: enabledになったときはその位置でorbit controlsしたいよね
+            if(value) {
+                orbitCameraController.enabledUpdateCamera = true;
+            } else {
+                orbitCameraController.enabledUpdateCamera = false;
+            }
+        }
+    });
+
 
     // bufferVisualizerPass.beforeRender = () => {
     //     bufferVisualizerPass.material.uniforms.setValue(

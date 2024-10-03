@@ -3,7 +3,7 @@ import { clamp } from '@/PaleGL/utilities/mathUtilities.js';
 import { Camera } from '@/PaleGL/actors/Camera';
 
 export class OrbitCameraController {
-    #camera: Camera;
+    #camera: Camera | null = null;
     dampingFactor = 0.01;
     // minAzimuth: number;
     // maxAzimuth: number;
@@ -26,6 +26,7 @@ export class OrbitCameraController {
     defaultAltitude: number = 0;
 
     enabled: boolean = true;
+    enabledUpdateCamera: boolean = true;
 
     #targetCameraPosition = Vector3.zero;
     #currentCameraPosition = Vector3.zero;
@@ -34,7 +35,11 @@ export class OrbitCameraController {
         this.#lookAtTarget = v;
     }
 
-    constructor(camera: Camera) {
+    constructor(camera?: Camera | null) {
+        this.setCamera(camera ?? null);
+    }
+
+    setCamera(camera: Camera | null) {
         this.#camera = camera;
     }
 
@@ -58,7 +63,7 @@ export class OrbitCameraController {
         if (!this.enabled) {
             return;
         }
-       
+
         this.#targetX = Math.sign(this.#targetX) * Math.max(0, Math.abs(this.#targetX) - this.attenuation);
         this.#targetY = Math.sign(this.#targetY) * Math.max(0, Math.abs(this.#targetY) - this.attenuation);
 
@@ -83,7 +88,9 @@ export class OrbitCameraController {
             isJump ? 1 : this.dampingFactor
         );
 
-        this.#camera.transform.position = this.#currentCameraPosition;
-        this.#camera.transform.lookAt(this.#lookAtTarget);
+        if (this.#camera && this.enabledUpdateCamera) {
+            this.#camera.transform.position = this.#currentCameraPosition;
+            this.#camera.transform.lookAt(this.#lookAtTarget);
+        }
     }
 }

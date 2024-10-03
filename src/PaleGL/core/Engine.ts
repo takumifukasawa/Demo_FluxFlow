@@ -10,6 +10,7 @@ import { createSharedTextures, SharedTextures } from '@/PaleGL/core/createShared
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { Rotator } from '@/PaleGL/math/Rotator.ts';
+import {Quaternion} from "@/PaleGL/math/Quaternion.ts";
 
 type EngineOnStartCallbackArgs = void;
 
@@ -305,15 +306,15 @@ export class Engine {
         // for debug
         // console.log(`[Engine.warmRender]`);
 
-        // TODO: カメラをいい感じの位置に置きたい
         // 描画させたいので全部中央に置いちゃう
         const tmpTransformPair: { actor: Actor; p: Vector3; r: Rotator }[] = [];
         this.#scene?.traverse((actor) => {
             const tmpP = actor.transform.position.clone();
             const tmpR = actor.transform.rotation.clone();
+            // TODO: mainカメラだけ抽出したい
             if (actor.type === ActorTypes.Camera) {
-                actor.transform.position = new Vector3(0, 10, 10);
-                actor.transform.lookAt(Vector3.zero);
+                actor.transform.position = new Vector3(0, 0, 10);
+                actor.transform.rotation = Rotator.fromQuaternion(Quaternion.fromEulerDegrees(0, 180, 0))
             } else {
                 actor.transform.position = Vector3.zero;
             }

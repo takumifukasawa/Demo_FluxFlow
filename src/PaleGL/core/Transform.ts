@@ -127,8 +127,11 @@ export class Transform {
         this.position = v;
     }
 
-    lookAt(lookAtTarget: Vector3) {
+    lookAt(lookAtTarget: Vector3 | null) {
         this.lookAtTarget = lookAtTarget;
+        if(this.lookAtTarget) {
+            console.log(this.actor, this.lookAtTarget)
+        }
     }
 
     // TODO: Cameraに持たせた方がいい気がする
