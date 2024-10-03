@@ -56,6 +56,11 @@ function processAst(ast: t.File, precision: number) {
         NumericLiteral(path: unknown) {
             // @ts-ignore
             const value = path.node.value as unknown as number;
+            // TODO: なくてもいいか？要確認
+            if(value === 0) {
+                // @ts-ignore
+                path.node.value = 0;
+            }
             if (value % 1 !== 0) {
                 // @ts-ignore
                 path.node.value = parseFloat(value.toFixed(precision));
