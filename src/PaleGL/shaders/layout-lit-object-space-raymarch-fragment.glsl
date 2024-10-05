@@ -142,7 +142,7 @@ void main() {
     float accLen = 0.;
     vec3 currentRayPosition = rayOrigin;
     float minDistance = .0001;
-    for(int i = 0; i < 100; i++) {
+    for(int i = 0; i < 64; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
         // result = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
         result = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale);

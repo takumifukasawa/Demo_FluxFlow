@@ -11,6 +11,7 @@ import {
     MarionetterAnimationClip,
     MarionetterAnimationClipInfo,
     MarionetterAnimationClipType,
+    MarionetterClipArgs,
     MarionetterClipInfoKinds,
     MarionetterClipInfoType,
     MarionetterClipKinds,
@@ -18,12 +19,18 @@ import {
     MarionetterLightControlClip,
     MarionetterLightControlClipInfo,
     MarionetterMarkerTrackInfo,
+    MarionetterObjectMoveAndLookAtClip,
+    MarionetterObjectMoveAndLookAtClipInfo,
     MarionetterPlayableDirectorComponentInfo,
+    MarionetterPostProcessBloom,
+    MarionetterPostProcessDepthOfField,
+    MarionetterPostProcessVignette,
     MarionetterSignalEmitter,
     MarionetterTimeline,
     MarionetterTimelineDefaultTrack,
     MarionetterTimelineMarkerTrack,
     MarionetterTimelineSignalEmitter,
+    MarionetterTimelineTrackExecuteArgs,
     MarionetterTimelineTrackKinds,
     MarionetterTrackInfoType,
 } from '@/Marionetter/types';
@@ -47,17 +54,16 @@ import {
     PROPERTY_MATERIAL_BASE_COLOR_B,
     PROPERTY_MATERIAL_BASE_COLOR_G,
     PROPERTY_MATERIAL_BASE_COLOR_R,
-    PROPERTY_POST_PROCESS_BLOOM_INTENSITY,
-    PROPERTY_POST_PROCESS_DEPTH_OF_FIELD_FOCUS_DISTANCE,
     PROPERTY_SPOTLIGHT_RANGE,
 } from '@/Marionetter/constants.ts';
 import { Rotator } from '@/PaleGL/math/Rotator.ts';
 import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 import { Matrix4 } from '@/PaleGL/math/Matrix4.ts';
-import { DEG_TO_RAD, PostProcessPassType } from '@/PaleGL/constants.ts';
+import { ActorTypes, DEG_TO_RAD, LightTypes, PostProcessPassType } from '@/PaleGL/constants.ts';
 import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
 import { BloomPassParameters } from '@/PaleGL/postprocess/BloomPass.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
+import { ObjectMoveAndLookAtController } from '@/PaleGL/components/objectMoveAndLookAtController.ts';
 
 // import { resolveInvertRotationLeftHandAxisToRightHandAxis } from '@/Marionetter/buildMarionetterScene.ts';
 
@@ -115,7 +121,8 @@ export function buildMarionetterTimeline(
 
             // exec track
             // TODO: clip間の mixer,interpolate,extrapolate の挙動が必要
-            const execute = (time: number) => {
+            const execute = (args: MarionetterTimelineTrackExecuteArgs) => {
+                const { time, scene } = args;
                 if (track.t === MarionetterTrackInfoType.ActivationControlTrack) {
                     if (targetActor != null) {
                         const clipAtTime = marionetterClips.find(
@@ -130,7 +137,7 @@ export function buildMarionetterTimeline(
                 } else {
                     if (targetActor != null) {
                         for (let j = 0; j < marionetterClips.length; j++) {
-                            marionetterClips[j].execute(targetActor, time);
+                            marionetterClips[j].execute({ actor: targetActor, time, scene });
                         }
                     }
                 }
@@ -147,14 +154,15 @@ export function buildMarionetterTimeline(
     // exec timeline
     //
 
-    const execute = (time: number) => {
+    const execute = (args: { time: number; scene: Scene }) => {
+        const { time, scene } = args;
         // pattern1: use frame
         // const spf = 1 / fps;
         // const frameTime = Math.floor(rawTime / spf) * spf;
         // pattern2: use raw time
         const frameTime = time % marionetterPlayableDirectorComponentInfo.d;
         for (let i = 0; i < tracks.length; i++) {
-            tracks[i].execute(frameTime);
+            tracks[i].execute({ time: frameTime, scene });
         }
     };
 
@@ -190,6 +198,11 @@ function createMarionetterClips(
                     createMarionetterActivationControlClip(clip as MarionetterActivationControlClipInfo)
                 );
                 break;
+            case MarionetterClipInfoType.ObjectMoveAndLookAtClip:
+                marionetterClips.push(
+                    createMarionetterObjectMoveAndLookAtClip(clip as MarionetterObjectMoveAndLookAtClipInfo)
+                );
+                break;
             default:
                 console.error(`[createMarionetterClips] invalid animation clip type`);
         }
@@ -207,7 +220,8 @@ function createMarionetterAnimationClip(
     // needsSomeActorsConvertLeftHandAxisToRightHandAxis = false
 ): MarionetterAnimationClip {
     // actorに直接valueを割り当てる関数
-    const execute = (actor: Actor, time: number) => {
+    const execute = (args: MarionetterClipArgs) => {
+        const { actor, time } = args;
         let hasLocalPosition: boolean = false;
         let hasLocalRotationEuler: boolean = false;
         let hasLocalScale: boolean = false;
@@ -271,7 +285,7 @@ function createMarionetterAnimationClip(
                 case PROPERTY_MATERIAL_BASE_COLOR_A:
                     // TODO: GBufferMaterialとの連携？
                     break;
-                case PROPERTY_POST_PROCESS_BLOOM_INTENSITY:
+                case MarionetterPostProcessBloom.bloomIntensity:
                     const params = (actor as PostProcessVolume).findParameter<BloomPassParameters>(
                         PostProcessPassType.Bloom
                     );
@@ -279,12 +293,14 @@ function createMarionetterAnimationClip(
                         params.bloomAmount = value;
                     }
                     break;
-                case PROPERTY_POST_PROCESS_DEPTH_OF_FIELD_FOCUS_DISTANCE:
+                case MarionetterPostProcessDepthOfField.focusDistance:
                     // TODO: post process 連携
+                    break;
+                case MarionetterPostProcessVignette.vignetteIntensity:
                     break;
                 default:
                     // propertyが紐づいていない場合はエラーにする
-                    console.error(`[createMarionetterAnimationClip] invalid property: ${propertyName}`);
+                    console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}`);
             }
         });
 
@@ -301,7 +317,9 @@ function createMarionetterAnimationClip(
                 Matrix4.rotationZMatrix(localRotationEulerDegree.z * DEG_TO_RAD)
             );
             const q = Quaternion.rotationMatrixToQuaternion(rm);
-            actor.transform.rotation = new Rotator(q);
+            actor.transform.rotation = new Rotator(
+                actor.type === ActorTypes.Light && (actor as Light).lightType === LightTypes.Spot ? q.invertAxis() : q
+            );
         }
 
         if (hasLocalPosition) {
@@ -329,7 +347,8 @@ function createMarionetterLightControlClip(
     // const bind = (targetObj: Light) => {
     //     obj = targetObj;
     // };
-    const execute = (actor: Actor, time: number) => {
+    const execute = (args: MarionetterClipArgs) => {
+        const { actor, time } = args;
         const light = actor as Light;
         let hasPropertyColorR: boolean = false;
         let hasPropertyColorG: boolean = false;
@@ -446,5 +465,57 @@ function createMarionetterActivationControlClip(
         type: MarionetterAnimationClipType.ActivationControlClip,
         clipInfo: activationControlClip,
         execute: () => {},
+    };
+}
+
+function createMarionetterObjectMoveAndLookAtClip(
+    objectMoveAndLookAtClip: MarionetterObjectMoveAndLookAtClipInfo
+): MarionetterObjectMoveAndLookAtClip {
+    return {
+        type: MarionetterAnimationClipType.ObjectMoveAndLookAtClip,
+        clipInfo: objectMoveAndLookAtClip,
+        execute: (args: { actor: Actor; time: number; scene: Scene }) => {
+            const { actor, time, scene } = args;
+
+            // let hasLocalPosition: boolean = false;
+            // let hasLocalRotationEuler: boolean = false;
+            // let hasLocalScale: boolean = false;
+            // const localPosition: Vector3 = Vector3.zero;
+            // const localRotationEulerDegree: Vector3 = Vector3.zero;
+            // const localScale: Vector3 = Vector3.one;
+
+            // const start = animationClip.s;
+            // const bindings = animationClip.b;
+
+            const localPosition: Vector3 = Vector3.zero;
+
+            const start = objectMoveAndLookAtClip.s;
+            const bindings = objectMoveAndLookAtClip.b;
+
+            // TODO: typeがあった方がよい. ex) animation clip, light control clip
+            bindings.forEach((binding) => {
+                const propertyName = binding.n;
+                const keyframes = binding.k;
+                const value = curveUtilityEvaluateCurve(time - start, keyframes);
+
+                switch (propertyName) {
+                    case "LocalPosition.x":
+                        localPosition.x = value;
+                        break;
+                    case "LocalPosition.y":
+                        localPosition.y = value;
+                        break;
+                    case "LocalPosition.z":
+                        localPosition.z = value;
+                        break;
+                    default:
+                        // propertyが紐づいていない場合はエラーにする
+                        console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}`);
+                }
+            });
+
+            const component = actor.getComponent<ObjectMoveAndLookAtController>();
+            component?.execute({ actor, scene, localPosition });
+        },
     };
 }

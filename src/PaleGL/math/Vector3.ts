@@ -1,5 +1,11 @@
 ﻿import { Matrix4 } from '@/PaleGL/math/Matrix4';
 
+export type RawVector3 = { x: number; y: number; z: number };
+
+export function createVector3FromRaw(raw: RawVector3) {
+    return new Vector3(raw.x, raw.y, raw.z);
+}
+
 export class Vector3 {
     elements: Float32Array = new Float32Array(3);
 
@@ -35,12 +41,13 @@ export class Vector3 {
     constructor(x: number, y: number, z: number) {
         this.set(x, y, z);
     }
-
+   
     set(x: number, y: number, z: number) {
         this.elements = new Float32Array([x, y, z]);
         return this;
     }
     
+   
     copy(v: Vector3) {
         this.x = v.x;
         this.y = v.y;

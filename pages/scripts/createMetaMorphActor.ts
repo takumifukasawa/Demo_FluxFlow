@@ -179,15 +179,16 @@ export const createMetaMorphActor = ({
     gpu,
     renderer,
     inputController,
-    instanceNum,
+    // instanceNum,
     attractorActor,
 }: {
     gpu: GPU;
     renderer: Renderer;
-    instanceNum: number;
+    // instanceNum: number;
     inputController: AbstractInputController;
     attractorActor: Actor;
 }) => {
+    const instanceNum = 128;
     const mesh = new ObjectSpaceRaymarchMesh({
         gpu,
         size: 0.5,
@@ -196,8 +197,8 @@ export const createMetaMorphActor = ({
             depthFragmentShader: gBufferObjectSpaceRaymarchMetaMorphDepthFrag,
             metallic: 0,
             roughness: 0,
+            emissiveColor: new Color(1.2, 1, 1, 1),
             receiveShadow: true,
-
             isInstancing: true,
             useInstanceLookDirection: true,
             useVertexColor: false,
@@ -340,6 +341,7 @@ export const createMetaMorphActor = ({
     const updateInstanceState = (index: number, values: { seed?: number; attractEnabled?: boolean }) => {
         const { seed, attractEnabled } = values;
         const elementSize = 4;
+        // TODO: getBufferSubDataをせずに、js内でstate管理する
         const currentData = transformFeedbackDoubleBuffer.read.vertexArrayObject.getBufferSubData(
             ATTRIBUTE_STATE_NAME,
             index,

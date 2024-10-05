@@ -1,9 +1,8 @@
-﻿import{ Actor, ActorArgs } from '@/PaleGL/actors/Actor';
+﻿import {Actor, ActorArgs, ActorStartArgs} from '@/PaleGL/actors/Actor';
 import { ActorType, ActorTypes, DepthFuncTypes } from '@/PaleGL/constants';
 import { Material } from '@/PaleGL/materials/Material';
 import { defaultDepthFragmentShader } from '@/PaleGL/shaders/buildShader';
 import { Geometry } from '@/PaleGL/geometries/Geometry';
-import { GPU } from '@/PaleGL/core/GPU';
 import {Camera} from "@/PaleGL/actors/Camera.ts";
 
 export type MeshOptionsArgs = {
@@ -75,10 +74,12 @@ export class Mesh extends Actor {
     }
 
     // TODO: args は { gpu } だけでいいかも
-    start({ gpu }: { gpu: GPU }) {
+    start(args: ActorStartArgs) {
         // const {gpu} = options;
 
-        super.start({ gpu });
+        super.start(args);
+
+        const { gpu } = args;
 
         this.geometry.start();
         

@@ -27,8 +27,9 @@ export class Scene {
         }
     }
 
-    find(name: string) {
-        return this.children.find((child) => child.name === name);
+    find(name: string): Actor | null {
+        const result = this.children.find((child) => child.name === name);
+        return result || null;
     }
     
     static find(actors: Actor[], name: string) {

@@ -276,7 +276,8 @@ const buildScene = (sceneJson: MarionetterScene) => {
         orbitCameraController.fixedUpdate();
     };
 
-    const spotLight = captureScene.find('SpotLight') as SpotLight;
+    // TODO: 自動で処理したい
+    const spotLight = captureScene.find('SpotLightA') as SpotLight;
     if (spotLight && spotLight.shadowCamera) {
         spotLight.shadowCamera.visibleFrustum = true;
         spotLight.castShadow = true;
@@ -295,6 +296,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
     // shadows
     // TODO: directional light は constructor で shadow camera を生成してるのでこのガードいらない
     if (directionalLight && directionalLight.shadowCamera) {
+        directionalLight.shadowCamera.visibleFrustum = true;
         directionalLight.castShadow = true;
         directionalLight.shadowCamera.near = 1;
         directionalLight.shadowCamera.far = 30;
@@ -306,10 +308,10 @@ const buildScene = (sceneJson: MarionetterScene) => {
             type: RenderTargetTypes.Depth,
         });
 
-        directionalLight.subscribeOnStart(({ actor }) => {
-            actor.transform.setTranslation(new Vector3(-8, 8, -2));
-            actor.transform.lookAt(new Vector3(0, 0, 0));
-        });
+        // directionalLight.subscribeOnStart(({ actor }) => {
+        //     actor.transform.setTranslation(new Vector3(-8, 8, -2));
+        //     actor.transform.lookAt(new Vector3(0, 0, 0));
+        // });
     }
 
     const cameraPostProcess = new PostProcess();
@@ -471,7 +473,7 @@ const load = async () => {
         renderer,
         inputController,
         attractorActor: attractorMesh,
-        instanceNum: 128,
+        // instanceNum: 12,
     });
     captureScene.add(metaMorphActor);
 
@@ -567,7 +569,10 @@ const load = async () => {
             // TODO: prodの時はこっちを使いたい
             // const soundTime = glslSound.getCurrentTime();
             // marionetterTimeline.execute(soundTime);
-            marionetterSceneStructure.marionetterTimeline.execute(marionetter.getCurrentTime());
+            marionetterSceneStructure.marionetterTimeline.execute({
+                time: marionetter.getCurrentTime(),
+                scene: captureScene,
+            });
             // marionetterTimeline.execute(0);
         }
         if (captureSceneCamera) {

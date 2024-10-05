@@ -312,6 +312,7 @@ export const UniformNames = {
     // surface
     Metallic: 'uMetallic',
     Roughness: 'uRoughness',
+    EmissiveColor: 'uEmissiveColor',
     // ao
     // AmbientOcclusionTexture: "uAmbientOcclusionTexture",
     // skinning

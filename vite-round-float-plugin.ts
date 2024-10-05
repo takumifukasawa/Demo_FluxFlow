@@ -12,7 +12,7 @@ import * as t from '@babel/types';
 // @ts-ignore
 // typeof _generate === "function" ? generate : generate.default;
 
-const PRECISION: number = 2;
+const PRECISION: number = 4;
 
 // type obj = { [k: string]: unknown };
 

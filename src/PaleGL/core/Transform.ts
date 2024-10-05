@@ -19,7 +19,11 @@ export class Transform {
     position: Vector3 = Vector3.zero;
     rotation: Rotator = Rotator.zero; // degree vector
     scale: Vector3 = Vector3.one;
+
+    // どっちかだけセットされるようにする
     lookAtTarget: Vector3 | null = null; // world v
+    lookAtTargetActor: Actor | null = null;
+
     #normalMatrix: Matrix4 = Matrix4.identity;
 
     // get childCount() {
@@ -37,7 +41,7 @@ export class Transform {
     get worldMatrix() {
         return this.#worldMatrix;
     }
-    
+
     get normalMatrix() {
         return this.#normalMatrix;
     }
@@ -75,14 +79,18 @@ export class Transform {
 
     // TODO: 引数でworldMatrixとdirty_flagを渡すべきな気がする
     updateMatrix() {
-        if (this.lookAtTarget) {
+        if (this.lookAtTarget || this.lookAtTargetActor) {
+            // どっちかはあるのでキャストしちゃう
+            const lookAtTarget = (
+                this.lookAtTargetActor ? this.lookAtTargetActor.transform.position : this.lookAtTarget
+            ) as Vector3;
             // TODO:
             // - up vector 渡せるようにする
             // - parentがあるとlookatの方向が正しくなくなるので親の回転を打ち消す必要がある
             const lookAtMatrix =
                 this.actor.type === ActorTypes.Camera
-                    ? Matrix4.getLookAtMatrix(this.position, this.lookAtTarget, Vector3.up, true)
-                    : Matrix4.getLookAtMatrix(this.position, this.lookAtTarget);
+                    ? Matrix4.getLookAtMatrix(this.position, lookAtTarget, Vector3.up, true)
+                    : Matrix4.getLookAtMatrix(this.position, lookAtTarget);
             const scalingMatrix = Matrix4.scalingMatrix(this.scale);
             this.#localMatrix = Matrix4.multiplyMatrices(lookAtMatrix, scalingMatrix);
         } else {
@@ -129,9 +137,12 @@ export class Transform {
 
     lookAt(lookAtTarget: Vector3 | null) {
         this.lookAtTarget = lookAtTarget;
-        if(this.lookAtTarget) {
-            console.log(this.actor, this.lookAtTarget)
-        }
+        this.lookAtTargetActor = null;
+    }
+
+    lookAtActor(actor: Actor | null) {
+        this.lookAtTargetActor = actor;
+        this.lookAtTarget = null;
     }
 
     // TODO: Cameraに持たせた方がいい気がする

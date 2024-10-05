@@ -120,7 +120,7 @@ export class GBufferMaterial extends Material {
                 value: normalMapUvOffset || Vector2.one,
             },
             {
-                name: 'uEmissiveColor',
+                name: UniformNames.EmissiveColor,
                 type: UniformTypes.Color,
                 value: emissiveColor || Color.black,
             },

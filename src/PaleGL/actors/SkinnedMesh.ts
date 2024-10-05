@@ -17,12 +17,12 @@ import { Rotator } from '@/PaleGL/math/Rotator';
 import { Bone } from '@/PaleGL/core/Bone';
 import { Attribute } from '@/PaleGL/core/Attribute';
 import { AnimationClip } from '@/PaleGL/core/AnimationClip';
-import { ActorUpdateArgs } from './Actor';
+import { ActorStartArgs, ActorUpdateArgs } from './Actor';
 import { GPU } from '@/PaleGL/core/GPU';
 import { Vector3 } from '@/PaleGL/math/Vector3';
 import { Quaternion } from '@/PaleGL/math/Quaternion';
 import { GLTFAnimationChannelTargetPath } from '@/PaleGL/loaders/loadGLTF';
-import {Uniforms} from "@/PaleGL/core/Uniforms.ts";
+import { Uniforms } from '@/PaleGL/core/Uniforms.ts';
 // import {AnimationKeyframeValue} from "@/PaleGL/core/AnimationKeyframes";
 
 export type SkinnedMeshArgs = { bones: Bone; debugBoneView?: boolean } & MeshArgs;
@@ -94,7 +94,9 @@ export class SkinnedMesh extends Mesh {
         // console.log(this.positions, this.boneIndices, this.boneWeights)
     }
 
-    start({ gpu }: { gpu: GPU }) {
+    start(args: ActorStartArgs) {
+        const { gpu } = args;
+
         this.bones.calcBoneOffsetMatrix();
 
         // ボーンオフセット行列を計算
@@ -121,9 +123,12 @@ export class SkinnedMesh extends Mesh {
             material.jointNum = this.boneCount;
         });
 
-        this.mainMaterial.depthUniforms = new Uniforms(this.mainMaterial.depthUniforms.data, this.generateSkinningUniforms());
+        this.mainMaterial.depthUniforms = new Uniforms(
+            this.mainMaterial.depthUniforms.data,
+            this.generateSkinningUniforms()
+        );
 
-        super.start({ gpu });
+        super.start(args);
 
         if (this.debugBoneView) {
             this.#createSkinDebugger({ gpu });
@@ -236,7 +241,9 @@ export class SkinnedMesh extends Mesh {
                 data: jointData,
             });
 
-            this.materials.forEach((material) => material.uniforms.setValue(UniformNames.TotalFrameCount, framesDuration));
+            this.materials.forEach((material) =>
+                material.uniforms.setValue(UniformNames.TotalFrameCount, framesDuration)
+            );
             if (this.depthMaterial) {
                 this.depthMaterial.uniforms.setValue(UniformNames.TotalFrameCount, framesDuration);
             }

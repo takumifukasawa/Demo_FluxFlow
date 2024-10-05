@@ -1,4 +1,4 @@
-import { Vector3 } from '@/PaleGL/math/Vector3.ts';
+import { createVector3FromRaw, Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera.ts';
@@ -22,6 +22,7 @@ import {
     MarionetterMeshFilterComponentInfo,
     MarionetterMeshRendererComponentInfo,
     MarionetterObjectInfo,
+    MarionetterObjectMoveAndLookAtControllerComponentInfo,
     MarionetterPlayableDirectorComponentInfo,
     MarionetterScene,
     MarionetterSceneStructure,
@@ -38,6 +39,7 @@ import { generateDefaultBloomPassParameters } from '@/PaleGL/postprocess/BloomPa
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
 import { generateDepthOfFieldPassParameters } from '@/PaleGL/postprocess/DepthOfFieldPass.ts';
+import { createObjectMoveAndLookAtController } from '@/PaleGL/components/objectMoveAndLookAtController.ts';
 
 export function tryParseJsonString<T>(str: string) {
     let json: T | null = null;
@@ -102,7 +104,7 @@ function buildPostProcessVolumeActor({
                     return {
                         type: PostProcessPassType.Bloom,
                         parameters: generateDefaultBloomPassParameters({
-                            bloomAmount: bloomLayer.bl_i
+                            bloomAmount: bloomLayer.bl_i,
                         }),
                     };
                 case 'DepthOfField':
@@ -110,7 +112,7 @@ function buildPostProcessVolumeActor({
                     return {
                         type: PostProcessPassType.DepthOfField,
                         parameters: generateDepthOfFieldPassParameters({
-                            focusDistance: depthOfFieldLayer.dof_fd
+                            focusDistance: depthOfFieldLayer.dof_fd,
                         }),
                     };
                 default:
@@ -157,6 +159,11 @@ export function buildMarionetterScene(gpu: GPU, scene: MarionetterScene): Marion
             obj,
             MarionetterComponentType.Volume
         );
+        const objectMoveAndLookAtControllerComponent =
+            findMarionetterComponent<MarionetterObjectMoveAndLookAtControllerComponentInfo>(
+                obj,
+                MarionetterComponentType.ObjectMoveAndLookAtController
+            );
 
         let actor: Actor | null = null;
 
@@ -240,6 +247,18 @@ export function buildMarionetterScene(gpu: GPU, scene: MarionetterScene): Marion
         } else {
             // others
             actor = new Actor({ name });
+        }
+
+        //
+        // component関連
+        //
+
+        if (objectMoveAndLookAtControllerComponent) {
+            const objectMoveAndLookAdController = createObjectMoveAndLookAtController({
+                localPosition: createVector3FromRaw(objectMoveAndLookAtControllerComponent.lp),
+                lookAtTargetName: objectMoveAndLookAtControllerComponent.tn,
+            });
+            actor?.addComponent(objectMoveAndLookAdController);
         }
 
         //

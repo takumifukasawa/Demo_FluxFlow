@@ -10,7 +10,7 @@ import { createSharedTextures, SharedTextures } from '@/PaleGL/core/createShared
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { Rotator } from '@/PaleGL/math/Rotator.ts';
-import {Quaternion} from "@/PaleGL/math/Quaternion.ts";
+import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 
 type EngineOnStartCallbackArgs = void;
 
@@ -183,7 +183,7 @@ export class Engine {
             this.#onBeforeFixedUpdate({ fixedTime, fixedDeltaTime });
         }
 
-        this.#scene?.traverse((actor) => actor.fixedUpdate({ gpu: this.#gpu, fixedTime, fixedDeltaTime }));
+        this.#scene?.traverse((actor) => actor.fixedUpdate({ gpu: this.#gpu, scene:this.#scene!, fixedTime, fixedDeltaTime }));
         // this.#scenes.forEach((scene) => {
         //     scene.traverse((actor) => actor.fixedUpdate({ gpu: this.#gpu, fixedTime, fixedDeltaTime }));
         // });
@@ -221,7 +221,7 @@ export class Engine {
 
         // 本当はあんまりgpu渡したくないけど、渡しちゃったほうがいろいろと楽
         this.#scene?.traverse((actor) => {
-            actor.update({ gpu: this.#gpu, time, deltaTime });
+            actor.update({ gpu: this.#gpu, scene: this.#scene!, time, deltaTime });
             switch (actor.type) {
                 case ActorTypes.Skybox:
                 case ActorTypes.Mesh:
@@ -248,7 +248,7 @@ export class Engine {
             this.#onLastUpdate({ time, deltaTime });
         }
         this.#scene?.traverse((actor) => {
-            actor.lastUpdate({ gpu: this.#gpu, time, deltaTime });
+            actor.lastUpdate({ gpu: this.#gpu,scene: this.#scene!, time, deltaTime });
         });
 
         //
@@ -272,7 +272,7 @@ export class Engine {
      * @param deltaTime
      */
     lastUpdate(time: number, deltaTime: number) {
-        this.#scene?.traverse((actor) => actor.lastUpdate({ gpu: this.#gpu, time, deltaTime }));
+        this.#scene?.traverse((actor) => actor.lastUpdate({ gpu: this.#gpu,scene: this.#scene!, time, deltaTime }));
     }
 
     /**
@@ -314,7 +314,7 @@ export class Engine {
             // TODO: mainカメラだけ抽出したい
             if (actor.type === ActorTypes.Camera) {
                 actor.transform.position = new Vector3(0, 0, 10);
-                actor.transform.rotation = Rotator.fromQuaternion(Quaternion.fromEulerDegrees(0, 180, 0))
+                actor.transform.rotation = Rotator.fromQuaternion(Quaternion.fromEulerDegrees(0, 180, 0));
             } else {
                 actor.transform.position = Vector3.zero;
             }

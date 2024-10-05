@@ -1,4 +1,6 @@
 import { Actor } from '@/PaleGL/actors/Actor.ts';
+import { RawVector3 } from '@/PaleGL/math/Vector3.ts';
+import { Scene } from '@/PaleGL/core/Scene.ts';
 
 //
 // settings
@@ -79,6 +81,7 @@ export type MarionetterTransformInfo = NeedsShorten extends true
 // track
 //
 
+// unityに合わせる
 export const enum MarionetterTrackInfoType {
     None,
     AnimationTrack = 1,
@@ -127,7 +130,11 @@ export type MarionetterSignalEmitter = NeedsShorten extends true
           time: number;
       };
 
-export type MarionetterClipInfoKinds = MarionetterAnimationClipInfo | MarionetterLightControlClipInfo;
+export type MarionetterClipInfoKinds =
+    | MarionetterAnimationClipInfo
+    | MarionetterLightControlClipInfo
+    | MarionetterActivationControlClipInfo
+    | MarionetterObjectMoveAndLookAtClipInfo;
 
 // NOTE: unity側に合わせる
 export const enum MarionetterClipInfoType {
@@ -135,6 +142,8 @@ export const enum MarionetterClipInfoType {
     AnimationClip = 1,
     LightControlClip = 2,
     ActivationControlClip = 3,
+    SignalEmitter = 4,
+    ObjectMoveAndLookAtClip = 5,
 }
 
 export type MarionetterClipInfoBase = NeedsShorten extends true
@@ -172,6 +181,21 @@ export type MarionetterLightControlClipInfo = MarionetterClipInfoBase &
           });
 
 export type MarionetterActivationControlClipInfo = MarionetterClipInfoBase;
+
+// TODO: signal emitter
+
+export type MarionetterObjectMoveAndLookAtClipInfo = MarionetterClipInfoBase &
+    (NeedsShorten extends true
+        ? {
+              lp: RawVector3;
+              tn: string;
+              b: MarionetterClipBinding[];
+          }
+        : {
+              localPosition: RawVector3;
+              lookAtTargetName: string;
+              bindings: MarionetterClipBinding[];
+          });
 
 export type MarionetterClipBinding = NeedsShorten extends true
     ? {
@@ -233,6 +257,7 @@ export const MarionetterComponentType = {
     MeshRenderer: 4,
     MeshFilter: 5,
     Volume: 6,
+    ObjectMoveAndLookAtController: 7,
 } as const;
 
 export type MarionetterComponentType = (typeof MarionetterComponentType)[keyof typeof MarionetterComponentType];
@@ -242,9 +267,13 @@ export type MarionetterComponentInfoKinds =
     | MarionetterLightComponentInfo
     | MarionetterCameraComponentInfo
     | MarionetterMeshRendererComponentInfo
-    | MarionetterMeshFilterComponentInfo;
+    | MarionetterMeshFilterComponentInfo
+    | MarionetterVolumeComponentInfo
+    | MarionetterObjectMoveAndLookAtControllerComponentInfo;
 
 // unity側に合わせてcomponent情報を追加
+
+// playable director component
 
 export type MarionetterPlayableDirectorComponentInfo = MarionetterComponentInfoBase &
     (NeedsShorten extends true
@@ -272,6 +301,8 @@ export type MarionetterLightComponentInfo = MarionetterComponentInfoBase &
               color: string;
           });
 
+// light: directional light
+
 export type MarionetterDirectionalLightComponentInfo = MarionetterLightComponentInfo &
     (NeedsShorten extends true
         ? {
@@ -280,6 +311,8 @@ export type MarionetterDirectionalLightComponentInfo = MarionetterLightComponent
         : {
               lightType: 'Directional';
           });
+
+// light: spotlight
 
 export type MarionetterSpotLightComponentInfo = MarionetterLightComponentInfo &
     (NeedsShorten extends true
@@ -295,6 +328,8 @@ export type MarionetterSpotLightComponentInfo = MarionetterLightComponentInfo &
               innerSpotAngle: number;
               spotAngle: number;
           });
+
+// volume: postprocess
 
 export type MarionetterVolumeVolumeLayerBase = NeedsShorten extends true
     ? {
@@ -332,9 +367,9 @@ export type MarionetterVolumeLayerVignette = MarionetterVolumeVolumeLayerBase &
           });
 
 export type MarionetterVolumeLayerKinds =
-    MarionetterVolumeLayerBloom |
-    MarionetterVolumeLayerDepthOfField |
-    MarionetterVolumeLayerVignette;
+    | MarionetterVolumeLayerBloom
+    | MarionetterVolumeLayerDepthOfField
+    | MarionetterVolumeLayerVignette;
 
 export type MarionetterVolumeComponentInfo = MarionetterComponentInfoBase &
     (NeedsShorten extends true
@@ -344,6 +379,8 @@ export type MarionetterVolumeComponentInfo = MarionetterComponentInfoBase &
         : {
               volumeLayers: MarionetterVolumeLayerKinds[];
           });
+
+// camera
 
 export type MarionetterCameraComponentInfo = MarionetterComponentInfoBase &
     (NeedsShorten extends true
@@ -362,6 +399,8 @@ export const MarionetterMaterialType = {
     None: 0,
     Lit: 1,
 } as const;
+
+// material
 
 export type MarionetterMaterialType = (typeof MarionetterMaterialType)[keyof typeof MarionetterMaterialType];
 
@@ -390,6 +429,8 @@ export type MarionetterLitMaterialInfo = (NeedsShorten extends true
       }) &
     MarionetterMaterialInfo;
 
+// mesh renderer
+
 export type MarionetterMeshRendererComponentInfo = MarionetterComponentInfoBase &
     (NeedsShorten extends true
         ? {
@@ -401,6 +442,8 @@ export type MarionetterMeshRendererComponentInfo = MarionetterComponentInfoBase 
               material: MarionetterMaterialInfo;
           });
 
+// mesh filter
+
 export type MarionetterMeshFilterComponentInfo = MarionetterComponentInfoBase &
     (NeedsShorten extends true
         ? {
@@ -410,14 +453,51 @@ export type MarionetterMeshFilterComponentInfo = MarionetterComponentInfoBase &
               meshName: string;
           });
 
+// object move and look at controller component
+
+export type MarionetterObjectMoveAndLookAtControllerComponentInfo = MarionetterComponentInfoBase &
+    (NeedsShorten extends true
+        ? {
+              lp: RawVector3;
+              tn: string;
+          }
+        : {
+              localPosition: RawVector3;
+              lookAtTargetName: string;
+          });
+
+//
+// post process component properties
+//
+
+export const MarionetterPostProcessBloom = {
+    bloomIntensity: NeedsShorten ? 'bl_i' : 'bloomIntensity',
+} as const;
+export type MarionetterPostProcessBloomIntensity =
+    (typeof MarionetterPostProcessBloom)[keyof typeof MarionetterPostProcessBloom];
+
+export const MarionetterPostProcessDepthOfField = {
+    focusDistance: NeedsShorten ? 'dof_fd' : 'depthOfFieldFocusDistance',
+} as const;
+export type MarionetterPostProcessDepthOfFieldFocusDistance =
+    (typeof MarionetterPostProcessDepthOfField)[keyof typeof MarionetterPostProcessDepthOfField];
+
+export const MarionetterPostProcessVignette = {
+    vignetteIntensity: NeedsShorten ? 'vi_i' : 'vignetteIntensity',
+} as const;
+export type MarionetterPostProcessVignetteIntensity =
+    (typeof MarionetterPostProcessVignette)[keyof typeof MarionetterPostProcessVignette];
+
 //
 // timeline
 //
 
+export type MarionetterTimelineExecuteArgs = { time: number; scene: Scene };
+
 export type MarionetterTimeline = {
     // tracks: MarionetterTimelineTrack[];
     tracks: MarionetterTimelineTrackKinds[];
-    execute: (time: number) => void;
+    execute: (args: MarionetterTimelineExecuteArgs) => void;
 };
 
 // export type MarionetterTimelineTrack = {
@@ -428,8 +508,10 @@ export type MarionetterTimeline = {
 //     execute: (time: number) => void;
 // };
 
+export type MarionetterTimelineTrackExecuteArgs = { time: number; scene: Scene };
+
 export type MarionetterTimelineTrackBase = {
-    execute: (time: number) => void;
+    execute: (args: MarionetterTimelineTrackExecuteArgs) => void;
 };
 
 export type MarionetterTimelineDefaultTrack = {
@@ -453,7 +535,8 @@ export type MarionetterTimelineTrackKinds = MarionetterTimelineDefaultTrack | Ma
 export type MarionetterClipKinds =
     | MarionetterAnimationClip
     | MarionetterLightControlClip
-    | MarionetterActivationControlClip;
+    | MarionetterActivationControlClip
+    | MarionetterObjectMoveAndLookAtClip;
 
 export const enum MarionetterAnimationClipType {
     None = 0,
@@ -461,22 +544,33 @@ export const enum MarionetterAnimationClipType {
     LightControlClip = 2,
     ActivationControlClip = 3,
     SignalEmitter = 4,
+    ObjectMoveAndLookAtClip = 5,
 }
+
+export type MarionetterClipArgs = { actor: Actor; time: number; scene: Scene };
 
 export type MarionetterAnimationClip = {
     type: MarionetterAnimationClipType.AnimationClip;
     clipInfo: MarionetterAnimationClipInfo;
-    execute: (actor: Actor, time: number) => void;
+    execute: (args: MarionetterClipArgs) => void;
 };
 
 export type MarionetterLightControlClip = {
     type: MarionetterAnimationClipType.LightControlClip;
     clipInfo: MarionetterLightControlClipInfo;
-    execute: (actor: Actor, time: number) => void;
+    execute: (args: MarionetterClipArgs) => void;
 };
 
 export type MarionetterActivationControlClip = {
     type: MarionetterAnimationClipType.ActivationControlClip;
     clipInfo: MarionetterActivationControlClipInfo;
-    execute: () => void;
+    execute: (args: MarionetterClipArgs) => void;
+};
+
+// TODO: signal emitter
+
+export type MarionetterObjectMoveAndLookAtClip = {
+    type: MarionetterAnimationClipType.ObjectMoveAndLookAtClip;
+    clipInfo: MarionetterObjectMoveAndLookAtClipInfo;
+    execute: (args: MarionetterClipArgs) => void;
 };

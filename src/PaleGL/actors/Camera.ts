@@ -1,4 +1,4 @@
-﻿import { Actor } from '@/PaleGL/actors/Actor';
+﻿import {Actor, ActorUpdateArgs} from '@/PaleGL/actors/Actor';
 import { Matrix4 } from '@/PaleGL/math/Matrix4';
 import { Vector4 } from '@/PaleGL/math/Vector4';
 // import {RenderTarget} from "@/PaleGL/core/RenderTarget";
@@ -21,7 +21,6 @@ import { RenderTarget } from '@/PaleGL/core/RenderTarget';
 // import {Color} from "@/PaleGL/math/Color";
 import { Vector3 } from '@/PaleGL/math/Vector3';
 import { PostProcess } from '@/PaleGL/postprocess/PostProcess';
-import { GPU } from '@/PaleGL/core/GPU';
 // import {AbstractRenderTarget} from "@/PaleGL/core/AbstractRenderTarget";
 import { GBufferRenderTargets } from '@/PaleGL/core/GBufferRenderTargets';
 import { Ray } from '@/PaleGL/math/Ray.ts';
@@ -176,8 +175,9 @@ export class Camera extends Actor {
      * @param time
      * @param deltaTime
      */
-    update({ gpu, time, deltaTime }: { gpu: GPU; time: number; deltaTime: number }) {
-        super.update({ gpu, time, deltaTime });
+    update(args: ActorUpdateArgs) {
+        const { gpu } = args;
+        super.update(args);
 
         if (!this.visibleFrustumMesh) {
             this.visibleFrustumMesh = new Mesh({

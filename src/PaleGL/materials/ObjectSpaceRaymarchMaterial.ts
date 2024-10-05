@@ -3,12 +3,14 @@ import { DepthFuncTypes, ShadingModelIds, UniformBlockNames, UniformNames, Unifo
 import raymarchVert from '@/PaleGL/shaders/gbuffer-vertex.glsl';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
+import {Color} from "@/PaleGL/math/Color.ts";
 
 // TODO: uniformsは一旦まっさらにしている。metallic,smoothnessの各種パラメーター、必要になりそうだったら適宜追加する
 export type ObjectSpaceRaymarchMaterialArgs = {
     shadingModelId?: ShadingModelIds;
     metallic?: number;
     roughness?: number;
+    emissiveColor?: Color;
     fragmentShader: string;
     depthFragmentShader: string;
 } & MaterialArgs;
@@ -21,6 +23,7 @@ export class ObjectSpaceRaymarchMaterial extends Material {
         shadingModelId = ShadingModelIds.Lit,
         metallic,
         roughness,
+        emissiveColor,
         uniforms = [],
         ...options
     }: ObjectSpaceRaymarchMaterialArgs) {
@@ -54,6 +57,11 @@ export class ObjectSpaceRaymarchMaterial extends Material {
                 name: UniformNames.Roughness,
                 type: UniformTypes.Float,
                 value: roughness || 0,
+            },
+            {
+                name: UniformNames.EmissiveColor,
+                type: UniformTypes.Color,
+                value: emissiveColor || Color.black,
             },
             {
                 name: 'uIsPerspective',
