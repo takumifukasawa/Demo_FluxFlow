@@ -8,8 +8,8 @@ import { Color } from '@/PaleGL/math/Color.ts';
 // TODO: uniformsは一旦まっさらにしている。metallic,smoothnessの各種パラメーター、必要になりそうだったら適宜追加する
 export type ScreenSpaceRaymarchMaterialArgs = {
     shadingModelId?: ShadingModelIds;
-    fragmentShader: string;
-    depthFragmentShader: string;
+    fragmentShader?: string;
+    depthFragmentShader?: string;
 
     // TODO: GBufferから引っ張ってきたい
     diffuseColor?: Color;

@@ -1,5 +1,5 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
-import { PrimitiveTypes, UniformNames, UniformTypes } from '@/PaleGL/constants.ts';
+import { PRAGMA_RAYMARCH_SCENE, PrimitiveTypes, UniformNames, UniformTypes } from '@/PaleGL/constants.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { PlaneGeometry } from '@/PaleGL/geometries/PlaneGeometry.ts';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
@@ -12,21 +12,25 @@ import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 // import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
 import { Camera } from '@/PaleGL/actors/Camera.ts';
 import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera.ts';
+import { MaterialArgs } from '@/PaleGL/materials/Material.ts';
+import { gbufferScreenSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-screen-space-raymarch-depth-fragment-template.ts';
+import { litScreenSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-screen-space-raymarch-fragment-template.ts';
 
 type ScreenSpaceRaymarchMeshArgs = {
     gpu: GPU;
     name?: string;
     uniforms?: UniformsData;
+    fragmentShaderTemplate?: string;
+    fragmentShaderContent: string;
+    depthFragmentShaderTemplate?: string;
+    depthFragmentShaderContent: string;
     materialArgs: ScreenSpaceRaymarchMaterialArgs;
-};
+} & MaterialArgs;
 
 export class ScreenSpaceRaymarchMesh extends Mesh {
-    constructor({
-        gpu,
-        name = '',
-        uniforms = [],
-        materialArgs,
-    }: ScreenSpaceRaymarchMeshArgs) {
+    constructor(args: ScreenSpaceRaymarchMeshArgs) {
+        const { gpu, name = '', uniforms = [], materialArgs } = args;
+
         const mergedUniforms: UniformsData = [
             {
                 name: UniformNames.ViewDirection,
@@ -36,11 +40,22 @@ export class ScreenSpaceRaymarchMesh extends Mesh {
             ...uniforms,
             ...PostProcessPassBase.commonUniforms,
         ];
+
+        const fragmentShader = (args.fragmentShaderTemplate ?? litScreenSpaceRaymarchFragmentTemplate).replace(
+            PRAGMA_RAYMARCH_SCENE,
+            args.fragmentShaderContent
+        );
+        const depthFragmentShader = (
+            args.depthFragmentShaderTemplate ?? gbufferScreenSpaceRaymarchDepthFragmentTemplate
+        ).replace(PRAGMA_RAYMARCH_SCENE, args.depthFragmentShaderContent);
+
         // NOTE: geometryは親から渡して使いまわしてもよい
         const geometry = new PlaneGeometry({ gpu });
         const material = new ScreenSpaceRaymarchMaterial({
             ...materialArgs,
             // overrides
+            fragmentShader,
+            depthFragmentShader,
             uniforms: mergedUniforms,
             // receiveShadow: !!receiveShadow,
             primitiveType: PrimitiveTypes.Triangles,

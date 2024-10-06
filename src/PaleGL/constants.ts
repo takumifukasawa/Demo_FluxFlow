@@ -688,3 +688,7 @@ export const GLColorAttachment = {
     COLOR_ATTACHMENT7: 36071
 } as const;
 export type GLColorAttachment = (typeof GLColorAttachment)[keyof typeof GLColorAttachment];
+
+// --
+
+export const PRAGMA_RAYMARCH_SCENE = "#pragma RAYMARCH_SCENE";

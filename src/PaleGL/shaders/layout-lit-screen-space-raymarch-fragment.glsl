@@ -76,20 +76,20 @@ void main() {
     vec3 rayOrigin = uViewPosition;
     vec3 rayDirection = getPerspectiveCameraRayDir(vUv, uViewDirection, uFov, uAspect);
 
-    float distance = 0.;
+    vec2 result = vec2(0.);
     float accLen = uNearClip;
     vec3 currentRayPosition = rayOrigin;
     float minDistance = .0001;
     for(int i = 0; i < 100; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
-        distance = dfScene(currentRayPosition);
-        accLen += distance;
-        if(accLen > uFarClip || distance <= minDistance) {
+        result = dfScene(currentRayPosition);
+        accLen += result.x;
+        if(accLen > uFarClip || result.x <= minDistance) {
             break;
         }
     }
     
-    if(distance > minDistance) {
+    if(result.x > minDistance) {
         discard;
     }
     
@@ -107,7 +107,7 @@ void main() {
     float newDepth = (rayClipPosition.z / rayClipPosition.w) * .5 + .5;
     gl_FragDepth = newDepth;
 
-    if(distance > 0.) {
+    if(result.x > 0.) {
         worldNormal = getNormalDfScene(currentRayPosition);
     }
     

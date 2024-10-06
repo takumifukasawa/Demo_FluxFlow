@@ -9,7 +9,7 @@ precision highp float;
 
 #pragma BLOCK_RAYMARCH_SCENE
 
-#include ./partial/raymarch-utility-functions.glsl
+// #include ./partial/raymarch-utility-functions.glsl
 
 #include ./partial/depth-functions.glsl
 
@@ -37,21 +37,20 @@ void main() {
     vec3 rayOrigin = uViewPosition;
     vec3 rayDirection = vec3(0., 0., -1.);
     // vec3 rayDirection = normalize(vWorldPosition - uViewPosition);
-    float distance = 0.;
+    vec2 result = vec2(0.);
     float accLen = 0.;
     vec3 currentRayPosition = rayOrigin;
     float minDistance = .0001;
-    
-    for(int i = 0; i < 64; i++) {
+    for(int i = 0; i < 100; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
-        distance = dfScene(currentRayPosition);
-        accLen += distance;
-        if(distance <= minDistance) {
+        result = dfScene(currentRayPosition);
+        accLen += result.x;
+        if(result.x <= minDistance) {
             break;
         }
     }
     
-    if(distance > minDistance) {
+    if(result.x > minDistance) {
         discard;
     }
 

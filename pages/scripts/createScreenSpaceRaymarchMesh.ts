@@ -16,6 +16,8 @@ export const createScreenSpaceRaymarchMesh = ({ gpu }: { gpu: GPU }) => {
             receiveShadow: true,
             emissiveColor: Color.white,
         },
+        fragmentShaderContent: litScreenSpaceRaymarchFrag,
+        depthFragmentShaderContent: gBufferScreenSpaceRaymarchDepthFrag
         // castShadow: true,
     });
     mesh.transform.scale = new Vector3(2, 2, 2);

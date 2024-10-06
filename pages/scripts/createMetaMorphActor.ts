@@ -6,8 +6,6 @@ import demoMetaMorphTransformFeedbackVertex from '@/PaleGL/shaders/demo-meta-mor
 import { Vector2 } from '@/PaleGL/math/Vector2.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
-import { litObjectSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-object-space-raymarch-fragment-template.ts';
-import { gbufferObjectSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-object-space-raymarch-depth-fragment-template.ts';
 import litObjectSpaceRaymarchFragMetaMorphContent from '@/PaleGL/shaders/lit-object-space-raymarch-fragment-meta-morph.glsl';
 import gBufferObjectSpaceRaymarchFragMetaMorphDepthContent from '@/PaleGL/shaders/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
@@ -197,9 +195,7 @@ export const createMetaMorphActor = ({
     const mesh = new ObjectSpaceRaymarchMesh({
         gpu,
         size: 0.5,
-        fragmentShaderTemplate: litObjectSpaceRaymarchFragmentTemplate,
         fragmentShaderContent: litObjectSpaceRaymarchFragMetaMorphContent,
-        depthFragmentShaderTemplate: gbufferObjectSpaceRaymarchDepthFragmentTemplate,
         depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragMetaMorphDepthContent,
         materialArgs: {
             // fragmentShader: litObjectSpaceRaymarchMetaMorphFrag,

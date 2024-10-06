@@ -1,5 +1,5 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
-import { FaceSide, PrimitiveTypes, UniformNames } from '@/PaleGL/constants.ts';
+import {FaceSide, PRAGMA_RAYMARCH_SCENE, PrimitiveTypes, UniformNames} from '@/PaleGL/constants.ts';
 import { Mesh, MeshOptionsArgs } from '@/PaleGL/actors/Mesh.ts';
 // import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import {
@@ -10,8 +10,8 @@ import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
 import { Camera } from '@/PaleGL/actors/Camera.ts';
 import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
 // import {GBufferMaterial} from "@/PaleGL/materials/GBufferMaterial.ts";
-
-const PRAGMA_RAYMARCH_SCENE = "#pragma RAYMARCH_SCENE";
+import { litObjectSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-object-space-raymarch-fragment-template.ts';
+import { gbufferObjectSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-object-space-raymarch-depth-fragment-template.ts';
 
 type ObjectSpaceRaymarchMeshArgs = {
     gpu: GPU;
@@ -19,9 +19,9 @@ type ObjectSpaceRaymarchMeshArgs = {
     // fragmentShader: string;
     // depthFragmentShader: string;
     // uniforms?: UniformsData;
-    fragmentShaderTemplate: string;
+    fragmentShaderTemplate?: string;
     fragmentShaderContent: string;
-    depthFragmentShaderTemplate: string;
+    depthFragmentShaderTemplate?: string;
     depthFragmentShaderContent: string
 
     materialArgs: ObjectSpaceRaymarchMaterialArgs;
@@ -38,8 +38,8 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
         // const {gpu, castShadow } = args;
         const geometry = new BoxGeometry({ gpu, size });
         
-        const fragmentShader = args.fragmentShaderTemplate.replace(PRAGMA_RAYMARCH_SCENE, args.fragmentShaderContent);
-        const depthFragmentShader = args.depthFragmentShaderTemplate.replace(PRAGMA_RAYMARCH_SCENE, args.depthFragmentShaderContent);
+        const fragmentShader = (args.fragmentShaderTemplate || litObjectSpaceRaymarchFragmentTemplate).replace(PRAGMA_RAYMARCH_SCENE, args.fragmentShaderContent);
+        const depthFragmentShader = (args.depthFragmentShaderTemplate || gbufferObjectSpaceRaymarchDepthFragmentTemplate).replace(PRAGMA_RAYMARCH_SCENE, args.depthFragmentShaderContent);
 
         // const { fragmentShader, depthFragmentShader, uniforms = [] } = materialArgs;
         const material = new ObjectSpaceRaymarchMaterial({
