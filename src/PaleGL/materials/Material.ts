@@ -237,6 +237,7 @@ export class Material {
         depthFragmentShader,
         rawVertexShader,
         rawFragmentShader,
+        // rawDepthFragmentShader,
 
         vertexShaderGenerator,
         fragmentShaderGenerator,

@@ -177,7 +177,7 @@ class CharMesh extends Mesh {
             {
                 name: 'uColor',
                 type: UniformTypes.Color,
-                value: Color.white,
+                value: new Color(5, 1, 1, 1),
             },
             {
                 name: UniformNames.FontMap,

@@ -24,9 +24,9 @@ const float smoothRange = .01;
 
 float sdf2alpha(float sdf) {
     float alpha = smoothstep(
-    threshold - smoothRange,
-    threshold + smoothRange,
-    sdf
+        threshold - smoothRange,
+        threshold + smoothRange,
+        sdf
     );
     return alpha;
 }

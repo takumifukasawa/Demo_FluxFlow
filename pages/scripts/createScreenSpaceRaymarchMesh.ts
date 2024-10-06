@@ -20,7 +20,7 @@ export const createScreenSpaceRaymarchMesh = ({ gpu }: { gpu: GPU }) => {
     });
     mesh.transform.scale = new Vector3(2, 2, 2);
     mesh.transform.position = new Vector3(0, 4, 0);
-    mesh.enabled = false;
+    // mesh.enabled = false;
 
     return mesh;
 };

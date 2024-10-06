@@ -8,11 +8,11 @@ precision highp float;
 // ---------------------------------------------------------------------
 // ref: https://www.shadertoy.com/view/ltB3zD
 
-const float PHI = 1.61803398874989484820459; // Φ = Golden Ratio 
-
-float goldNoise(in vec2 xy, in float seed) {
-    return fract(tan(distance(xy*PHI, xy)*seed)*xy.x);
-}
+// const float PHI = 1.61803398874989484820459; // Φ = Golden Ratio 
+// 
+// float goldNoise(in vec2 xy, in float seed) {
+//     return fract(tan(distance(xy*PHI, xy)*seed)*xy.x);
+// }
 
 // ---------------------------------------------------------------------
 
@@ -80,5 +80,4 @@ void main() {
     
     outColor = vec4(vec3(result), 1.);
 }
-
             

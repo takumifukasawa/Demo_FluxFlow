@@ -7,8 +7,6 @@ import {
     PostProcessPassRenderArgs,
 } from '@/PaleGL/postprocess/PostProcessPassBase';
 
-// ref:
-
 const UNIFORM_NAME_CHROMATIC_ABERRATION_SCALE = 'uChromaticAberrationScale';
 const UNIFORM_VALUE_CHROMATIC_ABERRATION_SCALE = 0.015;
 

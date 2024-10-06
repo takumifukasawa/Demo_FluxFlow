@@ -11,12 +11,19 @@ import { Camera } from '@/PaleGL/actors/Camera.ts';
 import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
 // import {GBufferMaterial} from "@/PaleGL/materials/GBufferMaterial.ts";
 
+const PRAGMA_RAYMARCH_SCENE = "#pragma RAYMARCH_SCENE";
+
 type ObjectSpaceRaymarchMeshArgs = {
     gpu: GPU;
     size?: number;
     // fragmentShader: string;
     // depthFragmentShader: string;
     // uniforms?: UniformsData;
+    fragmentShaderTemplate: string;
+    fragmentShaderContent: string;
+    depthFragmentShaderTemplate: string;
+    depthFragmentShaderContent: string
+
     materialArgs: ObjectSpaceRaymarchMaterialArgs;
     // receiveShadow?: boolean;
     // metallic?: number;
@@ -30,12 +37,13 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
         const { gpu, materialArgs, castShadow, size } = args;
         // const {gpu, castShadow } = args;
         const geometry = new BoxGeometry({ gpu, size });
+        
+        const fragmentShader = args.fragmentShaderTemplate.replace(PRAGMA_RAYMARCH_SCENE, args.fragmentShaderContent);
+        const depthFragmentShader = args.depthFragmentShaderTemplate.replace(PRAGMA_RAYMARCH_SCENE, args.depthFragmentShaderContent);
 
         // const { fragmentShader, depthFragmentShader, uniforms = [] } = materialArgs;
         const material = new ObjectSpaceRaymarchMaterial({
             // tmp
-            // fragmentShader,
-            // depthFragmentShader,
             // uniforms,
             // // metallic,
             // // roughness,
@@ -49,6 +57,8 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
             // new
             ...materialArgs,
             // override
+            fragmentShader,
+            depthFragmentShader,
             primitiveType: PrimitiveTypes.Triangles,
             faceSide: FaceSide.Double,
         });

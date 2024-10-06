@@ -23,7 +23,12 @@ const pack = async (filePath) => {
     return new Promise((resolve) => {
         // // pattern1: packer.js
         const packShellPath = path.join(process.cwd(), 'libs/packer.js');
-        const distPath = path.join(process.cwd(), `dist/packed-${id}.html`);
+        
+        // id使う場合
+        // const distPath = path.join(process.cwd(), `dist/packed-${id}.html`);
+        // id追加しない場合
+        const distPath = path.join(process.cwd(), `dist/packed.html`);
+       
         const command = `node ${packShellPath} ${filePath} ${distPath}`;
         // // pattern2: jsexe
         // const packShellPath = path.join(process.cwd(), 'libs/jsexe.exe');

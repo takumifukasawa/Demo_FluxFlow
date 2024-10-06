@@ -11,8 +11,9 @@ import { shaderMinifierPlugin } from './vite-shader-minifier-plugin';
 import * as process from 'process';
 import { transformGlslUnroll } from './vite-transform-glsl-unroll-plugin.ts';
 import { transformGlslLayout } from './vite-transform-glsl-layout-plugin.ts';
+import { transformExtractGlslRaymarchTemplate } from "./vite-extract-glsl-raymarch-template-plugin.ts";
 import { deleteTmpCachesPlugin } from './vite-delete-tmp-caches-plugin.ts';
-import {roundFloatPlugin} from "./vite-round-float-plugin.ts";
+import { roundFloatPlugin } from './vite-round-float-plugin.ts';
 
 type EntryPointInfo = { name: string; path: string };
 // type EntryPointInfo = { path: string };
@@ -62,7 +63,7 @@ export default defineConfig(async (config) => {
     const { mode } = config;
 
     const env = loadEnv(mode, process.cwd());
-   
+
     // NOTE: 本来はなくてもいいはず
     Object.assign(process.env, env);
 
@@ -145,8 +146,10 @@ export default defineConfig(async (config) => {
                     preserveExternals: true,
                     // noRenaming: true
                     // noRenamingList: ['epiano'],
+                    noRenamingList: ['main', 'dfScene'],
                 },
             }),
+            transformExtractGlslRaymarchTemplate(),
             roundFloatPlugin(),
             checker({
                 typescript: true,

@@ -11,8 +11,9 @@ export type ObjectSpaceRaymarchMaterialArgs = {
     metallic?: number;
     roughness?: number;
     emissiveColor?: Color;
-    fragmentShader: string;
-    depthFragmentShader: string;
+    fragmentShader?: string;
+    depthFragmentShader?: string;
+    // rawFragmentShader?: string;
 } & MaterialArgs;
 
 export class ObjectSpaceRaymarchMaterial extends Material {
@@ -20,6 +21,7 @@ export class ObjectSpaceRaymarchMaterial extends Material {
         // TODO: 外部化
         fragmentShader,
         depthFragmentShader,
+        // rawFragmentShader,
         shadingModelId = ShadingModelIds.Lit,
         metallic,
         roughness,
@@ -87,6 +89,7 @@ export class ObjectSpaceRaymarchMaterial extends Material {
             vertexShader: raymarchVert,
             fragmentShader,
             depthFragmentShader,
+            // rawFragmentShader,
             uniforms: mergedUniforms,
             depthUniforms: commonUniforms,
             // NOTE: GBufferMaterialの設定

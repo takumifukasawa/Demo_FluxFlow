@@ -6,16 +6,18 @@ import demoMetaMorphTransformFeedbackVertex from '@/PaleGL/shaders/demo-meta-mor
 import { Vector2 } from '@/PaleGL/math/Vector2.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
-import litObjectSpaceRaymarchMetaMorphFrag from '@/PaleGL/shaders/lit-object-space-raymarch-meta-morph-fragment.glsl';
-import gBufferObjectSpaceRaymarchMetaMorphDepthFrag from '@/PaleGL/shaders/gbuffer-object-space-raymarch-meta-morph-depth-fragment.glsl';
+import { litObjectSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-object-space-raymarch-fragment-template.ts';
+import { gbufferObjectSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-object-space-raymarch-depth-fragment-template.ts';
+import litObjectSpaceRaymarchFragMetaMorphContent from '@/PaleGL/shaders/lit-object-space-raymarch-fragment-meta-morph.glsl';
+import gBufferObjectSpaceRaymarchFragMetaMorphDepthContent from '@/PaleGL/shaders/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
-import { saturate } from '@/PaleGL/utilities/mathUtilities.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { AbstractInputController } from '@/PaleGL/inputs/AbstractInputController.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 
-const MAX_INSTANCE_NUM = 1;
+const MAX_INSTANCE_NUM = 256;
+const INITIAL_INSTANCE_NUM = 1;
 
 const ATTRIBUTE_POSITION_NAME = 'aPosition';
 const ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
@@ -189,14 +191,19 @@ export const createMetaMorphActor = ({
     inputController: AbstractInputController;
     attractorActor: Actor;
 }) => {
-    const instanceNum = 1;
+    console.log(attractorActor);
+    const instanceNum = INITIAL_INSTANCE_NUM;
 
     const mesh = new ObjectSpaceRaymarchMesh({
         gpu,
         size: 0.5,
+        fragmentShaderTemplate: litObjectSpaceRaymarchFragmentTemplate,
+        fragmentShaderContent: litObjectSpaceRaymarchFragMetaMorphContent,
+        depthFragmentShaderTemplate: gbufferObjectSpaceRaymarchDepthFragmentTemplate,
+        depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragMetaMorphDepthContent,
         materialArgs: {
-            fragmentShader: litObjectSpaceRaymarchMetaMorphFrag,
-            depthFragmentShader: gBufferObjectSpaceRaymarchMetaMorphDepthFrag,
+            // fragmentShader: litObjectSpaceRaymarchMetaMorphFrag,
+            // depthFragmentShader: gBufferObjectSpaceRaymarchMetaMorphDepthFrag,
             metallic: 0,
             roughness: 0,
             emissiveColor: new Color(1.2, 1, 1, 1),
@@ -214,54 +221,85 @@ export const createMetaMorphActor = ({
     // rot.setRotationX(90);
     // mesh.transform.rotation = rot;
 
-    const instanceInfo: {
+    const tmpInstanceInfo: {
         position: number[][];
         scale: number[][];
         rotation: number[][];
         velocity: number[][];
         color: number[][];
+        animationOffset: number[][];
+        states: number[][];
     } = {
         position: [],
         scale: [],
         rotation: [],
         velocity: [],
         color: [],
+        animationOffset: [],
+        states: [],
     };
-    maton.range(instanceNum).forEach(() => {
-        instanceInfo.position.push([0, 0, 0]);
 
+    maton.range(MAX_INSTANCE_NUM).forEach((i) => {
+        // position
+        tmpInstanceInfo.position.push([0, 0, 0]);
+
+        // scale
         // const baseScale = 0.25;
         const baseScale = 2;
         const randomScaleRange = 0.25;
         const s = Math.random() * randomScaleRange + baseScale;
-        instanceInfo.scale.push([s, s, s]);
+        tmpInstanceInfo.scale.push([s, s, s]);
 
-        instanceInfo.rotation.push([0, 0, 0]);
+        // rotation
+        tmpInstanceInfo.rotation.push([0, 0, 0]);
 
-        instanceInfo.velocity.push([0, 0, 0]);
+        // velocity
+        tmpInstanceInfo.velocity.push([0, 0, 0]);
 
+        // color
         const c = Color.fromRGB(
             Math.floor(Math.random() * 180 + 20),
             Math.floor(Math.random() * 20 + 20),
             Math.floor(Math.random() * 180 + 20)
         );
-        instanceInfo.color.push([...c.elements]);
+        tmpInstanceInfo.color.push([...c.elements]);
+
+        // states
+        tmpInstanceInfo.states.push([i, 0, 0, 0]);
     });
     const animationOffsetInfo = maton
-        .range(instanceNum)
+        .range(MAX_INSTANCE_NUM)
         .map(() => {
             return Math.random() * 30;
         })
         .flat();
 
+    const instancingInfo: {
+        position: Float32Array;
+        scale: Float32Array;
+        rotation: Float32Array;
+        velocity: Float32Array;
+        color: Float32Array;
+        animationOffset: Float32Array;
+        instanceNum: number,
+    } = {
+        position: new Float32Array(tmpInstanceInfo.position.flat()),
+        scale: new Float32Array(tmpInstanceInfo.scale.flat()),
+        rotation: new Float32Array(tmpInstanceInfo.rotation.flat()),
+        velocity: new Float32Array(tmpInstanceInfo.velocity.flat()),
+        color: new Float32Array(tmpInstanceInfo.color.flat()),
+        animationOffset: new Float32Array(animationOffsetInfo),
+        instanceNum
+    };
+
     mesh.castShadow = true;
-    mesh.geometry.instanceCount = instanceNum;
+    mesh.geometry.instanceCount = instancingInfo.instanceNum;
 
     // TODO: instanceのoffset回りは予約語にしてもいいかもしれない
     mesh.geometry.setAttribute(
         new Attribute({
             name: AttributeNames.InstancePosition,
-            data: new Float32Array(instanceInfo.position.flat()),
+            data: instancingInfo.position,
             size: 3,
             divisor: 1,
         })
@@ -269,7 +307,7 @@ export const createMetaMorphActor = ({
     mesh.geometry.setAttribute(
         new Attribute({
             name: AttributeNames.InstanceScale,
-            data: new Float32Array(instanceInfo.scale.flat()),
+            data: instancingInfo.scale,
             size: 3,
             divisor: 1,
         })
@@ -277,7 +315,7 @@ export const createMetaMorphActor = ({
     mesh.geometry.setAttribute(
         new Attribute({
             name: AttributeNames.InstanceRotation,
-            data: new Float32Array(instanceInfo.rotation.flat()),
+            data: instancingInfo.rotation,
             size: 3,
             divisor: 1,
         })
@@ -286,7 +324,7 @@ export const createMetaMorphActor = ({
     mesh.geometry.setAttribute(
         new Attribute({
             name: AttributeNames.InstanceAnimationOffset,
-            data: new Float32Array(animationOffsetInfo),
+            data: instancingInfo.animationOffset,
             size: 1,
             divisor: 1,
         })
@@ -294,7 +332,7 @@ export const createMetaMorphActor = ({
     mesh.geometry.setAttribute(
         new Attribute({
             name: AttributeNames.InstanceVertexColor,
-            data: new Float32Array(instanceInfo.color.flat()),
+            data: instancingInfo.color,
             size: 4,
             divisor: 1,
         })
@@ -302,7 +340,7 @@ export const createMetaMorphActor = ({
     mesh.geometry.setAttribute(
         new Attribute({
             name: AttributeNames.InstanceVelocity,
-            data: new Float32Array(instanceInfo.velocity.flat()),
+            data: instancingInfo.velocity,
             size: 3,
             divisor: 1,
         })
@@ -310,34 +348,28 @@ export const createMetaMorphActor = ({
 
     const transformFeedbackDoubleBuffer = createInstanceUpdater({ gpu, renderer, instanceNum: MAX_INSTANCE_NUM });
 
-    let needsJumpPosition: boolean = false;
+    // let needsJumpPosition: boolean = false;
 
     // const setNeedsJumpPosition = (needsJump: boolean) => {
     //     needsJumpPosition = needsJump;
     // }
 
     const setInstancePosition = (index: number, p: Vector3) => {
-        transformFeedbackDoubleBuffer.updateBufferSubData(
-            ATTRIBUTE_POSITION_NAME,
-            index,
-            p.elements
-        );
+        instancingInfo.position[index * 3] = p.x;
+        instancingInfo.position[index * 3 + 1] = p.y;
+        instancingInfo.position[index * 3 + 2] = p.z;
+        transformFeedbackDoubleBuffer.updateBufferSubData(ATTRIBUTE_POSITION_NAME, index, p.elements);
     };
 
     const setInstanceVelocity = (index: number, v: Vector3) => {
-        transformFeedbackDoubleBuffer.updateBufferSubData(
-            ATTRIBUTE_VELOCITY_NAME,
-            index,
-            v.elements
-        );
+        instancingInfo.velocity[index * 3] = v.x;
+        instancingInfo.velocity[index * 3 + 1] = v.y;
+        instancingInfo.velocity[index * 3 + 2] = v.z;
+        transformFeedbackDoubleBuffer.updateBufferSubData(ATTRIBUTE_VELOCITY_NAME, index, v.elements);
     };
 
     const setInstanceAttractTargetPosition = (index: number, p: Vector3) => {
-        transformFeedbackDoubleBuffer.updateBufferSubData(
-            ATTRIBUTE_ATTRACT_TARGET_NAME,
-            index,
-            p.elements
-        );
+        transformFeedbackDoubleBuffer.updateBufferSubData(ATTRIBUTE_ATTRACT_TARGET_NAME, index, p.elements);
     };
 
     // const updateInstanceState = (index: number, values: { seed?: number; attractEnabled?: boolean }) => {
@@ -371,24 +403,30 @@ export const createMetaMorphActor = ({
     // }
 
     // for debug
+    
+    window.addEventListener('keydown', e => {
+        if(e.key === "a") {
+            instancingInfo.instanceNum++;
+            instancingInfo.instanceNum %= MAX_INSTANCE_NUM;
+        }
+    })
 
     window.addEventListener('keydown', (e) => {
         if (e.key === 'j') {
-            setInstanceAttractTargetPosition(0, new Vector3(Math.random() * 5. - 2.5, 5, 0));
+            // for(let i = 0; i < )
+            setInstanceAttractTargetPosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0));
         }
     });
     window.addEventListener('keydown', (e) => {
         if (e.key === 'v') {
             setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0));
+            // setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5, Math.random() * 5 - 2.5));
             setInstanceVelocity(0, new Vector3(0, 0.1, 0));
         }
     });
 
-    let attractRate = 0;
-    mesh.onUpdate = ({ deltaTime }) => {
-        attractRate += (inputController.isDown ? 1 : -1) * deltaTime * 2;
-        attractRate = saturate(attractRate);
-
+    mesh.onUpdate = () => {
+        // tmp
         // for (let i = 0; i < instanceNum; i++) {
         //     switch (i % 4) {
         //         case 0:
@@ -410,6 +448,14 @@ export const createMetaMorphActor = ({
         //     }
         // }
 
+        // 一括更新する場合
+        // for(let i = 0; i < instanceNum; i++) {
+        //     setInstancePosition(i, new Vector3(
+        //         Math.random() * 5 - 2.5, Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
+        //     );
+        // }
+        // mesh.geometry.vertexArrayObject.updateBufferData(AttributeNames.InstancePosition, instancingInfo.position);
+
         // transform feedback を更新
         transformFeedbackDoubleBuffer.uniforms.setValue(
             'uNormalizedInputPosition',
@@ -419,8 +465,8 @@ export const createMetaMorphActor = ({
             'uAttractTargetPosition',
             Vector3.addVectors(attractorActor.transform.position, new Vector3(0, 0, 0))
         );
-        transformFeedbackDoubleBuffer.uniforms.setValue('uNeedsJumpPosition', needsJumpPosition ? 1 : 0);
-        transformFeedbackDoubleBuffer.uniforms.setValue('uAttractRate', attractRate);
+        // transformFeedbackDoubleBuffer.uniforms.setValue('uNeedsJumpPosition', needsJumpPosition ? 1 : 0);
+        transformFeedbackDoubleBuffer.uniforms.setValue('uAttractRate', 0);
         gpu.updateTransformFeedback({
             shader: transformFeedbackDoubleBuffer.shader,
             uniforms: transformFeedbackDoubleBuffer.uniforms,
@@ -430,7 +476,7 @@ export const createMetaMorphActor = ({
         });
         transformFeedbackDoubleBuffer.swap();
 
-        attractorActor.transform.position = new Vector3(0, 4, 0);
+        // attractorActor.transform.position = new Vector3(0, 4, 0);
 
         // インスタンスのメッシュを更新
         mesh.geometry.vertexArrayObject.replaceBuffer(
@@ -442,9 +488,9 @@ export const createMetaMorphActor = ({
             transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(ATTRIBUTE_VELOCITY_NAME)
         );
 
-        mesh.geometry.instanceCount = MAX_INSTANCE_NUM;
+        mesh.geometry.instanceCount = instancingInfo.instanceNum;
 
-        needsJumpPosition = false;
+        // needsJumpPosition = false;
     };
 
     return mesh;

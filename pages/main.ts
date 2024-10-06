@@ -56,8 +56,15 @@ import { Texture } from '@/PaleGL/core/Texture.ts';
 import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
 
 // for default img
-import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
-import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.json';
+// noto sans
+import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
+// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
+import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
+// fira sans
+// import fontAtlasImgUrl from '../assets/fonts/FiraSansExtraCondensed-Bold-atlas-128_compresed.png?url';
+// import fontAtlasJson from '../assets/fonts/FiraSansExtraCondensed-Bold-atlas-128.json';
+// import fontAtlasImgUrl from '../assets/fonts/FiraSansExtraCondensed-Bold-atlas-64.png?url';
+// import fontAtlasJson from '../assets/fonts/FiraSansExtraCondensed-Bold-atlas-64.json';
 /*
 // for gpu texture
 import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.dds?url';
@@ -513,9 +520,9 @@ const load = async () => {
         // characterSpacing: -0.2
     });
     captureScene.add(textMesh1);
-    textMesh1.transform.position = new Vector3(0, 1, 2);
-    textMesh1.transform.rotation.setRotationX(-90);
-    textMesh1.transform.scale = Vector3.fill(1);
+    textMesh1.transform.position = new Vector3(0, 1, 0);
+    // textMesh1.transform.rotation.setRotationX(-90);
+    textMesh1.transform.scale = Vector3.fill(0.5);
 
     const textMesh2 = new TextMesh({
         gpu,
@@ -527,9 +534,9 @@ const load = async () => {
         characterSpacing: -0.16,
     });
     captureScene.add(textMesh2);
-    textMesh2.transform.position = new Vector3(0, 2, 4);
-    textMesh2.transform.rotation.setRotationX(-90);
-    textMesh2.transform.scale = Vector3.fill(1);
+    textMesh2.transform.position = new Vector3(0, 3, 0);
+    // textMesh2.transform.rotation.setRotationX(-90);
+    textMesh2.transform.scale = Vector3.fill(0.5);
 
     const textMesh3 = new TextMesh({
         gpu,
@@ -541,9 +548,9 @@ const load = async () => {
         characterSpacing: 0.2,
     });
     captureScene.add(textMesh3);
-    textMesh3.transform.position = new Vector3(0, 0.01, 6);
-    textMesh3.transform.rotation.setRotationX(-90);
-    textMesh3.transform.scale = Vector3.fill(1);
+    textMesh3.transform.position = new Vector3(0, 5, 0);
+    // textMesh3.transform.rotation.setRotationX(-90);
+    textMesh3.transform.scale = Vector3.fill(0.5);
 
     // TODO: engine側に移譲したい
     const onWindowResize = () => {
