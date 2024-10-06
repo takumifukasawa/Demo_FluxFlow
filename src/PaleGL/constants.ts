@@ -363,6 +363,8 @@ export const UniformNames = {
     LightPenumbraCos: 'penumbraCos',
     SpotLightColor: 'uSpotLightColor',
     SpotLightIntensity: 'uSpotLightIntensity',
+    // post process
+    BlendRate: 'uBlendRate',
     // font
     FontMap: 'uFontMap',
     FontTiling: 'uFontTiling',

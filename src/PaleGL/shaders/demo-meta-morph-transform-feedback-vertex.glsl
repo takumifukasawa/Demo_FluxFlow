@@ -33,10 +33,12 @@ void main() {
     // stateを分割
     float seed = aState.x;
     float attractEnabled = aState.y;
-    
+   
     vPosition = aPosition + aVelocity;
+    
     // vec3 target = uAttractTargetPosition;
     vec3 target = aAttractTargetPosition;
+    
     vec2 seed = vec2(seed, seed);
     float rand = noise(seed);
     target += vec3(
@@ -45,20 +47,25 @@ void main() {
         cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
     );
     vec3 diffP = target - vPosition;
-    vec3 diffDir = normalize(dffP);
+    vec3 diffDir = normalize(diffP);
     
-    vec3 acc = diffDir * .01;
-    vec3 newP = target + diffP * .01;
-    vec3 vVelocity = newP - vPosition;
+    // vec3 acc = diffDir * .01;
+    // vec3 newP = target + diffP * .1;
+    // vec3 vVelocity = newP - vPosition;
     
     // // なにかをattractする場合
-    // vVelocity = mix(
-    //     aVelocity,
-    //     mix(
-    //         aVelocity,
-    //         diffDir * (.1 + uAttractRate * .1),
-    //         .03 + sin(uTime * .2 + rand * 100.) * .02
-    //     ),
-    //     step(.5, attractEnabled)
-    // );
+    vVelocity = mix(
+        aVelocity,
+        mix(
+            aVelocity,
+            diffDir * (.1 + uAttractRate * .1),
+            .03 + sin(uTime * .2 + rand * 100.) * .02
+        ),
+        1.
+        // step(.5, attractEnabled)
+    );
+
+    // vec3 diffP = target - vPosition;
+    // vec3 diffDir = normalize(diffP);
+    vVelocity = diffP * .05;
 }

@@ -414,8 +414,6 @@ const load = async () => {
 
     buildScene(sceneJsonUrl as unknown as MarionetterScene);
 
-    renderer.fogPass.parameters.blendRate = 0;
-
     if (import.meta.env.VITE_HOT_RELOAD === 'true') {
         document.addEventListener('keydown', (e) => {
             switch (e.code) {

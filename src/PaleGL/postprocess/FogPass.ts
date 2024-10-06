@@ -4,7 +4,7 @@ import fogFragmentShader from '@/PaleGL/shaders/fog-fragment.glsl';
 import {
     PostProcessPassBase,
     PostProcessPassParametersBase,
-    PostProcessPassRenderArgs
+    PostProcessPassRenderArgs,
 } from '@/PaleGL/postprocess/PostProcessPassBase';
 import { RenderTarget } from '@/PaleGL/core/RenderTarget.ts';
 import {
@@ -12,10 +12,10 @@ import {
     RenderTargetTypes,
     UniformBlockNames,
     UniformNames,
-    UniformTypes
+    UniformTypes,
 } from '@/PaleGL/constants.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
-import {Override} from "@/PaleGL/palegl";
+import { Override } from '@/PaleGL/palegl';
 
 const UNIFORM_FOG_COLOR = 'uFogColor';
 const UNIFORM_FOG_STRENGTH = 'uFogStrength';
@@ -40,7 +40,15 @@ export type FogPassParameters = PostProcessPassParametersBase & FogPassParameter
 
 export type FogPassParametersArgs = Partial<FogPassParameters>;
 
-export function generateFogPassParameters(params: FogPassParametersArgs = {}): FogPassParameters {
+type RequiredToOptional<T> = {
+    [K in keyof T]?: T[K]; // `?` adds the optional modifier
+};
+
+// type OptionalToRequired<T> = {
+//     [K in keyof T]-?: T[K]; // `-?` removes the optional modifier
+// };
+
+export function generateFogPassParameters(params: RequiredToOptional<FogPassParametersArgs> = {}): FogPassParameters {
     return {
         enabled: params.enabled ?? true,
         fogColor: params.fogColor ?? Color.white,
@@ -50,7 +58,7 @@ export function generateFogPassParameters(params: FogPassParametersArgs = {}): F
         fogEndHeight: params.fogEndHeight ?? 1,
         distanceFogStart: params.distanceFogStart ?? 20,
         distanceFogPower: params.distanceFogPower ?? 0.1,
-        blendRate: params.blendRate ?? 1,
+        blendRate: 1,
     };
 }
 
@@ -68,7 +76,7 @@ export class FogPass extends PostProcessPassBase {
     // blendRate: number = 1;
     parameters: Override<PostProcessPassParametersBase, FogPassParameters>;
 
-    constructor(args: { gpu: GPU, parameters?: FogPassParametersArgs }) {
+    constructor(args: { gpu: GPU; parameters?: FogPassParametersArgs }) {
         const { gpu } = args;
         const fragmentShader = fogFragmentShader;
 
@@ -138,16 +146,16 @@ export class FogPass extends PostProcessPassBase {
                     value: parameters.distanceFogPower,
                 },
                 {
-                    name: "uBlendRate",
+                    name: UniformNames.BlendRate,
                     type: UniformTypes.Float,
                     value: 1,
-                }
+                },
                 // ...PostProcessPassBase.commonUniforms,
             ],
             uniformBlockNames: [UniformBlockNames.Camera],
-            parameters
+            parameters,
         });
-        
+
         this.parameters = parameters;
 
         // this.fogColor = Color.white;
@@ -177,7 +185,7 @@ export class FogPass extends PostProcessPassBase {
         this.material.uniforms.setValue(UNIFORM_FOG_END_HEIGHT, this.parameters.fogEndHeight);
         this.material.uniforms.setValue(UNIFORM_DISTANCE_FOG_START, this.parameters.distanceFogStart);
         this.material.uniforms.setValue(UNIFORM_DISTANCE_FOG_POWER, this.parameters.distanceFogPower);
-        this.material.uniforms.setValue("uBlendRate", this.parameters.blendRate);
+        this.material.uniforms.setValue(UniformNames.BlendRate, this.parameters.blendRate);
         super.render(options);
     }
 }

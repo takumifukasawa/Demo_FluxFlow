@@ -127,4 +127,10 @@ export class TransformFeedbackDoubleBuffer {
         this.transformFeedbackBuffers[0] = this.transformFeedbackBuffers[1];
         this.transformFeedbackBuffers[1] = tmp;
     }
+    
+    updateBufferSubData(key: string, index: number, data: ArrayBufferView | BufferSource) {
+        this.transformFeedbackBuffers.forEach((buffer) => {
+            buffer.srcVertexArrayObject.updateBufferSubData(key, index, data);
+        });
+    }
 }

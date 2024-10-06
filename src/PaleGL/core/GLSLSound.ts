@@ -10,160 +10,8 @@ import { AttributeUsageType, UniformTypes } from '@/PaleGL/constants.ts';
 
 const SAMPLES = 65536;
 
-// export class GLSLSound {
-//     gpu: GPU;
-//     channelNum: number;
-//     audioContext: AudioContext;
-//     node: AudioBufferSourceNode | null;
-//     gainNode: GainNode | null;
-//     volume: number;
-//     duration: number;
-//     audioBuffer: AudioBuffer;
-//
-//     constructor(gpu: GPU, vertexShader: string, duration: number) {
-//         this.gpu = gpu;
-//         this.channelNum = 2;
-//         this.duration = duration;
-//         this.node = null;
-//         this.gainNode = null;
-//         this.volume = 1;
-//
-//         const audioContext = new AudioContext();
-//         const audioBuffer = audioContext.createBuffer(
-//             this.channelNum,
-//             audioContext.sampleRate * duration,
-//             audioContext.sampleRate
-//         );
-//
-//         const { gl } = gpu;
-//
-//         const data = new Float32Array(this.channelNum * SAMPLES);
-//
-//         const varyingName = 'vSound';
-//
-//         const transformFeedbackBuffer = new TransformFeedbackBuffer({
-//             gpu,
-//             attributes: [],
-//             varyings: [
-//                 {
-//                     name: varyingName,
-//                     data,
-//                     usageType: AttributeUsageType.DynamicCopy,
-//                 },
-//             ],
-//             vertexShader,
-//             uniforms: [
-//                 {
-//                     name: 'uBlockOffset',
-//                     type: UniformTypes.Float,
-//                     value: 0,
-//                 },
-//                 {
-//                     name: 'uSampleRate',
-//                     type: UniformTypes.Float,
-//                     value: 0,
-//                 },
-//             ],
-//             // fragmentShader: transformFeedbackFragmentShader,
-//             drawCount: SAMPLES,
-//         });
-//
-//         const numBlocks = Math.ceil((audioContext.sampleRate * duration) / SAMPLES);
-//         const outputL = audioBuffer.getChannelData(0);
-//         const outputR = audioBuffer.getChannelData(1);
-//
-//         console.log(`[GLSLSound] ----------------------------------------`);
-//         console.log(`[GLSLSound] sample rate: ${audioContext.sampleRate}`);
-//         console.log(`[GLSLSound] duration: ${duration}`);
-//         console.log(`[GLSLSound] samples: ${SAMPLES}`);
-//         console.log(`[GLSLSound] num blocks: ${numBlocks}`);
-//         console.log(`[GLSLSound] outputL length: ${outputL.length}`);
-//         console.log(`[GLSLSound] outputR length: ${outputR.length}`);
-//         console.log(`[GLSLSound] ----------------------------------------`);
-//
-//         transformFeedbackBuffer.uniforms.setValue('uSampleRate', audioContext.sampleRate);
-//
-//         for (let i = 0; i < numBlocks; i++) {
-//             const blockOffset = (i * SAMPLES) / audioContext.sampleRate;
-//             // gl.uniform1f(uniformLocations['uBlockOffset'], blockOffset);
-//
-//             transformFeedbackBuffer.uniforms.setValue('uBlockOffset', blockOffset);
-//
-//             // TODO: vao, shader の bind,unbind がたくさん発生するので最適化した方がよい
-//             gpu.updateTransformFeedback({
-//                 shader: transformFeedbackBuffer.shader,
-//                 uniforms: transformFeedbackBuffer.uniforms,
-//                 transformFeedback: transformFeedbackBuffer.transformFeedback,
-//                 vertexArrayObject: transformFeedbackBuffer.vertexArrayObject,
-//                 drawCount: SAMPLES,
-//             });
-//
-//             gpu.gl.getBufferSubData(gl.TRANSFORM_FEEDBACK_BUFFER, 0, data);
-//
-//             for (let j = 0; j < SAMPLES; j++) {
-//                 outputL[i * SAMPLES + j] = data[j * 2 + 0];
-//                 outputR[i * SAMPLES + j] = data[j * 2 + 1];
-//             }
-//         }
-//
-//         this.audioContext = audioContext;
-//         this.audioBuffer = audioBuffer;
-//     }
-//
-//     play(time: number) {
-//         if (this.gainNode) {
-//             this.gainNode.disconnect();
-//             this.gainNode = null;
-//         }
-//         if (this.node) {
-//             this.node.stop();
-//             this.node = null;
-//         }
-//         console.log(`[GLSLSound.play] time: ${time}`);
-//
-//         const node = this.audioContext.createBufferSource();
-//         const gainNode = this.audioContext.createGain();
-//
-//         gainNode.connect(this.audioContext.destination);
-//         gainNode.gain.value = this.volume;
-//
-//         node.connect(gainNode);
-//         node.buffer = this.audioBuffer;
-//         node.loop = false;
-//         node.start(0, time);
-//
-//         this.node = node;
-//         this.gainNode = gainNode;
-//     }
-//
-//     setVolume(value: number) {
-//         this.volume = value;
-//         if (this.gainNode) {
-//             this.gainNode.gain.value = this.volume;
-//         }
-//     }
-//
-//     // seek(time: number) {
-//     //     console.log(`[GLSLSound.seek] time: ${time}`);
-//     //     // if(this.node) {
-//     //     //     this.node.playbackRate.value = time / this.duration;
-//     //     // }
-//     // }
-//
-//     stop() {
-//         console.log('[GLSLSound.stop]');
-//         this.node?.stop();
-//         // await this.audioContext?.suspend();
-//     }
-//
-//     getCurrentTime() {
-//         return this.audioContext.currentTime;
-//     }
-//
-//     // reload(vertexShader: string, duration: number) {
-//     //     this.create(vertexShader, duration);
-//     // }
-// }
+const UNIFORM_NAME_BLOCK_OFFSET = 'uBlockOffset';
+const UNIFORM_NAME_SAMPLE_RATE = 'uSampleRate';
 
 export type GLSLSound = {
     play: (time: number) => void;
@@ -206,12 +54,12 @@ export function createGLSLSound(gpu: GPU, vertexShader: string, duration: number
         vertexShader,
         uniforms: [
             {
-                name: 'uBlockOffset',
+                name: UNIFORM_NAME_BLOCK_OFFSET,
                 type: UniformTypes.Float,
                 value: 0,
             },
             {
-                name: 'uSampleRate',
+                name: UNIFORM_NAME_SAMPLE_RATE,
                 type: UniformTypes.Float,
                 value: 0,
             },
@@ -233,13 +81,13 @@ export function createGLSLSound(gpu: GPU, vertexShader: string, duration: number
     console.log(`[GLSLSound] outputR length: ${outputR.length}`);
     console.log(`[GLSLSound] ----------------------------------------`);
 
-    transformFeedbackBuffer.uniforms.setValue('uSampleRate', audioContext.sampleRate);
+    transformFeedbackBuffer.uniforms.setValue(UNIFORM_NAME_SAMPLE_RATE, audioContext.sampleRate);
 
     for (let i = 0; i < numBlocks; i++) {
         const blockOffset = (i * SAMPLES) / audioContext.sampleRate;
         // gl.uniform1f(uniformLocations['uBlockOffset'], blockOffset);
 
-        transformFeedbackBuffer.uniforms.setValue('uBlockOffset', blockOffset);
+        transformFeedbackBuffer.uniforms.setValue(UNIFORM_NAME_BLOCK_OFFSET, blockOffset);
 
         // TODO: vao, shader の bind,unbind がたくさん発生するので最適化した方がよい
         gpu.updateTransformFeedback({

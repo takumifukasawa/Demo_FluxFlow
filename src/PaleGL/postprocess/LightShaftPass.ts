@@ -35,10 +35,10 @@ type LightShaftPassParametersArgs = Partial<LightShaftPassParameters>;
 
 function generateLightShaftPassParameters(args: LightShaftPassParametersArgs = {}): LightShaftPassParameters {
     return {
-        enabled: args.enabled || true,
-        blendRate: args.blendRate || 0.65,
-        passScaleBase: args.passScaleBase || 0.2,
-        rayStepStrength: args.rayStepStrength || 0.012,
+        enabled: args.enabled ?? true,
+        blendRate: args.blendRate ?? 0.65,
+        passScaleBase: args.passScaleBase ?? 0.2,
+        rayStepStrength: args.rayStepStrength ?? 0.012,
     };
 }
 
@@ -233,7 +233,7 @@ export class LightShaftPass implements IPostProcessPass {
                     value: null,
                 },
                 {
-                    name: 'uBlendRate',
+                    name: UniformNames.BlendRate,
                     type: UniformTypes.Float,
                     value: this.parameters.blendRate,
                 },
@@ -387,7 +387,7 @@ export class LightShaftPass implements IPostProcessPass {
         //
 
         this.compositePass.material.uniforms.setValue('uLightShaftTexture', this.blur3Pass.renderTarget.read.texture);
-        this.compositePass.material.uniforms.setValue('uBlendRate', this.parameters.blendRate);
+        this.compositePass.material.uniforms.setValue(UniformNames.BlendRate, this.parameters.blendRate);
 
         this.compositePass.render({
             gpu,

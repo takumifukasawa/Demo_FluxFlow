@@ -117,8 +117,7 @@ void main() {
     // TODO: しかし、どう混ぜるかという問題がある。手前と奥をどう判断するか
     // patter1: add
     outColor += vec4(volumetricLightColor.xyz, 0.);
-    
-    outColor = vec4(mix(sceneColor.xyz, outColor.xyz, uBlendRate), 1.);
+    outColor = vec4(mix(sceneColor.xyz, outColor.xyz, 1.), 1.);
     
     // pattern2: mix
     // outColor = vec4(mix(
@@ -126,7 +125,6 @@ void main() {
     //     volumetricLightColor.xyz,
     //     saturate(volumetricLightColor.a)
     // ), 1.);
-
     
     // for debug
     // outColor = sceneColor;

@@ -15,12 +15,12 @@ import { AbstractInputController } from '@/PaleGL/inputs/AbstractInputController
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 
-const MAX_INSTANCE_NUM = 1024;
+const MAX_INSTANCE_NUM = 1;
 
 const ATTRIBUTE_POSITION_NAME = 'aPosition';
 const ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
-const ATTRIBUTE_STATE_NAME = 'aState';
 const ATTRIBUTE_ATTRACT_TARGET_NAME = 'aAttractTargetPosition';
+const ATTRIBUTE_STATE_NAME = 'aState';
 
 const createInstanceUpdater = ({
     gpu,
@@ -69,6 +69,7 @@ const createInstanceUpdater = ({
             .flat()
     );
 
+    // 要素: [newSeed, newAttractEnabled, 0, 0]
     const initialState = new Float32Array(
         maton
             .range(instanceNum, true)
@@ -97,13 +98,13 @@ const createInstanceUpdater = ({
                 name: ATTRIBUTE_ATTRACT_TARGET_NAME,
                 data: initialAttractTargetPosition,
                 size: 3,
-                usageType: AttributeUsageType.StaticDraw,
+                usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
                 name: ATTRIBUTE_STATE_NAME,
                 data: initialState,
                 size: 4,
-                usageType: AttributeUsageType.StaticDraw,
+                usageType: AttributeUsageType.DynamicDraw,
             }),
         ],
         varyings: [
@@ -188,7 +189,8 @@ export const createMetaMorphActor = ({
     inputController: AbstractInputController;
     attractorActor: Actor;
 }) => {
-    const instanceNum = 128;
+    const instanceNum = 1;
+
     const mesh = new ObjectSpaceRaymarchMesh({
         gpu,
         size: 0.5,
@@ -315,7 +317,7 @@ export const createMetaMorphActor = ({
     // }
 
     const setInstancePosition = (index: number, p: Vector3) => {
-        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+        transformFeedbackDoubleBuffer.updateBufferSubData(
             ATTRIBUTE_POSITION_NAME,
             index,
             p.elements
@@ -323,7 +325,7 @@ export const createMetaMorphActor = ({
     };
 
     const setInstanceVelocity = (index: number, v: Vector3) => {
-        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+        transformFeedbackDoubleBuffer.updateBufferSubData(
             ATTRIBUTE_VELOCITY_NAME,
             index,
             v.elements
@@ -331,34 +333,34 @@ export const createMetaMorphActor = ({
     };
 
     const setInstanceAttractTargetPosition = (index: number, p: Vector3) => {
-        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+        transformFeedbackDoubleBuffer.updateBufferSubData(
             ATTRIBUTE_ATTRACT_TARGET_NAME,
             index,
             p.elements
         );
     };
 
-    const updateInstanceState = (index: number, values: { seed?: number; attractEnabled?: boolean }) => {
-        const { seed, attractEnabled } = values;
-        const elementSize = 4;
-        // TODO: getBufferSubDataをせずに、js内でstate管理する
-        const currentData = transformFeedbackDoubleBuffer.read.vertexArrayObject.getBufferSubData(
-            ATTRIBUTE_STATE_NAME,
-            index,
-            elementSize
-        );
-        const newSeed = seed ?? currentData[0];
-        let newAttractEnabled = currentData[1];
-        if (attractEnabled !== undefined) {
-            newAttractEnabled = attractEnabled ? 1 : 0;
-        }
-        const newStates = new Float32Array([newSeed, newAttractEnabled, 0, 0]);
-        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-            ATTRIBUTE_STATE_NAME,
-            index,
-            newStates
-        );
-    };
+    // const updateInstanceState = (index: number, values: { seed?: number; attractEnabled?: boolean }) => {
+    //     const { seed, attractEnabled } = values;
+    //     const elementSize = 4;
+    //     // TODO: getBufferSubDataをせずに、js内でstate管理する
+    //     const currentData = transformFeedbackDoubleBuffer.read.vertexArrayObject.getBufferSubData(
+    //         ATTRIBUTE_STATE_NAME,
+    //         index,
+    //         elementSize
+    //     );
+    //     const newSeed = seed ?? currentData[0];
+    //     let newAttractEnabled = currentData[1];
+    //     if (attractEnabled !== undefined) {
+    //         newAttractEnabled = attractEnabled ? 1 : 0;
+    //     }
+    //     const newStates = new Float32Array([newSeed, newAttractEnabled, 0, 0]);
+    //     transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+    //         ATTRIBUTE_STATE_NAME,
+    //         index,
+    //         newStates
+    //     );
+    // };
 
     // const setInstanceState = (index: number, state: number) => {
     //     transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
@@ -372,11 +374,12 @@ export const createMetaMorphActor = ({
 
     window.addEventListener('keydown', (e) => {
         if (e.key === 'j') {
-            setInstancePosition(0, new Vector3(0, 0, 0));
+            setInstanceAttractTargetPosition(0, new Vector3(Math.random() * 5. - 2.5, 5, 0));
         }
     });
     window.addEventListener('keydown', (e) => {
         if (e.key === 'v') {
+            setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0));
             setInstanceVelocity(0, new Vector3(0, 0.1, 0));
         }
     });
@@ -386,26 +389,26 @@ export const createMetaMorphActor = ({
         attractRate += (inputController.isDown ? 1 : -1) * deltaTime * 2;
         attractRate = saturate(attractRate);
 
-        for (let i = 0; i < instanceNum; i++) {
-            switch (i % 4) {
-                case 0:
-                    setInstanceAttractTargetPosition(i, new Vector3(4, 2, 0));
-                    updateInstanceState(i, { attractEnabled: true });
-                    break;
-                case 1:
-                    setInstanceAttractTargetPosition(i, new Vector3(4, 2, 0));
-                    updateInstanceState(i, { attractEnabled: false });
-                    break;
-                case 2:
-                    setInstanceAttractTargetPosition(i, new Vector3(-4, 2, 0));
-                    updateInstanceState(i, { attractEnabled: true });
-                    break;
-                case 3:
-                    setInstanceAttractTargetPosition(i, new Vector3(-4, 2, 0));
-                    updateInstanceState(i, { attractEnabled: false });
-                    break;
-            }
-        }
+        // for (let i = 0; i < instanceNum; i++) {
+        //     switch (i % 4) {
+        //         case 0:
+        //             // setInstanceAttractTargetPosition(i, new Vector3(4, 2, 0));
+        //             updateInstanceState(i, { attractEnabled: true });
+        //             break;
+        //         case 1:
+        //             setInstanceAttractTargetPosition(i, new Vector3(4, 2, 0));
+        //             updateInstanceState(i, { attractEnabled: false });
+        //             break;
+        //         case 2:
+        //             setInstanceAttractTargetPosition(i, new Vector3(-4, 2, 0));
+        //             updateInstanceState(i, { attractEnabled: true });
+        //             break;
+        //         case 3:
+        //             setInstanceAttractTargetPosition(i, new Vector3(-4, 2, 0));
+        //             updateInstanceState(i, { attractEnabled: false });
+        //             break;
+        //     }
+        // }
 
         // transform feedback を更新
         transformFeedbackDoubleBuffer.uniforms.setValue(

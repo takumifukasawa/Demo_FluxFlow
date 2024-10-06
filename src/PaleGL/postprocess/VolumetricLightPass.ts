@@ -281,7 +281,7 @@ uniform mat4 uProjectionMatrix;
         this.material.uniforms.setValue('uDensityMultiplier', this.parameters.densityMultiplier);
         this.material.uniforms.setValue('uRayJitterSizeX', this.parameters.rayJitterSizeX);
         this.material.uniforms.setValue('uRayJitterSizeY', this.parameters.rayJitterSizeY);
-        this.material.uniforms.setValue('uBlendRate', this.parameters.blendRate);
+        this.material.uniforms.setValue(UniformNames.BlendRate, this.parameters.blendRate);
 
         // console.log(this.material.uniforms)
 

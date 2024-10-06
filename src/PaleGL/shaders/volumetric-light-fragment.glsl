@@ -225,10 +225,7 @@ void main() {
     }
     #pragma UNROLL_END
 
-    // accColor.a = saturate(fogRate); // TODO: saturateするべき？
-    // accColor.a = saturate(fogRate); // TODO: saturateするべき？
     accColor.a = fogRate; // TODO: saturateするべき？
-    // accColor.xyz = saturate(vec3(fogRate)); // for debug
     accColor.rgb = fogColor.xyz;
 
     outColor = accColor;
