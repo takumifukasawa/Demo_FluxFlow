@@ -54,22 +54,37 @@ export const transformExtractGlslRaymarchTemplate: () => Plugin = () => {
         enforce: 'pre',
         // eslint-disable-next-line @typescript-eslint/require-await
         async transform(src: string, id: string) {
-            const gBufferDepthFileRegex = /^.*(gbuffer-object-space-raymarch-depth-fragment)-.*\.glsl$/;
-            const litFileRegex = /^.*(lit-object-space-raymarch-fragment)-.*\.glsl$/;
-
-            const gBufferDepthFileNameMatch = id.match(gBufferDepthFileRegex);
-            const litFileNameMatch = id.match(litFileRegex);
-
-            if (gBufferDepthFileNameMatch) {
-                const [, templateName] = gBufferDepthFileNameMatch;
-                const extractedSrc = await writeTemplateFileAndExtractScene(templateName, src);
-                return extractedSrc;
+            // 列挙の形にしたくないが許容
+            const regexList = [
+                /^.*(gbuffer-object-space-raymarch-depth-fragment)-.*\.glsl$/,
+                /^.*(gbuffer-screen-space-raymarch-depth-fragment)-.*\.glsl$/,
+                /^.*(lit-object-space-raymarch-fragment)-.*\.glsl$/,
+                /^.*(lit-screen-space-raymarch-fragment)-.*\.glsl$/,
+            ];
+            
+            for await (const regex of regexList) {
+                const fileNameMatch = id.match(regex);
+                if (fileNameMatch) {
+                    const [, templateName] = fileNameMatch;
+                    const extractedSrc = await writeTemplateFileAndExtractScene(templateName, src);
+                    return extractedSrc;
+                }
             }
-            if (litFileNameMatch) {
-                const [, templateName] = litFileNameMatch;
-                const extractedSrc = await writeTemplateFileAndExtractScene(templateName, src);
-                return extractedSrc;
-            }
+
+            // const gBufferDepthFileNameMatch = id.match(gBufferDepthFileRegex);
+            // const litFileNameMatch = id.match(litFileRegex);
+
+            // if (gBufferDepthFileNameMatch) {
+            //     const [, templateName] = gBufferDepthFileNameMatch;
+            //     const extractedSrc = await writeTemplateFileAndExtractScene(templateName, src);
+            //     return extractedSrc;
+            // }
+            // if (litFileNameMatch) {
+            //     const [, templateName] = litFileNameMatch;
+            //     const extractedSrc = await writeTemplateFileAndExtractScene(templateName, src);
+            //     return extractedSrc;
+            // }
+            
             return src;
         },
     };
