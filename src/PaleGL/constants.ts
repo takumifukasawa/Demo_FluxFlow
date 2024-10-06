@@ -330,6 +330,7 @@ export const UniformNames = {
     SrcTexture: 'uSrcTexture',
     // time
     Time: 'uTime',
+    DeltaTime: 'uDeltaTime',
     // viewport
     Viewport: 'uViewport',
     // usualy post process

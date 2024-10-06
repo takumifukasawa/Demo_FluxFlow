@@ -481,6 +481,11 @@ export class Renderer {
                 value: 0,
             },
             {
+                name: UniformNames.DeltaTime,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+            {
                 name: UniformNames.Viewport,
                 type: UniformTypes.Vector4,
                 value: Vector4.zero,
@@ -750,10 +755,11 @@ export class Renderer {
         camera: Camera,
         {
             time,
+            deltaTime,
             onBeforePostProcess,
         }: {
             time: number;
-            deltaTime?: number;
+            deltaTime: number;
             onBeforePostProcess?: () => void;
         }
     ) {
@@ -890,7 +896,7 @@ export class Renderer {
         // update common uniforms
         // ------------------------------------------------------------------------------
 
-        this.updateCommonUniforms({ time });
+        this.updateCommonUniforms({ time, deltaTime });
         // TODO: このままだと directional-light がなくなったときも directional-light が残ることになる
         if (lightActors.directionalLight) {
             this.updateDirectionalLightUniforms(lightActors.directionalLight);
@@ -1883,9 +1889,10 @@ export class Renderer {
      *
      * @param time
      */
-    updateCommonUniforms({ time }: { time: number }) {
+    updateCommonUniforms({ time, deltaTime }: { time: number, deltaTime: number }) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
         this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.Time, time);
+        this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.DeltaTime, deltaTime);
         this.updateUniformBlockValue(
             UniformBlockNames.Common,
             UniformNames.Viewport,

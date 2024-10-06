@@ -8,14 +8,11 @@ layout(location = 1) in vec3 aVelocity;
 layout(location = 2) in vec3 aAttractTargetPosition;
 layout(location = 3) in vec4 aState;
 
+#include ./partial/uniform-block-common.glsl
+
 out vec3 vPosition;
 // out mat4 vTransform;
 out vec3 vVelocity;
-
-
-layout (std140) uniform ubCommon {
-    float uTime;
-};
 
 // uniform float uTime;
 uniform vec2 uNormalizedInputPosition;
@@ -65,7 +62,6 @@ void main() {
         // step(.5, attractEnabled)
     );
 
-    // vec3 diffP = target - vPosition;
-    // vec3 diffDir = normalize(diffP);
-    vVelocity = diffP * .05;
+    // attract: 簡易版
+    vVelocity = diffP * uDeltaTime;
 }

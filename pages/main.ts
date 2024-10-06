@@ -562,7 +562,7 @@ const load = async () => {
         inputController.update();
     };
 
-    engine.onRender = (time) => {
+    engine.onRender = (time, deltaTime) => {
         if (marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
             // TODO: prodの時はこっちを使いたい
             // const soundTime = glslSound.getCurrentTime();
@@ -574,7 +574,7 @@ const load = async () => {
             // marionetterTimeline.execute(0);
         }
         if (captureSceneCamera) {
-            renderer.render(captureScene, captureSceneCamera, { time });
+            renderer.render(captureScene, captureSceneCamera, { time, deltaTime });
         }
     };
 
