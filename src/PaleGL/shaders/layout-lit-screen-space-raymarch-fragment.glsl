@@ -80,7 +80,7 @@ void main() {
     float accLen = uNearClip;
     vec3 currentRayPosition = rayOrigin;
     float minDistance = .0001;
-    for(int i = 0; i < 64; i++) {
+    for(int i = 0; i < 100; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
         distance = dfScene(currentRayPosition);
         accLen += distance;
