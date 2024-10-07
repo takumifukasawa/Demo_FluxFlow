@@ -22,6 +22,7 @@ type OnFixedUpdateCallback = (args: {
 }) => void;
 type OnUpdateCallback = (args: { scene: Scene; actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
 type OnLastUpdateCallback = (args: { scene: Scene; actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
+type OnProcessClipFrame = (key: string, value: number) => void;
 
 export type ActorArgs = { name?: string; type?: ActorType };
 
@@ -41,6 +42,7 @@ export class Actor {
     private _onFixedUpdate: OnFixedUpdateCallback | null = null;
     private _onUpdate: OnUpdateCallback | null = null;
     private _onLastUpdate: OnLastUpdateCallback | null = null;
+    private _onProcessClipFrame: OnProcessClipFrame | null = null;
     private _enabled: boolean = true;
 
     get childCount() {
@@ -76,6 +78,10 @@ export class Actor {
     set onLastUpdate(value: OnLastUpdateCallback) {
         this._onLastUpdate = value;
     }
+    
+    set onProcessClipFrame(value: OnProcessClipFrame) {
+        this._onProcessClipFrame = value;
+    }
 
     constructor({ name = '', type = ActorTypes.Null }: ActorArgs = {}) {
         this.name = name;
@@ -91,11 +97,11 @@ export class Actor {
         // // this.transform.addChild(child.transform); // NOTE: こっちが正しいはず？
         child.parent = this;
     }
-    
+
     addComponent(component: Component) {
         this.components.push(component);
     }
-    
+
     getComponent<T extends Component>(): T | null {
         return this.components.find((component) => component) as T;
     }
@@ -158,7 +164,7 @@ export class Actor {
         }
     }
 
-    lastUpdate({ gpu,scene, time, deltaTime }: ActorLastUpdateArgs) {
+    lastUpdate({ gpu, scene, time, deltaTime }: ActorLastUpdateArgs) {
         this.#tryStart({ gpu, scene });
         this.components.forEach((component) => {
             component.lastUpdate({ actor: this, gpu, time, deltaTime });
@@ -173,5 +179,11 @@ export class Actor {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     beforeRender({ gpu }: { gpu: GPU }) {
         // TODO: 必要になったら実装する。component関連の処理とかで。
+    }
+
+    processClipFrame(key: string, value: number) {
+        if (this._onProcessClipFrame) {
+            this._onProcessClipFrame(key, value);
+        }
     }
 }

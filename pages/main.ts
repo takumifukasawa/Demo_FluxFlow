@@ -245,6 +245,10 @@ const buildScene = (sceneJson: MarionetterScene) => {
     const directionalLight = captureScene.find('DirectionalLight') as DirectionalLight;
     // const plane = captureScene.find('Plane') as Mesh;
 
+    captureScene.find("CUBE_SCALE")!.onProcessClipFrame =(key, value) => {
+        console.log("hogehoge", key, value)
+    };
+    
     orbitCameraController.setCamera(captureSceneCamera);
     orbitCameraController.distance = isSP ? 15 : 15;
     orbitCameraController.attenuation = 0.01;

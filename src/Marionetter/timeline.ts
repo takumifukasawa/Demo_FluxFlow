@@ -78,6 +78,12 @@ export function buildMarionetterTimeline(
 ): MarionetterTimeline {
     const tracks: MarionetterTimelineTrackKinds[] = [];
 
+    console.log(
+        `[buildMarionetterTimeline] marionetterPlayableDirectorComponentInfo:`,
+        marionetterPlayableDirectorComponentInfo,
+        actors
+    );
+
     const buildSignalEmitter = (signalEmitter: MarionetterSignalEmitter): MarionetterTimelineSignalEmitter => {
         let triggered = false;
         const execute = (time: number) => {
@@ -118,6 +124,8 @@ export function buildMarionetterTimeline(
             if (!targetActor) {
                 console.warn(`[buildMarionetterTimeline] target actor is not found: ${targetName}`);
             }
+
+            console.log(`[buildMarionetterTimeline] targetActor:`, targetActor, marionetterClips);
 
             // exec track
             // TODO: clip間の mixer,interpolate,extrapolate の挙動が必要
@@ -299,9 +307,19 @@ function createMarionetterAnimationClip(
                 case MarionetterPostProcessVignette.vignetteIntensity:
                     break;
                 default:
-                    // propertyが紐づいていない場合はエラーにする
-                    console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}`);
+                    // 厳しい場合、propertyが紐づいていない場合はエラーにする
+                    // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}`);
             }
+
+            actor.processClipFrame(propertyName, value);
+            // if(Object.hasOwn(actor, propertyName)) {
+            //     // オブジェクトのプロパティに無理やり追加する
+            //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //     // @ts-ignore
+            //     actor.mapValue(propertyName, value);
+            // } else {
+            //     console.error(`[createMarionetterAnimationClip] has not property: ${propertyName}`);
+            // }
         });
 
         if (hasLocalScale) {
@@ -499,13 +517,13 @@ function createMarionetterObjectMoveAndLookAtClip(
                 const value = curveUtilityEvaluateCurve(time - start, keyframes);
 
                 switch (propertyName) {
-                    case "LocalPosition.x":
+                    case 'LocalPosition.x':
                         localPosition.x = value;
                         break;
-                    case "LocalPosition.y":
+                    case 'LocalPosition.y':
                         localPosition.y = value;
                         break;
-                    case "LocalPosition.z":
+                    case 'LocalPosition.z':
                         localPosition.z = value;
                         break;
                     default:
