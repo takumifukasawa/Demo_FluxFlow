@@ -197,6 +197,14 @@ export type MarionetterObjectMoveAndLookAtClipInfo = MarionetterClipInfoBase &
               bindings: MarionetterClipBinding[];
           });
 
+export const MarionetterObjectMoveAndLookAtClipInfoProperty = {
+    localPositionX: NeedsShorten ? 'lx' : 'LocalPosition.x',
+    localPositionY: NeedsShorten ? 'ly' : 'LocalPosition.y',
+    localPositionZ: NeedsShorten ? 'lz' : 'LocalPosition.z',
+} as const;
+export type MarionetterObjectMoveAndLookAtClipInfoProperty =
+    (typeof MarionetterObjectMoveAndLookAtClipInfoProperty)[keyof typeof MarionetterObjectMoveAndLookAtClipInfoProperty];
+
 export type MarionetterClipBinding = NeedsShorten extends true
     ? {
           n: string;

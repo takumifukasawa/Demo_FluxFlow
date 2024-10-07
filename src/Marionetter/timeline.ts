@@ -21,6 +21,7 @@ import {
     MarionetterMarkerTrackInfo,
     MarionetterObjectMoveAndLookAtClip,
     MarionetterObjectMoveAndLookAtClipInfo,
+    MarionetterObjectMoveAndLookAtClipInfoProperty,
     MarionetterPlayableDirectorComponentInfo,
     MarionetterPostProcessBloom,
     MarionetterPostProcessDepthOfField,
@@ -307,8 +308,8 @@ function createMarionetterAnimationClip(
                 case MarionetterPostProcessVignette.vignetteIntensity:
                     break;
                 default:
-                    // 厳しい場合、propertyが紐づいていない場合はエラーにする
-                    // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}`);
+                // 厳しい場合、propertyが紐づいていない場合はエラーにする
+                // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}`);
             }
 
             actor.processClipFrame(propertyName, value);
@@ -517,13 +518,13 @@ function createMarionetterObjectMoveAndLookAtClip(
                 const value = curveUtilityEvaluateCurve(time - start, keyframes);
 
                 switch (propertyName) {
-                    case 'LocalPosition.x':
+                    case MarionetterObjectMoveAndLookAtClipInfoProperty.localPositionX:
                         localPosition.x = value;
                         break;
-                    case 'LocalPosition.y':
+                    case MarionetterObjectMoveAndLookAtClipInfoProperty.localPositionY:
                         localPosition.y = value;
                         break;
-                    case 'LocalPosition.z':
+                    case MarionetterObjectMoveAndLookAtClipInfoProperty.localPositionZ:
                         localPosition.z = value;
                         break;
                     default:
