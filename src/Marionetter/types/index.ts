@@ -7,8 +7,8 @@ import { Scene } from '@/PaleGL/core/Scene.ts';
 //
 
 // TODO: 2回プロパティを書かなきゃいけないのが冗長かつミスる可能性高くなるが一旦・・・
-type NeedsShorten = true;
-const NeedsShorten = true;
+export type NeedsShorten = true;
+export const NeedsShorten = true;
 
 //
 // marionetter
@@ -198,9 +198,9 @@ export type MarionetterObjectMoveAndLookAtClipInfo = MarionetterClipInfoBase &
           });
 
 export const MarionetterObjectMoveAndLookAtClipInfoProperty = {
-    localPositionX: NeedsShorten ? 'lx' : 'LocalPosition.x',
-    localPositionY: NeedsShorten ? 'ly' : 'LocalPosition.y',
-    localPositionZ: NeedsShorten ? 'lz' : 'LocalPosition.z',
+    localPositionX: NeedsShorten ? 'lp.x' : 'LocalPosition.x',
+    localPositionY: NeedsShorten ? 'lp.y' : 'LocalPosition.y',
+    localPositionZ: NeedsShorten ? 'lp.z' : 'LocalPosition.z',
 } as const;
 export type MarionetterObjectMoveAndLookAtClipInfoProperty =
     (typeof MarionetterObjectMoveAndLookAtClipInfoProperty)[keyof typeof MarionetterObjectMoveAndLookAtClipInfoProperty];
@@ -582,3 +582,7 @@ export type MarionetterObjectMoveAndLookAtClip = {
     clipInfo: MarionetterObjectMoveAndLookAtClipInfo;
     execute: (args: MarionetterClipArgs) => void;
 };
+
+//
+// timeline properties
+//
