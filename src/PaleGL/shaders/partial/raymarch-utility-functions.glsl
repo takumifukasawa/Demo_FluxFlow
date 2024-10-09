@@ -8,6 +8,12 @@ vec2 objectSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale) {
     return dfScene(toLocal(worldPos, WtoO, scale));
 }
 
+vec2 blendSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale, float blendRate) {
+    vec3 localPos = toLocal(worldPos, WtoO, scale);
+    vec3 p = mix(localPos, worldPos, blendRate);
+    return dfScene(p);
+}
+
 vec3 getNormalObjectSpaceDfScene(vec3 p, mat4 WtoO, vec3 scale) {
     // scale = vec3(1.);
     const float eps = .0001;

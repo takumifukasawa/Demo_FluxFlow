@@ -1,18 +1,15 @@
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { TransformFeedbackDoubleBuffer } from '@/PaleGL/core/TransformFeedbackDoubleBuffer.ts';
 import { Attribute } from '@/PaleGL/core/Attribute.ts';
-import { AttributeNames, AttributeUsageType, FaceSide, UniformBlockNames, UniformTypes } from '@/PaleGL/constants.ts';
+import { AttributeNames, AttributeUsageType, FaceSide, UniformBlockNames } from '@/PaleGL/constants.ts';
 import demoMetaMorphTransformFeedbackVertex from '@/PaleGL/shaders/demo-meta-morph-transform-feedback-vertex.glsl';
-import { Vector2 } from '@/PaleGL/math/Vector2.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
 import litObjectSpaceRaymarchFragMetaMorphContent from '@/PaleGL/shaders/lit-object-space-raymarch-fragment-meta-morph.glsl';
 import gBufferObjectSpaceRaymarchFragMetaMorphDepthContent from '@/PaleGL/shaders/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
-import { AbstractInputController } from '@/PaleGL/inputs/AbstractInputController.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
-import { Actor } from '@/PaleGL/actors/Actor.ts';
 
 const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 1;
@@ -118,28 +115,7 @@ const createInstanceUpdater = ({
             },
         ],
         vertexShader: demoMetaMorphTransformFeedbackVertex,
-        uniforms: [
-            {
-                name: 'uNormalizedInputPosition',
-                type: UniformTypes.Vector2,
-                value: Vector2.zero,
-            },
-            {
-                name: 'uAttractTargetPosition',
-                type: UniformTypes.Vector3,
-                value: Vector3.zero,
-            },
-            {
-                name: 'uAttractRate',
-                type: UniformTypes.Float,
-                value: 0,
-            },
-            {
-                name: 'uNeedsJumpPosition',
-                type: UniformTypes.Float,
-                value: 0,
-            },
-        ],
+        uniforms: [],
         uniformBlockNames: [UniformBlockNames.Common],
         drawCount: instanceNum,
     });
@@ -179,17 +155,14 @@ const createInstanceUpdater = ({
 export const createMetaMorphActor = ({
     gpu,
     renderer,
-    inputController,
     // instanceNum,
-    attractorActor,
+    // attractorActor,
 }: {
     gpu: GPU;
     renderer: Renderer;
     // instanceNum: number;
-    inputController: AbstractInputController;
-    attractorActor: Actor;
+    // attractorActor: Actor;
 }) => {
-    console.log(attractorActor);
     const instanceNum = INITIAL_INSTANCE_NUM;
 
     const mesh = new ObjectSpaceRaymarchMesh({
@@ -453,14 +426,6 @@ export const createMetaMorphActor = ({
         // mesh.geometry.vertexArrayObject.updateBufferData(AttributeNames.InstancePosition, instancingInfo.position);
 
         // transform feedback を更新
-        transformFeedbackDoubleBuffer.uniforms.setValue(
-            'uNormalizedInputPosition',
-            inputController.normalizedInputPosition
-        );
-        transformFeedbackDoubleBuffer.uniforms.setValue(
-            'uAttractTargetPosition',
-            Vector3.addVectors(attractorActor.transform.position, new Vector3(0, 0, 0))
-        );
         // transformFeedbackDoubleBuffer.uniforms.setValue('uNeedsJumpPosition', needsJumpPosition ? 1 : 0);
         transformFeedbackDoubleBuffer.uniforms.setValue('uAttractRate', 0);
         gpu.updateTransformFeedback({

@@ -144,12 +144,23 @@ export default defineConfig(async (config) => {
                 minify: isMinifyShader,
                 minifierOptions: {
                     preserveExternals: true,
-                    // noRenaming: true
-                    // noRenamingList: ['epiano'],
-                    noRenamingList: ['main', 'dfScene'],
+                    noRenamingList: [
+                        'main',
+                        'dfScene',
+                        // CUSTOM
+                        'opSm',
+                        'opButterfly',
+                        'opFlower',
+                        'opWing',
+                        'uBPs',
+                        'uBSs'
+                    ],
+                    aggressiveInlining: false
                 },
             }),
-            transformExtractGlslRaymarchTemplate(),
+            transformExtractGlslRaymarchTemplate({
+                extractEnabled: true
+            }),
             roundFloatPlugin(),
             checker({
                 typescript: true,

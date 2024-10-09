@@ -72,16 +72,12 @@ import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128
 */
 
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
-import { Color } from '@/PaleGL/math/Color.ts';
-import { Vector2 } from '@/PaleGL/math/Vector2.ts';
-import { clamp } from '@/PaleGL/utilities/mathUtilities.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
-import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
-import { UnlitMaterial } from '@/PaleGL/materials/UnlitMaterial.ts';
-import { intersectRayWithPlane, Plane } from '@/PaleGL/math/Plane.ts';
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
+import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
 import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
+import {Color} from "@/PaleGL/math/Color.ts";
 
 const stylesText = `
 :root {
@@ -177,7 +173,6 @@ document.head.appendChild(styleElement);
 
 let width: number, height: number;
 let bufferVisualizerPass: BufferVisualizerPass;
-let attractorMesh: Mesh;
 
 const marionetter: Marionetter = createMarionetter({ showLog: false });
 
@@ -233,7 +228,6 @@ const initMarionetter = () => {
 let marionetterSceneStructure: MarionetterSceneStructure | null = null;
 
 const buildScene = (sceneJson: MarionetterScene) => {
-    // const res = buildMarionetterScene(gpu, sceneJson, false);
     marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson);
     const { actors } = marionetterSceneStructure;
 
@@ -243,9 +237,8 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     captureSceneCamera = captureScene.find('MainCamera') as PerspectiveCamera;
     const directionalLight = captureScene.find('DirectionalLight') as DirectionalLight;
-    // const plane = captureScene.find('Plane') as Mesh;
 
-    captureScene.find('CUBE_SCALE')!.onProcessClipFrame = (key, value) => {};
+    // captureScene.find('CUBE_SCALE')!.onProcessClipFrame = (key, value) => {};
 
     orbitCameraController.setCamera(captureSceneCamera);
     orbitCameraController.distance = isSP ? 15 : 15;
@@ -266,8 +259,6 @@ const buildScene = (sceneJson: MarionetterScene) => {
     orbitCameraController.enabledUpdateCamera = false;
     orbitCameraController.start();
 
-    // const orbitCameraController = new OrbitCameraController(captureSceneCamera);
-
     captureSceneCamera.subscribeOnStart(({ actor }) => {
         (actor as Camera).setClearColor(new Vector4(0, 0, 0, 1));
     });
@@ -285,22 +276,26 @@ const buildScene = (sceneJson: MarionetterScene) => {
         orbitCameraController.fixedUpdate();
     };
 
-    // TODO: 自動で処理したい
-    const spotLight = captureScene.find('SpotLightA') as SpotLight;
-    if (spotLight && spotLight.shadowCamera) {
-        spotLight.shadowCamera.visibleFrustum = true;
-        spotLight.castShadow = true;
-        spotLight.shadowCamera.near = 0.1;
-        spotLight.shadowCamera.far = spotLight.distance;
-        (spotLight.shadowCamera as PerspectiveCamera).setPerspectiveSize(1); // TODO: いらないかも
-        spotLight.shadowMap = new RenderTarget({
-            gpu,
-            width: 1024,
-            height: 1024,
-            type: RenderTargetTypes.Depth,
-            depthPrecision: TextureDepthPrecisionType.High,
-        });
+    const createSpotLightShadowMap = (spotLight: SpotLight) => {
+        if (spotLight.shadowCamera) {
+            spotLight.shadowCamera.visibleFrustum = true;
+            spotLight.castShadow = true;
+            spotLight.shadowCamera.near = 0.1;
+            spotLight.shadowCamera.far = spotLight.distance;
+            (spotLight.shadowCamera as PerspectiveCamera).setPerspectiveSize(1); // TODO: いらないかも
+            spotLight.shadowMap = new RenderTarget({
+                gpu,
+                width: 1024,
+                height: 1024,
+                type: RenderTargetTypes.Depth,
+                depthPrecision: TextureDepthPrecisionType.High,
+            });
+            console.log(spotLight, spotLight, spotLight.shadowMap)
+        }
     }
+    
+    createSpotLightShadowMap(captureScene.find('SpotLightA') as SpotLight);
+    createSpotLightShadowMap(captureScene.find('SpotLightB') as SpotLight);
 
     // shadows
     // TODO: directional light は constructor で shadow camera を生成してるのでこのガードいらない
@@ -402,6 +397,7 @@ const hideStartupWrapper = () => {
 };
 
 let metaMorphActor: ObjectSpaceRaymarchMesh;
+let originForgeActorController: OriginForgeActorController;
 
 let screenSpaceRaymarchMesh: Mesh;
 
@@ -441,54 +437,30 @@ const load = async () => {
     }
 
     //
-    // attract mesh
-    //
-
-    attractorMesh = new Mesh({
-        geometry: new BoxGeometry({ gpu }),
-        material: new UnlitMaterial({
-            emissiveColor: new Color(3, 3, 3, 1),
-        }),
-        castShadow: true,
-    });
-    attractorMesh.subscribeOnStart(({ actor }) => {
-        actor.transform.setScaling(Vector3.fill(0.5));
-    });
-    attractorMesh.onFixedUpdate = () => {
-        if (captureSceneCamera) {
-            const ray = captureSceneCamera.viewpointToRay(
-                new Vector2(inputController.normalizedInputPosition.x, 1 - inputController.normalizedInputPosition.y)
-            );
-            const plane = new Plane(Vector3.zero, Vector3.up);
-            const intersectOnPlane = intersectRayWithPlane(ray, plane);
-            if (intersectOnPlane) {
-                const x = clamp(intersectOnPlane.x, -5, 5);
-                const z = clamp(intersectOnPlane.z, -5, 5);
-                const p = new Vector3(x, 1, z);
-                attractorMesh.transform.setTranslation(p);
-            }
-        }
-    };
-    captureScene.add(attractorMesh);
-
-    //
-    // meta morph object
+    // meta morph actor object
     //
 
     metaMorphActor = createMetaMorphActor({
         gpu,
         renderer,
-        inputController,
-        attractorActor: attractorMesh,
         // instanceNum: 12,
     });
     captureScene.add(metaMorphActor);
+
+    //
+    // origin forge actor object
+    //
+
+    originForgeActorController = createOriginForgeActorController(gpu);
+    captureScene.add(originForgeActorController.getActor());
+    originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
 
     //
     // screen space object
     //
 
     screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
+    screenSpaceRaymarchMesh.enabled = false;
     captureScene.add(screenSpaceRaymarchMesh);
 
     //
@@ -514,45 +486,19 @@ const load = async () => {
     });
     const textMesh1 = new TextMesh({
         gpu,
-        text: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        text: 'Meta Morph',
+        color: new Color(3, 1, 1, 1),
         fontTexture: fontAtlasTexture,
         fontAtlas: fontAtlasJson,
-        castShadow: true,
+        castShadow: false,
         align: TextAlignType.Center,
         // characterSpacing: -0.2
+        characterSpacing: -0.16,
     });
     captureScene.add(textMesh1);
     textMesh1.transform.position = new Vector3(0, 1, 0);
     // textMesh1.transform.rotation.setRotationX(-90);
     textMesh1.transform.scale = Vector3.fill(0.5);
-
-    const textMesh2 = new TextMesh({
-        gpu,
-        text: 'abcdefghijklmnopqrstuvwxyz',
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: true,
-        align: TextAlignType.Center,
-        characterSpacing: -0.16,
-    });
-    captureScene.add(textMesh2);
-    textMesh2.transform.position = new Vector3(0, 3, 0);
-    // textMesh2.transform.rotation.setRotationX(-90);
-    textMesh2.transform.scale = Vector3.fill(0.5);
-
-    const textMesh3 = new TextMesh({
-        gpu,
-        text: '0123456789',
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: true,
-        align: TextAlignType.Left,
-        characterSpacing: 0.2,
-    });
-    captureScene.add(textMesh3);
-    textMesh3.transform.position = new Vector3(0, 5, 0);
-    // textMesh3.transform.rotation.setRotationX(-90);
-    textMesh3.transform.scale = Vector3.fill(0.5);
 
     // TODO: engine側に移譲したい
     const onWindowResize = () => {

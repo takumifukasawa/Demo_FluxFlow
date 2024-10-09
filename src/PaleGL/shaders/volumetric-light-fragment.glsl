@@ -153,19 +153,18 @@ void main() {
     //
     // pattern_1: ワールド座標系でカメラの位置からレイを飛ばす
     //
-    // vec3 rayOrigin = uViewPosition + vec3(jitterOffset, 0.);
-    // vec3 rayDir = normalize(viewDirInWorld);
-    // vec3 vpos = vec3(uv * 2. - 1., 1.);
-    // vec3 viewDir = (uInverseProjectionMatrix * vpos.xyzz * uFarClip).xyz;
-    // vec3 viewDirInWorld = (uInverseViewMatrix * vec4(viewDir, 0.)).xyz;
-    // // float viewDirInWorldLength = length(viewDirInWorld);
-    //
-    // pattern_2: frustumの位置からレイを飛ばす
-    //
-    vec3 rayOrigin = worldPosition + vec3(jitterOffset, 0.);
-    // vec3 rayDir = normalize(worldPosition - uViewPosition);
-    vec3 rayDir = normalize(rayOrigin - uViewPosition);
-    // rayDir = uViewDirection;
+    vec3 rayOrigin = uViewPosition + vec3(jitterOffset, 0.);
+    vec3 vpos = vec3(uv * 2. - 1., 1.);
+    vec3 viewDir = (uInverseProjectionMatrix * vpos.xyzz * uFarClip).xyz;
+    vec3 viewDirInWorld = (uInverseViewMatrix * vec4(viewDir, 0.)).xyz;
+    vec3 rayDir = normalize(viewDirInWorld);
+
+    // //
+    // // pattern_2: frustumの位置からレイを飛ばす
+    // // ただし重なり部分がちょっとうまくいってない
+    // //
+    // vec3 rayOrigin = worldPosition + vec3(jitterOffset, 0.);
+    // vec3 rayDir = normalize(rayOrigin - uViewPosition);
 
     float rayStep = 0.;
 
@@ -227,7 +226,7 @@ void main() {
 
     accColor.a = fogRate; // TODO: saturateするべき？
     accColor.rgb = fogColor.xyz;
-
+    
     outColor = accColor;
     
     // for debug

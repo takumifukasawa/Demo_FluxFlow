@@ -191,7 +191,8 @@ uniform mat4 uProjectionMatrix;
                     }
                     `,
             primitiveType: PrimitiveTypes.Triangles,
-            blendType: BlendTypes.Opaque,
+            blendType: BlendTypes.Transparent,
+            // blendType: BlendTypes.Additive,
             depthFuncType: DepthFuncTypes.Lequal,
             depthWrite: true,
             depthTest: true,
@@ -282,7 +283,7 @@ uniform mat4 uProjectionMatrix;
         this.material.uniforms.setValue('uRayJitterSizeX', this.parameters.rayJitterSizeX);
         this.material.uniforms.setValue('uRayJitterSizeY', this.parameters.rayJitterSizeY);
         this.material.uniforms.setValue(UniformNames.BlendRate, this.parameters.blendRate);
-
+        
         // console.log(this.material.uniforms)
 
         super.render(options);

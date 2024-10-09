@@ -43,6 +43,7 @@ type TextMeshArgs = {
     gpu: GPU;
     name?: string;
     text: string;
+    color?: Color;
     fontAtlas: FontAtlasData;
     fontTexture: Texture;
     align?: TextAlignType;
@@ -68,6 +69,7 @@ export class TextMesh extends Actor {
         gpu,
         name,
         text,
+        color = Color.white,
         fontTexture,
         fontAtlas,
         align = TextAlignType.Left,
@@ -95,6 +97,7 @@ export class TextMesh extends Actor {
                 gpu,
                 name: `char-${char}`,
                 fontTexture: fontTexture,
+                color,
                 atlasInfo: {
                     width: fontAtlas.common.scaleW,
                     height: fontAtlas.common.scaleH,
@@ -139,6 +142,7 @@ type CharMeshArgs = {
     gpu: GPU;
     name?: string;
     uniforms?: UniformsData;
+    color: Color;
     fontTexture: Texture;
     atlasInfo: {
         width: number;
@@ -165,7 +169,7 @@ class CharMesh extends Mesh {
     charOffsetY: number;
     char: string;
 
-    constructor({ gpu, name = '', fontTexture, atlasInfo, charInfo, castShadow, uniforms = [] }: CharMeshArgs) {
+    constructor({ gpu, name = '', color, fontTexture, atlasInfo, charInfo, castShadow, uniforms = [] }: CharMeshArgs) {
         const w = atlasInfo.width;
         const h = atlasInfo.height;
         const sw = charInfo.width / w;
@@ -177,7 +181,7 @@ class CharMesh extends Mesh {
             {
                 name: 'uColor',
                 type: UniformTypes.Color,
-                value: new Color(5, 1, 1, 1),
+                value: color,
             },
             {
                 name: UniformNames.FontMap,

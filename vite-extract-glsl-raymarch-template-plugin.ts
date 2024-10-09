@@ -24,11 +24,19 @@ async function writeTemplateFileAndExtractScene(templateName: string, rawSrc: st
 
     const [, src] = streamSrcMatch;
 
+    // template書き出しファイルのパス
     const basePath = './src/PaleGL/shaders/templates';
     const templatesDirPath = path.join(basePath);
     const templateFilePath = path.join(templatesDirPath, `${templateName}-template.ts`);
+
+    // wip
+    // const raymarchContentRegex = /#define RAYMARCH_CONTENT\n#ifdef RAYMARCH_CONTENT([\s\S]*?)#endif/g;
     const raymarchContentRegex = /(vec2 dfScene\(.*?\)\{.*?;\})/;
     const raymarchContentRegexMatch = src.match(raymarchContentRegex);
+
+    // for debug
+    // console.log('[transformExtractGlslRaymarchTemplate.writeTemplateFileAndExtractScene] src:\n', src);
+   
     if (!raymarchContentRegexMatch) {
         console.log('raymarchContentRegexMatch is null');
         console.log('===================================');
@@ -38,22 +46,32 @@ async function writeTemplateFileAndExtractScene(templateName: string, rawSrc: st
     const templateShader = src.replace(raymarchBody, '\n#pragma RAYMARCH_SCENE\n');
     const variableName = `${toCamelCase(templateName)}Template`;
     const templateContent = `export const ${variableName} = \`${templateShader}\`;`;
+
     console.log('templateName, variableName: ', templateName, variableName);
     // console.log('raymarchBody: ', raymarchBody);
     // console.log('templateContent: ', templateContent);
     console.log('templateFilePath: ', templateFilePath);
     console.log('===================================');
+
     await writeFileAsync(templateFilePath, templateContent);
     await wait(100);
     return `export default \`${raymarchBody}\``;
 }
 
-export const transformExtractGlslRaymarchTemplate: () => Plugin = () => {
+export interface TransformExtractGlslRaymarchTemplateOptions {
+    extractEnabled: boolean;
+}
+
+export const transformExtractGlslRaymarchTemplate: (options: TransformExtractGlslRaymarchTemplateOptions) => Plugin = ({extractEnabled} : {extractEnabled: boolean }) => {
     return {
         name: 'extract-glsl-layout',
         enforce: 'pre',
         // eslint-disable-next-line @typescript-eslint/require-await
         async transform(src: string, id: string) {
+            if(!extractEnabled) {
+                return src;
+            }
+            
             // 列挙の形にしたくないが許容
             const regexList = [
                 /^.*(gbuffer-object-space-raymarch-depth-fragment)-.*\.glsl$/,
@@ -61,7 +79,7 @@ export const transformExtractGlslRaymarchTemplate: () => Plugin = () => {
                 /^.*(lit-object-space-raymarch-fragment)-.*\.glsl$/,
                 /^.*(lit-screen-space-raymarch-fragment)-.*\.glsl$/,
             ];
-            
+
             for await (const regex of regexList) {
                 const fileNameMatch = id.match(regex);
                 if (fileNameMatch) {
@@ -84,7 +102,7 @@ export const transformExtractGlslRaymarchTemplate: () => Plugin = () => {
             //     const extractedSrc = await writeTemplateFileAndExtractScene(templateName, src);
             //     return extractedSrc;
             // }
-            
+
             return src;
         },
     };

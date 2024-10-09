@@ -4,6 +4,12 @@ precision highp float;
 
 #pragma DEFINES
 
+#include ./partial/uniform-block-common.glsl
+#include ./partial/uniform-block-transformations.glsl
+#include ./partial/uniform-block-camera.glsl
+
+#pragma BLOCK_BEFORE_RAYMARCH_CONTENT
+
 // raymarch
 #include ./partial/raymarch-distance-functions.glsl
 
@@ -12,9 +18,6 @@ precision highp float;
 // #include ./partial/raymarch-utility-functions.glsl
 
 #include ./partial/depth-functions.glsl
-
-#include ./partial/uniform-block-transformations.glsl
-#include ./partial/uniform-block-camera.glsl
 
 // uniform vec3 uViewPosition;
 // uniform mat4 uWorldMatrix;

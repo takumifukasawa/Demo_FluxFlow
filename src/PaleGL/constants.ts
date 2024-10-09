@@ -424,6 +424,7 @@ export type VertexShaderModifierPragmas =
     (typeof VertexShaderModifierPragmas)[keyof typeof VertexShaderModifierPragmas];
 
 export const FragmentShaderModifierPragmas = {
+    BLOCK_BEFORE_RAYMARCH_CONTENT: 'BLOCK_BEFORE_RAYMARCH_CONTENT',
     // NOTE: 任意のmodifierを追加
     ...ShaderModifierPragmas,
 } as const;
@@ -606,7 +607,7 @@ export const GL_DEPTH_ATTACHMENT = 36096;
 export const GL_RENDERBUFFER = 36161;
 
 export const GL_READ_FRAMEBUFFER = 36008;
-export const GL_DRAW_FRAMEBUFFER = 36009
+export const GL_DRAW_FRAMEBUFFER = 36009;
 
 export const GL_ELEMENT_ARRAY_BUFFER = 34963;
 
@@ -641,7 +642,7 @@ export const GLTextureFilter = {
     NEAREST_MIPMAP_NEAREST: 9984,
     NEAREST_MIPMAP_LINEAR: 9986,
     LINEAR_MIPMAP_NEAREST: 9985,
-    LINEAR_MIPMAP_LINEAR: 9987
+    LINEAR_MIPMAP_LINEAR: 9987,
 } as const;
 export type GLTextureFilter = (typeof GLTextureFilter)[keyof typeof GLTextureFilter];
 
@@ -656,7 +657,7 @@ export const GL_TEXTURE_WRAP_T = 10243;
 export const GLTextureWrap = {
     REPEAT: 10497,
     CLAMP_TO_EDGE: 33071,
-    MIRRORED_REPEAT: 33648
+    MIRRORED_REPEAT: 33648,
 } as const;
 export type GLTextureWrap = (typeof GLTextureWrap)[keyof typeof GLTextureWrap];
 
@@ -685,10 +686,10 @@ export const GLColorAttachment = {
     COLOR_ATTACHMENT4: 36068,
     COLOR_ATTACHMENT5: 36069,
     COLOR_ATTACHMENT6: 36070,
-    COLOR_ATTACHMENT7: 36071
+    COLOR_ATTACHMENT7: 36071,
 } as const;
 export type GLColorAttachment = (typeof GLColorAttachment)[keyof typeof GLColorAttachment];
 
 // --
 
-export const PRAGMA_RAYMARCH_SCENE = "#pragma RAYMARCH_SCENE";
+export const PRAGMA_RAYMARCH_SCENE = '#pragma RAYMARCH_SCENE';

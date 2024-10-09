@@ -278,8 +278,64 @@ export function initDebugger({
     });
 
     //
-    // light shaft
+    // light volume pass
     //
+
+    debuggerGUI.addBorderSpacer();
+
+    const volumetricLightDebuggerGroup = debuggerGUI.addGroup('volumetric light', false);
+
+    volumetricLightDebuggerGroup.addSliderDebugger({
+        label: 'ray step',
+        initialValue: renderer.volumetricLightPass.parameters.rayStep,
+        minValue: 0.001,
+        maxValue: 1,
+        stepValue: 0.001,
+        onChange: (value) => {
+            renderer.volumetricLightPass.parameters.rayStep = value;
+        },
+    });
+    volumetricLightDebuggerGroup.addSliderDebugger({
+        label: 'density multiplier',
+        initialValue: renderer.volumetricLightPass.parameters.densityMultiplier,
+        minValue: 0.001,
+        maxValue: 10,
+        stepValue: 0.001,
+        onChange: (value) => {
+            renderer.volumetricLightPass.parameters.densityMultiplier = value;
+        },
+    });
+    volumetricLightDebuggerGroup.addSliderDebugger({
+        label: 'jitter size x',
+        initialValue: renderer.volumetricLightPass.parameters.rayJitterSizeX,
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        onChange: (value) => {
+            renderer.volumetricLightPass.parameters.rayJitterSizeX = value;
+        },
+    });
+    volumetricLightDebuggerGroup.addSliderDebugger({
+        label: 'jitter size y',
+        initialValue: renderer.volumetricLightPass.parameters.rayJitterSizeY,
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        onChange: (value) => {
+            renderer.volumetricLightPass.parameters.rayJitterSizeY = value;
+        },
+    });
+    volumetricLightDebuggerGroup.addSliderDebugger({
+        label: 'blend rate',
+        initialValue: renderer.volumetricLightPass.parameters.blendRate,
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        onChange: (value) => {
+            renderer.volumetricLightPass.parameters.blendRate = value;
+        },
+    });
+
 
     debuggerGUI.addBorderSpacer();
 

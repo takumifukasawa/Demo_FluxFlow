@@ -14,12 +14,6 @@ out vec3 vPosition;
 // out mat4 vTransform;
 out vec3 vVelocity;
 
-// uniform float uTime;
-uniform vec2 uNormalizedInputPosition;
-uniform vec3 uAttractTargetPosition;
-uniform float uAttractRate;
-uniform float uNeedsJumpPosition;
-
 // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
 float noise(vec2 seed)
 {
@@ -51,16 +45,16 @@ void main() {
     // vec3 vVelocity = newP - vPosition;
     
     // // なにかをattractする場合
-    vVelocity = mix(
-        aVelocity,
-        mix(
-            aVelocity,
-            diffDir * (.1 + uAttractRate * .1),
-            .03 + sin(uTime * .2 + rand * 100.) * .02
-        ),
-        1.
-        // step(.5, attractEnabled)
-    );
+    // vVelocity = mix(
+    //     aVelocity,
+    //     mix(
+    //         aVelocity,
+    //         diffDir * (.1 + uAttractRate * .1),
+    //         .03 + sin(uTime * .2 + rand * 100.) * .02
+    //     ),
+    //     1.
+    //     // step(.5, attractEnabled)
+    // );
 
     // attract: 簡易版
     vVelocity = diffP * uDeltaTime;

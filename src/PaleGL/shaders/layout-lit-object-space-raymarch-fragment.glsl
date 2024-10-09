@@ -5,10 +5,14 @@ precision highp float;
 #pragma DEFINES
 
 #include ./partial/uniform-block-common.glsl
+#include ./partial/uniform-block-transformations.glsl
+#include ./partial/uniform-block-camera.glsl
 
 #ifdef USE_INSTANCING
 in float vInstanceId;
 #endif
+
+#pragma BLOCK_BEFORE_RAYMARCH_CONTENT
 
 // raymarch
 #include ./partial/raymarch-distance-functions.glsl
@@ -37,9 +41,6 @@ uniform int uShadingModelId;
 #include ./partial/tone-mapping.glsl
 
 #include ./partial/normal-map-fragment-uniforms.glsl
-
-#include ./partial/uniform-block-transformations.glsl
-#include ./partial/uniform-block-camera.glsl
 
 // uniform mat4 uWorldMatrix;
 // uniform mat4 uViewMatrix;

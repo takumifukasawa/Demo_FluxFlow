@@ -4,6 +4,12 @@ precision highp float;
 
 #pragma DEFINES
 
+#include ./partial/uniform-block-common.glsl
+#include ./partial/uniform-block-transformations.glsl
+#include ./partial/uniform-block-camera.glsl
+
+#pragma BLOCK_BEFORE_RAYMARCH_CONTENT
+
 // raymarch
 #include ./partial/raymarch-distance-functions.glsl
 
@@ -22,9 +28,6 @@ uniform int uShadingModelId;
 #pragma APPEND_UNIFORMS
 
 #include ./partial/tone-mapping.glsl
-
-#include ./partial/uniform-block-transformations.glsl
-#include ./partial/uniform-block-camera.glsl
 
 // uniform mat4 uWorldMatrix;
 // uniform mat4 uViewMatrix;

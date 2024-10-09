@@ -34,6 +34,7 @@ export interface ShaderMinifierOptions {
     noRenamingList?: string[];
     noSequence?: boolean;
     smoothstep?: boolean;
+    aggressiveInlining?: boolean;
 }
 
 const exec = promisify(cp.exec);
@@ -76,6 +77,10 @@ function buildMinifierOptionsString(options: ShaderMinifierOptions): string {
 
     if (options.smoothstep) {
         str += '--smoothstep ';
+    }
+
+    if (options.aggressiveInlining) {
+        str += '--aggressive-inlining ';
     }
 
     return str;
@@ -173,16 +178,20 @@ export const shaderMinifierPlugin: (options: ShaderMinifierPluginOptions) => Plu
                 await wait(ioInterval);
 
                 // for debug
-                // console.log(`\n----- entry point shader content - name: ${name} -----\n`);
-                // console.log(shaderContent);
-                // console.log('\n-----------\n');
+                // if (name === 'gbuffer-object-space-raymarch-depth-fragment-origin-forge.glsl') {
+                //     console.log(`\n----- entry point shader content - name: ${name} -----\n`);
+                //     console.log(shaderContent);
+                //     console.log('\n-----------\n');
+                // }
 
                 // minify
                 const minifyCommand = `./libs/shader_minifier.exe ${tmpCopiedFilePath} ${minifierOptionsString}-o ${tmpTransformedFilePath}`;
                 console.log('command: ', minifyCommand);
                 await exec(minifyCommand).catch((error) => {
                     console.log('error: ', error);
-                    throw new Error(`[shaderMinifierPlugin] shader_minifier.exe failed: ${error}`);
+                    throw new Error(
+                        `[shaderMinifierPlugin] shader_minifier.exe failed... name: ${name}, error: ${error}`
+                    );
                 });
                 console.log(`success shader_minifier.exe: ${name}`);
 
