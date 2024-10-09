@@ -148,12 +148,14 @@ export default defineConfig(async (config) => {
                         'main',
                         'dfScene',
                         // CUSTOM
+                        'dfSp',
+                        'dfMB',
+                        'opTr',
                         'opSm',
                         'opButterfly',
                         'opFlower',
                         'opWing',
-                        'uBPs',
-                        'uBSs'
+                        'uBPs'
                     ],
                     aggressiveInlining: false
                 },

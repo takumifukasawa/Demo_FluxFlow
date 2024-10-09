@@ -1,2 +1,2 @@
-uniform vec3 uBPs[16];
-uniform vec3 uBSs[16];
+// #define BN 16
+// uniform vec3 uBPs[BN];

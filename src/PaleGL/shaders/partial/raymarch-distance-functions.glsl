@@ -63,7 +63,7 @@ float opSm( float d1, float d2, float k )
 // distance functions
 //
 
-float dfSphere(vec3 p, float radius) {
+float dfSp(vec3 p, float radius) {
     return length(p) - radius;
 }
 
@@ -214,7 +214,7 @@ vec2 opFlower(vec3 p) {
     vec3 cq = p;
     cq = opTranslate(cq, vec3(fSwayOffsetX, fOffsetY + .03, fSwayOffsetZ));
 
-    float cd = dfSphere(cq, .04);
+    float cd = dfSp(cq, .04);
 
     float matC = 3.;
     res = minMat(res, vec2(cd, matC));
@@ -222,4 +222,15 @@ vec2 opFlower(vec3 p) {
     // 合成 --------------------------
 
     return res;
+}
+
+// しょうがないのでここでいろいろ宣言する
+#define BN 16
+uniform vec3 uBPs[BN];
+float dfMB(vec3 p, float d) {
+    for(int i = 0; i < BN; i++) {
+        float s = dfSp(opTranslate(p, uBPs[i].xyz), .25);
+        d = opSm(d, s, .5);
+    }
+    return d;
 }

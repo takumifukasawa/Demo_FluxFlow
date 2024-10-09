@@ -11,6 +11,83 @@ function toCamelCase(str: string): string {
         .join('');
 }
 
+/*
+// https://gist.github.com/think49/071350bcc987d82dd836885ea6f5c0d4
+function matchAllCharacterPair(str: string, startChar: string, endChar: string) {
+    'use strict';
+
+    startChar = String(startChar)[0];
+    endChar = String(endChar)[0];
+
+    let result;
+    const reg = new RegExp('[\\' + startChar + '\\' + endChar + ']|[^\\' + startChar + '\\' + endChar + ']+', 'g');
+    const pairList = [];
+    let nestLevel = 0;
+    let matchString: string;
+    let pair;
+
+    while ((result = reg.exec(str)) !== null) {
+        matchString = result[0];
+
+        switch (matchString) {
+            case startChar:
+                ++nestLevel;
+                pair += matchString;
+                break;
+            case endChar:
+                if (nestLevel === 0) {
+                    break;
+                }
+
+                pair += matchString;
+
+                if (--nestLevel === 0) {
+                    pairList.push(pair);
+                    pair = '';
+                }
+                break;
+            default:
+                if (nestLevel) {
+                    pair += matchString;
+                }
+        }
+    }
+
+    return pairList;
+}
+*/
+
+/*
+function extractDfSceneBlock(code: string) {
+    const dfScenePattern = /vec2 dfScene\s*\(\)\s*\{/g;
+    let match;
+    let startIndex;
+    let openBraces = 0;
+
+    // dfScene ブロックの開始位置を探す
+    while ((match = dfScenePattern.exec(code)) !== null) {
+        startIndex = match.index + match[0].length;
+        openBraces = 1;
+
+        // 波括弧のペアを追跡する
+        for (let i = startIndex; i < code.length; i++) {
+            if (code[i] === '{') {
+                openBraces++;
+            } else if (code[i] === '}') {
+                openBraces--;
+            }
+
+            // 波括弧がすべて閉じられたらブロックを返す
+            if (openBraces === 0) {
+                return code.slice(match.index, i + 1);
+            }
+        }
+    }
+
+    return null; // 見つからなかった場合
+}
+ */
+
 async function writeTemplateFileAndExtractScene(templateName: string, rawSrc: string): Promise<string> {
     console.log('===================================');
     console.log('[transformExtractGlslRaymarchTemplate.writeTemplateFileAndExtractScene]', templateName);
@@ -36,13 +113,20 @@ async function writeTemplateFileAndExtractScene(templateName: string, rawSrc: st
 
     // for debug
     // console.log('[transformExtractGlslRaymarchTemplate.writeTemplateFileAndExtractScene] src:\n', src);
-   
+
     if (!raymarchContentRegexMatch) {
         console.log('raymarchContentRegexMatch is null');
         console.log('===================================');
         return rawSrc;
     }
     const [, raymarchBody] = raymarchContentRegexMatch;
+
+    if (!raymarchBody) {
+        console.log('raymarchContentRegexMatch is null');
+        console.log('===================================');
+        return rawSrc;
+    }
+
     const templateShader = src.replace(raymarchBody, '\n#pragma RAYMARCH_SCENE\n');
     const variableName = `${toCamelCase(templateName)}Template`;
     const templateContent = `export const ${variableName} = \`${templateShader}\`;`;
@@ -62,16 +146,20 @@ export interface TransformExtractGlslRaymarchTemplateOptions {
     extractEnabled: boolean;
 }
 
-export const transformExtractGlslRaymarchTemplate: (options: TransformExtractGlslRaymarchTemplateOptions) => Plugin = ({extractEnabled} : {extractEnabled: boolean }) => {
+export const transformExtractGlslRaymarchTemplate: (options: TransformExtractGlslRaymarchTemplateOptions) => Plugin = ({
+    extractEnabled,
+}: {
+    extractEnabled: boolean;
+}) => {
     return {
         name: 'extract-glsl-layout',
         enforce: 'pre',
         // eslint-disable-next-line @typescript-eslint/require-await
         async transform(src: string, id: string) {
-            if(!extractEnabled) {
+            if (!extractEnabled) {
                 return src;
             }
-            
+
             // 列挙の形にしたくないが許容
             const regexList = [
                 /^.*(gbuffer-object-space-raymarch-depth-fragment)-.*\.glsl$/,

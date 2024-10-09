@@ -191,7 +191,7 @@ uniform mat4 uProjectionMatrix;
                     }
                     `,
             primitiveType: PrimitiveTypes.Triangles,
-            blendType: BlendTypes.Transparent,
+            blendType: BlendTypes.Opaque,
             // blendType: BlendTypes.Additive,
             depthFuncType: DepthFuncTypes.Lequal,
             depthWrite: true,

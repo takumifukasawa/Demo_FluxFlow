@@ -316,6 +316,9 @@ export class GPU {
                 case UniformTypes.Vector3:
                     gl.uniform3fv(location, (value as Vector3).elements);
                     break;
+                case UniformTypes.Vector3Array:
+                    gl.uniform3fv(location, (value as Vector3[]).map((v) => [...v.elements]).flat());
+                    break;
                 case UniformTypes.Vector4:
                     gl.uniform4fv(location, (value as Vector4).elements);
                     break;

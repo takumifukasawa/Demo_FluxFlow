@@ -453,7 +453,7 @@ const load = async () => {
 
     originForgeActorController = createOriginForgeActorController(gpu);
     captureScene.add(originForgeActorController.getActor());
-    originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
+    // originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
 
     //
     // screen space object
