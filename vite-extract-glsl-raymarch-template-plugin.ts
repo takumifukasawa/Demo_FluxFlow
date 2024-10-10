@@ -1,7 +1,6 @@
 ﻿import { Plugin } from 'vite';
 import * as path from 'path';
-import { writeFileAsync } from './node-libs/file-io.ts';
-import { wait } from './node-libs/wait.ts';
+import { readFileAysnc, writeFileAsync } from './node-libs/file-io.ts';
 
 function toCamelCase(str: string): string {
     return str
@@ -137,8 +136,14 @@ async function writeTemplateFileAndExtractScene(templateName: string, rawSrc: st
     console.log('templateFilePath: ', templateFilePath);
     console.log('===================================');
 
-    await writeFileAsync(templateFilePath, templateContent);
-    await wait(100);
+    const existsTemplateContent = await readFileAysnc(templateFilePath);
+
+    const isSameExistsContent = existsTemplateContent === templateContent;
+    console.log(`[transformExtractGlslRaymarchTemplate.writeTemplateFileAndExtractScene] check same content... name: ${variableName}, same: ${isSameExistsContent})`);
+    if (!isSameExistsContent) {
+        await writeFileAsync(templateFilePath, templateContent);
+    }
+    
     return `export default \`${raymarchBody}\``;
 }
 

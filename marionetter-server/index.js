@@ -12,6 +12,8 @@ const PORT = 8080;
 const messageType = {
     auth: 'auth',
     seekTimeline: 'seekTimeline',
+    playTimeline: 'playTimeline',
+    stopTimeline: 'stopTimeline',
     exportScene: 'exportScene',
     exportHotReloadScene: 'exportHotReloadScene',
 };
@@ -57,6 +59,41 @@ const seekTimeline = (json) => {
     }
     wsBrowserClient.send(JSON.stringify(newData));
 };
+
+/**
+ * 
+ * @param json
+ */
+const playTimeline = (json) => {
+    if (!wsBrowserClient) {
+        return;
+    }
+    const newData = {
+        type: messageType.playTimeline,
+        currentTime: json.currentTime,
+    };
+    if (logEnabled) {
+        console.log(`send to browser data: ${newData}`);
+    }
+    wsBrowserClient.send(JSON.stringify(newData));
+}
+
+/**
+ * 
+ * @param json
+ */
+const stopTimeline = (json) => {
+    if (!wsBrowserClient) {
+        return;
+    }
+    const newData = {
+        type: messageType.stopTimeline,
+    };
+    if (logEnabled) {
+        console.log(`send to browser data: ${newData}`);
+    }
+    wsBrowserClient.send(JSON.stringify(newData));
+}
 
 /**
  * 
@@ -127,6 +164,12 @@ wsServer.on('connection', (ws) => {
                 break;
             case messageType.seekTimeline:
                 seekTimeline(json);
+                break;
+            case messageType.playTimeline:
+                playTimeline(json);
+                break;
+            case messageType.stopTimeline:
+                stopTimeline(json);
                 break;
             case messageType.exportScene:
                 exportScene(json);

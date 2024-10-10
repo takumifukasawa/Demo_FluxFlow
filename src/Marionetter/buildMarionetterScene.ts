@@ -248,6 +248,8 @@ export function buildMarionetterScene(gpu: GPU, scene: MarionetterScene): Marion
             // others
             actor = new Actor({ name });
         }
+        
+        console.log(actor)
 
         //
         // component関連

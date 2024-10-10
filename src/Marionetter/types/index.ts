@@ -18,6 +18,8 @@ export type MarionetterSceneStructure = { actors: Actor[]; marionetterTimeline: 
 
 export const MarionetterReceiveDataType = {
     SeekTimeline: 'seekTimeline',
+    PlayTimeline: 'playTimeline',
+    StopTimeline: 'stopTimeline',
     ExportScene: 'exportScene',
     ExportHotReloadScene: 'exportHotReloadScene',
 } as const;
@@ -32,10 +34,11 @@ export type MarionetterReceiveData = {
 export type Marionetter = {
     connect: () => void;
     getCurrentTime: () => number;
+    setCurrentTime: (time: number) => void;
     setHotReloadCallback: (callback: () => void) => void;
 };
 
-export type MarionetterArgs = { port?: number; showLog?: boolean };
+export type MarionetterArgs = { port?: number; showLog?: boolean; onPlay?: (time: number) => void; onSeek?: (time: number) => void; onStop?: () => void };
 
 //
 // scene

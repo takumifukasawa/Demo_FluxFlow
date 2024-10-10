@@ -1,12 +1,18 @@
-import {tryParseJsonString} from "@/Marionetter/buildMarionetterScene.ts";
-import {Marionetter, MarionetterArgs, MarionetterReceiveData, MarionetterReceiveDataType} from "@/Marionetter/types";
+import { tryParseJsonString } from '@/Marionetter/buildMarionetterScene.ts';
+import { Marionetter, MarionetterArgs, MarionetterReceiveData, MarionetterReceiveDataType } from '@/Marionetter/types';
 
 /**
- * 
+ *
  * @param port
  * @param showLog
  */
-export function createMarionetter({ port = 8080, showLog = false}: MarionetterArgs = {}): Marionetter {
+export function createMarionetter({
+    port = 8080,
+    showLog = false,
+    onSeek,
+    onPlay,
+    onStop,
+}: MarionetterArgs = {}): Marionetter {
     let currentTime: number = 0;
     let onHotReloadCallback: (() => void) | null = null;
 
@@ -17,10 +23,14 @@ export function createMarionetter({ port = 8080, showLog = false}: MarionetterAr
         return currentTime;
     };
 
+    const setCurrentTime = (time: number) => {
+        currentTime = time;
+    };
+
     const connect = () => {
         socket = new WebSocket(url);
         socket.addEventListener('open', () => {
-            console.log(`[Marionetter] on open: ${url}`);
+            console.log(`[marionetter] on open: ${url}`);
             const authData = {
                 type: 'auth',
                 clientType: 'browser',
@@ -29,13 +39,15 @@ export function createMarionetter({ port = 8080, showLog = false}: MarionetterAr
         });
 
         socket.addEventListener('close', () => {
-            console.log(`[Marionetter] on close: ${url}`);
+            console.log(`[marionetter] on close: ${url}`);
         });
 
         socket.addEventListener('message', (event) => {
             if (!event.data) {
                 return;
             }
+            
+            console.log(`[marionetter] type: ${event.type}, data: ${event.data}`);
 
             // if (typeof event.data === 'string') {
             //     return;
@@ -51,17 +63,31 @@ export function createMarionetter({ port = 8080, showLog = false}: MarionetterAr
                 case MarionetterReceiveDataType.SeekTimeline:
                     currentTime = json.currentTime;
                     if (showLog) {
-                        console.log(`[Marionetter] seekTimeline: ${currentTime}`);
+                        console.log(`[marionetter] seekTimeline: ${currentTime}`);
                     }
+                    onSeek?.(currentTime);
+                    break;
+                case MarionetterReceiveDataType.PlayTimeline:
+                    currentTime = json.currentTime;
+                    if (showLog) {
+                        console.log(`[marionetter] playTimeline: ${currentTime}`);
+                    }
+                    onPlay?.(currentTime);
+                    break;
+                case MarionetterReceiveDataType.StopTimeline:
+                    if (showLog) {
+                        console.log(`[marionetter] stopTimeline`);
+                    }
+                    onStop?.();
                     break;
                 case MarionetterReceiveDataType.ExportScene:
                     if (showLog) {
-                        console.log(`[Marionetter] exportScene`);
+                        console.log(`[marionetter] exportScene`);
                     }
                     break;
                 case MarionetterReceiveDataType.ExportHotReloadScene:
                     if (showLog) {
-                        console.log(`[Marionetter] hotReloadScene`);
+                        console.log(`[marionetter] hotReloadScene`);
                     }
                     onHotReloadCallback?.();
                     break;
@@ -72,7 +98,7 @@ export function createMarionetter({ port = 8080, showLog = false}: MarionetterAr
         });
 
         window.addEventListener('beforeunload', () => {
-            console.log(`[Marionetter] beforeunload: ${url}`);
+            console.log(`[marionetter] beforeunload: ${url}`);
             if (socket?.readyState === WebSocket.CONNECTING) {
                 socket.close();
             }
@@ -83,5 +109,5 @@ export function createMarionetter({ port = 8080, showLog = false}: MarionetterAr
         onHotReloadCallback = callback;
     };
 
-    return { connect, getCurrentTime, setHotReloadCallback };
+    return { connect, getCurrentTime, setCurrentTime, setHotReloadCallback };
 }

@@ -77,7 +77,7 @@ import { initGLSLSound } from './scripts/initGLSLSound.ts';
 import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
 import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
-import {Color} from "@/PaleGL/math/Color.ts";
+import { Color } from '@/PaleGL/math/Color.ts';
 
 const stylesText = `
 :root {
@@ -174,8 +174,6 @@ document.head.appendChild(styleElement);
 let width: number, height: number;
 let bufferVisualizerPass: BufferVisualizerPass;
 
-const marionetter: Marionetter = createMarionetter({ showLog: false });
-
 const isSP = !!window.navigator.userAgent.match(/(iPhone|iPad|iPod|Android)/i);
 const inputController = isSP ? new TouchInputController() : new MouseInputController();
 inputController.start();
@@ -198,6 +196,25 @@ if (!gl) {
 const gpu = new GPU({ gl });
 
 const glslSoundWrapper = initGLSLSound(gpu, soundVertexShader, 144);
+
+let currentTimeForTimeline = 0;
+
+const marionetter: Marionetter = createMarionetter({
+    showLog: false,
+    onPlay: (time: number) => {
+        console.log(`[marionetter.onPlay] time: ${time}`);
+        glslSoundWrapper.play({ time });
+        currentTimeForTimeline = time;
+    },
+    onSeek: (time: number) => {
+        currentTimeForTimeline = time;
+        glslSoundWrapper.stop();
+    },
+    onStop: () => {
+        console.log(`[marionetter.onStop]`);
+        glslSoundWrapper.stop();
+    },
+});
 
 const captureScene = new Scene();
 
@@ -228,6 +245,7 @@ const initMarionetter = () => {
 let marionetterSceneStructure: MarionetterSceneStructure | null = null;
 
 const buildScene = (sceneJson: MarionetterScene) => {
+    console.log('[buildScene] scene json', sceneJson);
     marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson);
     const { actors } = marionetterSceneStructure;
 
@@ -290,10 +308,10 @@ const buildScene = (sceneJson: MarionetterScene) => {
                 type: RenderTargetTypes.Depth,
                 depthPrecision: TextureDepthPrecisionType.High,
             });
-            console.log(spotLight, spotLight, spotLight.shadowMap)
+            console.log(spotLight, spotLight, spotLight.shadowMap);
         }
-    }
-    
+    };
+
     createSpotLightShadowMap(captureScene.find('SpotLightA') as SpotLight);
     createSpotLightShadowMap(captureScene.find('SpotLightB') as SpotLight);
 
@@ -518,15 +536,31 @@ const load = async () => {
     };
 
     engine.onRender = (time, deltaTime) => {
-        if (marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
-            // TODO: prodの時はこっちを使いたい
-            // const soundTime = glslSound.getCurrentTime();
-            // marionetterTimeline.execute(soundTime);
+        // pattern_1: timeがRAFからわたってくる場合
+        // if (marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
+        //     // TODO: prodの時はこっちを使いたい
+        //     // const soundTime = glslSound.getCurrentTime();
+        //     // marionetterTimeline.execute(soundTime);
+        //     marionetterSceneStructure.marionetterTimeline.execute({
+        //         time: marionetter.getCurrentTime(),
+        //         scene: captureScene,
+        //     });
+        //     // marionetterTimeline.execute(0);
+        // }
+        // if (captureSceneCamera) {
+        //     renderer.render(captureScene, captureSceneCamera, { time, deltaTime });
+        // }
+
+        // pattern_2: timeがtimelineな場合
+        if (glslSoundWrapper && marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
+            if(glslSoundWrapper.isPlaying()) {
+                // console.log(`[main] time: ${currentTimeForTimeline}`);
+                currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
+            }
             marionetterSceneStructure.marionetterTimeline.execute({
-                time: marionetter.getCurrentTime(),
+                time: currentTimeForTimeline,
                 scene: captureScene,
             });
-            // marionetterTimeline.execute(0);
         }
         if (captureSceneCamera) {
             renderer.render(captureScene, captureSceneCamera, { time, deltaTime });
@@ -563,8 +597,25 @@ const load = async () => {
 };
 
 const playDemo = () => {
+    // let prevTime = -1;
+    // let deltaTime = 0;
+    // const tick = (time: number) => {
     const tick = (time: number) => {
+        // if(prevTime < 0) {
+        //     prevTime = time;
+        //     return;
+        // }
+        // deltaTime = time - prevTime;
+
+        // if (marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
+        //     const t = marionetter.getCurrentTime();
+        //     console.log(t)
+        //     // const soundTime = glslSound.getCurrentTime();
+        //     engine.run(t * 1000);
+        // }
+
         engine.run(time);
+
         requestAnimationFrame(tick);
     };
 
