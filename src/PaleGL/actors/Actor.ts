@@ -42,7 +42,7 @@ export class Actor {
     private _onFixedUpdate: OnFixedUpdateCallback | null = null;
     private _onUpdate: OnUpdateCallback | null = null;
     private _onLastUpdate: OnLastUpdateCallback | null = null;
-    private _onProcessClipFrame: OnProcessClipFrame | null = null;
+    private _onProcessPropertyBinder: OnProcessClipFrame | null = null;
     private _enabled: boolean = true;
 
     get childCount() {
@@ -79,8 +79,8 @@ export class Actor {
         this._onLastUpdate = value;
     }
     
-    set onProcessClipFrame(value: OnProcessClipFrame) {
-        this._onProcessClipFrame = value;
+    set onProcessPropertyBinder(value: OnProcessClipFrame) {
+        this._onProcessPropertyBinder = value;
     }
 
     constructor({ name = '', type = ActorTypes.Null }: ActorArgs = {}) {
@@ -181,9 +181,9 @@ export class Actor {
         // TODO: 必要になったら実装する。component関連の処理とかで。
     }
 
-    processClipFrame(key: string, value: number) {
-        if (this._onProcessClipFrame) {
-            this._onProcessClipFrame(key, value);
+    processPropertyBinder(key: string, value: number) {
+        if (this._onProcessPropertyBinder) {
+            this._onProcessPropertyBinder(key, value);
         }
     }
 }

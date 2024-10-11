@@ -103,10 +103,9 @@ float dfCone(vec3 p, vec2 c, float h)
     return sqrt(d)*sign(s);
 }
 
-//
+// ---------------------------------------------------------------
 // custom
-//
-
+// ---------------------------------------------------------------
 
 // r ... 回転
 float opWing(vec3 p, vec3 s, float r, vec2 t) {
@@ -226,6 +225,7 @@ vec2 opFlower(vec3 p) {
 
 // しょうがないのでここでいろいろ宣言する
 #define BN 16
+uniform vec3 uCP;
 uniform vec3 uBPs[BN];
 float dfMB(vec3 p, float d) {
     for(int i = 0; i < BN; i++) {

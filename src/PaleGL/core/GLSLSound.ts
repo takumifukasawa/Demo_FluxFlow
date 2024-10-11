@@ -28,6 +28,10 @@ export function createGLSLSound(gpu: GPU, vertexShader: string, duration: number
     let volume: number = 1;
     // let audioBuffer: AudioBuffer;
 
+    let currentTime = 0;
+    let startTime = 0;
+    let offsetTime = 0;
+
     const audioContext = new AudioContext();
     const audioBuffer = audioContext.createBuffer(
         channelNum,
@@ -126,7 +130,11 @@ export function createGLSLSound(gpu: GPU, vertexShader: string, duration: number
         node.connect(gainNode);
         node.buffer = audioBuffer;
         node.loop = false;
+        // node.playbackRate.value = time / duration;
         node.start(0, time);
+
+        startTime = audioContext.currentTime;
+        offsetTime = time;
     };
 
     const setVolume = (value: number) => {
@@ -150,7 +158,12 @@ export function createGLSLSound(gpu: GPU, vertexShader: string, duration: number
     };
 
     const getCurrentTime = () => {
-        return audioContext.currentTime;
+        currentTime = audioContext.currentTime - startTime + offsetTime;
+        // for debug
+        // console.log(
+        //     `[GLSLSound.getCurrentTime] audio context currentTime: ${audioContext.currentTime}, current time: ${currentTime}, offset time: ${offsetTime}`
+        // );
+        return currentTime;
     };
 
     return {

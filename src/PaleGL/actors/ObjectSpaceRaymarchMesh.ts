@@ -14,6 +14,7 @@ import { litObjectSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templat
 import { gbufferObjectSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-object-space-raymarch-depth-fragment-template.ts';
 
 type ObjectSpaceRaymarchMeshArgs = {
+    name?: string;
     gpu: GPU;
     size?: number;
     // fragmentShader: string;
@@ -34,7 +35,7 @@ type ObjectSpaceRaymarchMeshArgs = {
 export class ObjectSpaceRaymarchMesh extends Mesh {
     constructor(args: ObjectSpaceRaymarchMeshArgs) {
         // const { gpu, fragmentShader, depthFragmentShader, uniforms = [], castShadow } = args;
-        const { gpu, materialArgs, castShadow, size } = args;
+        const { gpu, name, materialArgs, castShadow, size } = args;
         // const {gpu, castShadow } = args;
         const geometry = new BoxGeometry({ gpu, size });
         
@@ -77,7 +78,7 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
         //     primitiveType: PrimitiveTypes.Triangles,
         // });
 
-        super({ name: 'ObjectSpaceRaymarchMesh', geometry, material, castShadow });
+        super({ name, geometry, material, castShadow });
     }
 
     update(args: ActorUpdateArgs) {

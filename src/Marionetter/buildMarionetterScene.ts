@@ -130,7 +130,11 @@ function buildPostProcessVolumeActor({
  * @param gpu
  * @param scene
  */
-export function buildMarionetterScene(gpu: GPU, scene: MarionetterScene): MarionetterSceneStructure {
+export function buildMarionetterScene(
+    gpu: GPU,
+    marionetterScene: MarionetterScene,
+    // placedScene: Scene
+): MarionetterSceneStructure {
     const actors: Actor[] = [];
 
     function recursiveBuildActor(
@@ -324,8 +328,8 @@ export function buildMarionetterScene(gpu: GPU, scene: MarionetterScene): Marion
     // parse scene
     //
 
-    for (let i = 0; i < scene.o.length; i++) {
-        const obj = scene.o[i];
+    for (let i = 0; i < marionetterScene.o.length; i++) {
+        const obj = marionetterScene.o[i];
         // recursiveBuildActor(obj, null, needsSomeActorsConvertLeftHandAxisToRightHandAxis);
         recursiveBuildActor(obj, null, true);
         // actors.push(actor);
@@ -340,19 +344,28 @@ export function buildMarionetterScene(gpu: GPU, scene: MarionetterScene): Marion
     // parse timeline
     // NOTE: timelineは一個という想定
     //
-    const marionetterTimeline = buildMarionetterTimelineFromScene(scene, actors);
+    const marionetterTimeline = buildMarionetterTimelineFromScene(
+        marionetterScene,
+        actors,
+        // placedScene
+    );
 
     return { actors, marionetterTimeline };
 }
 
-export function buildMarionetterTimelineFromScene(scene: MarionetterScene, sceneActors: Actor[]) {
+export function buildMarionetterTimelineFromScene(
+    marionetterScene: MarionetterScene,
+    marionetterSceneActors: Actor[],
+    // placedScene: Scene
+) {
     let marionetterTimeline: MarionetterTimeline | null = null;
-    scene.o.forEach((obj) => {
+    marionetterScene.o.forEach((obj) => {
         const timelineComponent = obj.co.find((c) => c.t === MarionetterComponentType.PlayableDirector);
         if (timelineComponent) {
             marionetterTimeline = buildMarionetterTimeline(
-                sceneActors,
-                timelineComponent as MarionetterPlayableDirectorComponentInfo
+                marionetterSceneActors,
+                timelineComponent as MarionetterPlayableDirectorComponentInfo,
+                // placedScene
                 // needsSomeActorsConvertLeftHandAxisToRightHandAxis
             );
         }

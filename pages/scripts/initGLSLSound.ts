@@ -39,9 +39,7 @@ export function initGLSLSound(gpu: GPU, shader: string, duration: number) {
     const isPlaying = () => _isPlaying;
     
     const getCurrentTime = () => {
-        const t = glslSound?.getCurrentTime();
-        // console.log(`[GLSLSound.getCurrentTime] t: ${t}`);
-        return t;
+        return glslSound?.getCurrentTime();
     }
 
     return {

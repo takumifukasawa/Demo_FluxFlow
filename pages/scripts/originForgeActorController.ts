@@ -1,7 +1,7 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
-import litObjectSpaceRaymarchFragOriginForgeContent from '@/PaleGL/shaders/lit-object-space-raymarch-fragment-origin-forge.glsl';
-import gBufferObjectSpaceRaymarchFragOriginForgeDepthContent from '@/PaleGL/shaders/gbuffer-object-space-raymarch-depth-fragment-origin-forge.glsl';
+import litObjectSpaceRaymarchFragOriginForgeContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge.glsl';
+import gBufferObjectSpaceRaymarchFragOriginForgeDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { DEG_TO_RAD, FaceSide, UniformTypes } from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
@@ -10,10 +10,12 @@ import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
+    updateSequence: (time: number) => void;
 };
 
 const METABALL_NUM = 16;
 
+const UNIFORM_NAME_METABALL_CENTER_POSITION = 'uCP';
 const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
 
 export function createOriginForgeActorController(gpu: GPU): OriginForgeActorController {
@@ -34,6 +36,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             receiveShadow: true,
             faceSide: FaceSide.Double,
             uniforms: [
+                {
+                    name: UNIFORM_NAME_METABALL_CENTER_POSITION,
+                    type: UniformTypes.Vector3,
+                    value: Vector3.zero,
+                },
                 {
                     name: UNIFORM_NAME_METABALL_POSITIONS,
                     type: UniformTypes.Vector3Array,
@@ -58,8 +65,16 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         });
         mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
     };
+    
+    const updateSequence = (time: number) => {
+        mesh.mainMaterial.uniforms.setValue(
+            UNIFORM_NAME_METABALL_CENTER_POSITION,
+            new Vector3(0, Math.sin(time) * 1, 0)
+        );
+    }
 
     return {
         getActor: () => mesh,
+        updateSequence,
     };
 }

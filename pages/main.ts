@@ -75,6 +75,7 @@ import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
+import { createLeaderActor, LeaderActor } from './scripts/createLeaderActor.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
 import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
@@ -246,9 +247,12 @@ let marionetterSceneStructure: MarionetterSceneStructure | null = null;
 
 const buildScene = (sceneJson: MarionetterScene) => {
     console.log('[buildScene] scene json', sceneJson);
+    // marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson, captureScene);
     marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson);
+    // timeline生成したらscene内のactorをbind
     const { actors } = marionetterSceneStructure;
 
+    marionetterSceneStructure.marionetterTimeline?.bindActors(captureScene.children);
     for (let i = 0; i < actors.length; i++) {
         captureScene.add(actors[i]);
     }
@@ -414,6 +418,7 @@ const hideStartupWrapper = () => {
     startupWrapperElement.style.display = 'none';
 };
 
+let leaderActor: LeaderActor;
 let metaMorphActor: ObjectSpaceRaymarchMesh;
 let originForgeActorController: OriginForgeActorController;
 
@@ -434,25 +439,13 @@ const load = async () => {
     console.log('====== main ======');
     console.log(import.meta.env);
     console.log(sceneJsonUrl);
+    
+    //
+    // meta morph actor object
+    //
 
-    buildScene(sceneJsonUrl as unknown as MarionetterScene);
-
-    if (import.meta.env.VITE_HOT_RELOAD === 'true') {
-        document.addEventListener('keydown', (e) => {
-            switch (e.code) {
-                case 'KeyP':
-                    console.log('===== play sound =====');
-                    glslSoundWrapper.play({ reload: true });
-                    break;
-                case 'KeyS':
-                    console.log('===== stop sound =====');
-                    glslSoundWrapper.stop();
-                    break;
-            }
-        });
-        initMarionetter();
-        initHotReloadAndParseScene();
-    }
+    leaderActor = createLeaderActor(gpu);
+    captureScene.add(leaderActor.getActor());
 
     //
     // meta morph actor object
@@ -518,6 +511,34 @@ const load = async () => {
     // textMesh1.transform.rotation.setRotationX(-90);
     textMesh1.transform.scale = Vector3.fill(0.5);
 
+    //
+    // build marionetter scene
+    //
+
+    buildScene(sceneJsonUrl as unknown as MarionetterScene);
+
+    if (import.meta.env.VITE_HOT_RELOAD === 'true') {
+        document.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'KeyP':
+                    console.log('===== play sound =====');
+                    glslSoundWrapper.play({ reload: true });
+                    break;
+                case 'KeyS':
+                    console.log('===== stop sound =====');
+                    glslSoundWrapper.stop();
+                    break;
+            }
+        });
+        initMarionetter();
+        initHotReloadAndParseScene();
+    }
+    
+    //
+    // events
+    //
+
+
     // TODO: engine側に移譲したい
     const onWindowResize = () => {
         width = wrapperElement.offsetWidth;
@@ -553,7 +574,7 @@ const load = async () => {
 
         // pattern_2: timeがtimelineな場合
         if (glslSoundWrapper && marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
-            if(glslSoundWrapper.isPlaying()) {
+            if (glslSoundWrapper.isPlaying()) {
                 // console.log(`[main] time: ${currentTimeForTimeline}`);
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
             }
@@ -561,6 +582,7 @@ const load = async () => {
                 time: currentTimeForTimeline,
                 scene: captureScene,
             });
+            originForgeActorController.updateSequence(currentTimeForTimeline);
         }
         if (captureSceneCamera) {
             renderer.render(captureScene, captureSceneCamera, { time, deltaTime });

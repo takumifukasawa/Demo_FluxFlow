@@ -14,7 +14,10 @@ export const NeedsShorten = true;
 // marionetter
 //
 
-export type MarionetterSceneStructure = { actors: Actor[]; marionetterTimeline: MarionetterTimeline | null };
+export type MarionetterSceneStructure = {
+    actors: Actor[];
+    marionetterTimeline: MarionetterTimeline | null;
+};
 
 export const MarionetterReceiveDataType = {
     SeekTimeline: 'seekTimeline',
@@ -38,7 +41,13 @@ export type Marionetter = {
     setHotReloadCallback: (callback: () => void) => void;
 };
 
-export type MarionetterArgs = { port?: number; showLog?: boolean; onPlay?: (time: number) => void; onSeek?: (time: number) => void; onStop?: () => void };
+export type MarionetterArgs = {
+    port?: number;
+    showLog?: boolean;
+    onPlay?: (time: number) => void;
+    onSeek?: (time: number) => void;
+    onStop?: () => void;
+};
 
 //
 // scene
@@ -509,6 +518,7 @@ export type MarionetterTimeline = {
     // tracks: MarionetterTimelineTrack[];
     tracks: MarionetterTimelineTrackKinds[];
     execute: (args: MarionetterTimelineExecuteArgs) => void;
+    bindActors: (actors: Actor[]) => void;
 };
 
 // export type MarionetterTimelineTrack = {
@@ -527,6 +537,7 @@ export type MarionetterTimelineTrackBase = {
 
 export type MarionetterTimelineDefaultTrack = {
     targetName: string;
+    targetActors: Actor[];
     clips: MarionetterClipKinds[];
 } & MarionetterTimelineTrackBase;
 

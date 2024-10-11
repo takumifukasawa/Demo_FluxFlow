@@ -6,6 +6,8 @@ export function createVector3FromRaw(raw: RawVector3) {
     return new Vector3(raw.x, raw.y, raw.z);
 }
 
+// export const createVector3Zero = () => new Vector3(0, 0, 0);
+
 export class Vector3 {
     elements: Float32Array = new Float32Array(3);
 

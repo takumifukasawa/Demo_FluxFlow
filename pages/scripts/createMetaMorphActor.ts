@@ -5,8 +5,8 @@ import { AttributeNames, AttributeUsageType, FaceSide, UniformBlockNames } from 
 import demoMetaMorphTransformFeedbackVertex from '@/PaleGL/shaders/demo-meta-morph-transform-feedback-vertex.glsl';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
-import litObjectSpaceRaymarchFragMetaMorphContent from '@/PaleGL/shaders/lit-object-space-raymarch-fragment-meta-morph.glsl';
-import gBufferObjectSpaceRaymarchFragMetaMorphDepthContent from '@/PaleGL/shaders/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
+import litObjectSpaceRaymarchFragMetaMorphContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-meta-morph.glsl';
+import gBufferObjectSpaceRaymarchFragMetaMorphDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';

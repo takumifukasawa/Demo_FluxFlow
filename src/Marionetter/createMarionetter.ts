@@ -46,8 +46,10 @@ export function createMarionetter({
             if (!event.data) {
                 return;
             }
-            
-            console.log(`[marionetter] type: ${event.type}, data: ${event.data}`);
+
+            if (showLog) {
+                console.log(`[marionetter] type: ${event.type}, data: ${event.data}`);
+            }
 
             // if (typeof event.data === 'string') {
             //     return;

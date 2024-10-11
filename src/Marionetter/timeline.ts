@@ -73,8 +73,9 @@ import { ObjectMoveAndLookAtController } from '@/PaleGL/components/objectMoveAnd
  * @param marionetterPlayableDirectorComponentInfo
  */
 export function buildMarionetterTimeline(
-    actors: Actor[],
-    marionetterPlayableDirectorComponentInfo: MarionetterPlayableDirectorComponentInfo
+    marionetterActors: Actor[],
+    marionetterPlayableDirectorComponentInfo: MarionetterPlayableDirectorComponentInfo,
+    // placedScene: Scene
     // needsSomeActorsConvertLeftHandAxisToRightHandAxis = false
 ): MarionetterTimeline {
     const tracks: MarionetterTimelineTrackKinds[] = [];
@@ -82,7 +83,7 @@ export function buildMarionetterTimeline(
     console.log(
         `[buildMarionetterTimeline] marionetterPlayableDirectorComponentInfo:`,
         marionetterPlayableDirectorComponentInfo,
-        actors
+        marionetterActors
     );
 
     const buildSignalEmitter = (signalEmitter: MarionetterSignalEmitter): MarionetterTimelineSignalEmitter => {
@@ -119,43 +120,53 @@ export function buildMarionetterTimeline(
         } else {
             const targetName = (track as MarionetterDefaultTrackInfo).tn;
             const clips = (track as MarionetterDefaultTrackInfo).cs;
-            const targetActor = Scene.find(actors, targetName); // TODO: sceneを介すさなくてもいい気がする
+            const targetActors = [
+                Scene.find(marionetterActors, targetName),
+                // Scene.find(placedScene.children, targetName),
+            ];
             //const marionetterClips = createMarionetterClips(clips, needsSomeActorsConvertLeftHandAxisToRightHandAxis);
             const marionetterClips = createMarionetterClips(clips);
-            if (!targetActor) {
+            if (targetActors.length < 1) {
                 console.warn(`[buildMarionetterTimeline] target actor is not found: ${targetName}`);
             }
 
-            console.log(`[buildMarionetterTimeline] targetActor:`, targetActor, marionetterClips);
+            console.log(
+                `[buildMarionetterTimeline] targetName: ${targetName}, targetActor:`,
+                targetActors,
+                marionetterClips
+            );
 
-            // exec track
-            // TODO: clip間の mixer,interpolate,extrapolate の挙動が必要
-            const execute = (args: MarionetterTimelineTrackExecuteArgs) => {
-                const { time, scene } = args;
-                if (track.t === MarionetterTrackInfoType.ActivationControlTrack) {
-                    if (targetActor != null) {
-                        const clipAtTime = marionetterClips.find(
-                            (clip) => clip.clipInfo.s < time && time < clip.clipInfo.s + clip.clipInfo.d
-                        );
-                        if (clipAtTime) {
-                            targetActor.enabled = true;
-                        } else {
-                            targetActor.enabled = false;
-                        }
-                    }
-                } else {
-                    if (targetActor != null) {
-                        for (let j = 0; j < marionetterClips.length; j++) {
-                            marionetterClips[j].execute({ actor: targetActor, time, scene });
-                        }
-                    }
-                }
-            };
-            tracks.push({
+            const data = {
                 targetName,
+                targetActors,
                 clips: marionetterClips,
-                execute,
-            } as MarionetterTimelineDefaultTrack);
+                // exec track
+                // TODO: clip間の mixer,interpolate,extrapolate の挙動が必要
+                execute: (args: MarionetterTimelineTrackExecuteArgs) => {
+                    targetActors.forEach((targetActor) => {
+                        const { time, scene } = args;
+                        if (track.t === MarionetterTrackInfoType.ActivationControlTrack) {
+                            if (targetActor != null) {
+                                const clipAtTime = marionetterClips.find(
+                                    (clip) => clip.clipInfo.s < time && time < clip.clipInfo.s + clip.clipInfo.d
+                                );
+                                if (clipAtTime) {
+                                    targetActor.enabled = true;
+                                } else {
+                                    targetActor.enabled = false;
+                                }
+                            }
+                        } else {
+                            if (targetActor != null) {
+                                for (let j = 0; j < marionetterClips.length; j++) {
+                                    marionetterClips[j].execute({ actor: targetActor, time, scene });
+                                }
+                            }
+                        }
+                    });
+                },
+            } as MarionetterTimelineDefaultTrack;
+            tracks.push(data);
         }
     }
 
@@ -175,7 +186,23 @@ export function buildMarionetterTimeline(
         }
     };
 
-    return { tracks, execute };
+    const bindActors = (actors: Actor[]) => {
+        actors.forEach((actor) => {
+            const targetName = actor.name;
+            tracks.forEach((track) => {
+                // TODO: ここなんかうまいことやりたい
+                if (Object.hasOwn(track, 'targetName')) {
+                    const t = track as MarionetterTimelineDefaultTrack;
+                    if (t.targetName === targetName) {
+                        t.targetActors.push(actor);
+                    }
+                }
+            });
+        });
+    };
+
+    // return { tracks, execute, bindActor };
+    return { tracks, execute, bindActors };
 }
 
 /**
@@ -312,7 +339,7 @@ function createMarionetterAnimationClip(
                 // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}`);
             }
 
-            actor.processClipFrame(propertyName, value);
+            actor.processPropertyBinder(propertyName, value);
             // if(Object.hasOwn(actor, propertyName)) {
             //     // オブジェクトのプロパティに無理やり追加する
             //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -344,6 +371,12 @@ function createMarionetterAnimationClip(
         if (hasLocalPosition) {
             // localPosition.z *= -1;
             actor.transform.position.copy(localPosition);
+        }
+
+        if (actor.name === 'Leader') {
+            console.log(actor, localPosition);
+            actor.transform.position.log();
+            localPosition.log();
         }
     };
 
