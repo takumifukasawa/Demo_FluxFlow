@@ -77,7 +77,7 @@ import { initGLSLSound } from './scripts/initGLSLSound.ts';
 // import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
 import { createLeaderActor, LeaderActor } from './scripts/createLeaderActor.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
-import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
+// import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import {
     createMorphFollowersActor,
@@ -482,13 +482,13 @@ const load = async () => {
     captureScene.add(originForgeActorController.getActor());
     // originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
 
-    //
-    // screen space object
-    //
+    // //
+    // // screen space object
+    // //
 
-    screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
-    screenSpaceRaymarchMesh.enabled = false;
-    captureScene.add(screenSpaceRaymarchMesh);
+    // screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
+    // screenSpaceRaymarchMesh.enabled = false;
+    // captureScene.add(screenSpaceRaymarchMesh);
 
     //
     // text mesh

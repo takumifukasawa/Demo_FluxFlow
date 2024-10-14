@@ -4,34 +4,48 @@ import { Scene } from '@/PaleGL/core/Scene.ts';
 
 export type ComponentStartArgs = { scene: Scene; actor: Actor; gpu: GPU };
 export type ComponentFixedUpdateArgs = { actor: Actor; gpu: GPU; fixedTime: number; fixedDeltaTime: number };
+export type ComponentBeforeUpdateArgs = { actor: Actor; gpu: GPU; time: number; deltaTime: number };
 export type ComponentUpdateArgs = { actor: Actor; gpu: GPU; time: number; deltaTime: number };
 export type ComponentLastUpdateArgs = { actor: Actor; gpu: GPU; time: number; deltaTime: number };
 
 type OnStartCallback = (args: { scene: Scene; actor: Actor; gpu: GPU }) => void;
 type OnFixedUpdateCallback = (args: { actor: Actor; gpu: GPU; fixedTime: number; fixedDeltaTime: number }) => void;
+type OnBeforeUpdateCallback = (args: { actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
 type OnUpdateCallback = (args: { actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
 type OnLastUpdateCallback = (args: { actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
 type OnProcessPropertyBinderCallback = (key: string, value: number) => void;
+type OnPostProcessTimelineCallback = (actor: Actor, timelineTime: number) => void;
 
 export type Component = {
     start: (args: ComponentStartArgs) => void;
     fixedUpdate: (args: ComponentFixedUpdateArgs) => void;
+    beforeUpdate: (args: ComponentBeforeUpdateArgs) => void;
     update: (args: ComponentUpdateArgs) => void;
     lastUpdate: (args: ComponentLastUpdateArgs) => void;
     processPropertyBinder?: (key: string, value: number) => void;
+    postProcessTimeline?: (actor: Actor, timelineTime: number) => void;
 };
 
 export type ComponentArgs = {
     onStartCallback?: OnStartCallback;
-    onUpdateCallback?: OnUpdateCallback;
     onFixedUpdateCallback?: OnFixedUpdateCallback;
+    onBeforeUpdateCallback?: OnBeforeUpdateCallback;
+    onUpdateCallback?: OnUpdateCallback;
     onLastUpdateCallback?: OnLastUpdateCallback;
     onProcessPropertyBinder?: OnProcessPropertyBinderCallback;
+    onPostProcessTimeline?: OnPostProcessTimelineCallback;
 };
 
 export function createComponent(args: ComponentArgs): Component {
-    const { onStartCallback, onFixedUpdateCallback, onUpdateCallback, onLastUpdateCallback, onProcessPropertyBinder } =
-        args;
+    const {
+        onStartCallback,
+        onFixedUpdateCallback,
+        onBeforeUpdateCallback,
+        onUpdateCallback,
+        onLastUpdateCallback,
+        onProcessPropertyBinder,
+        onPostProcessTimeline,
+    } = args;
 
     const start = (args: ComponentStartArgs) => {
         if (onStartCallback) {
@@ -42,6 +56,12 @@ export function createComponent(args: ComponentArgs): Component {
     const fixedUpdate = (args: ComponentFixedUpdateArgs) => {
         if (onFixedUpdateCallback) {
             onFixedUpdateCallback(args);
+        }
+    };
+
+    const beforeUpdate = (args: ComponentBeforeUpdateArgs) => {
+        if (onBeforeUpdateCallback) {
+            onBeforeUpdateCallback(args);
         }
     };
 
@@ -63,11 +83,19 @@ export function createComponent(args: ComponentArgs): Component {
         }
     };
 
+    const postProcessTimeline = (actor: Actor, timelineTime: number) => {
+        if (onPostProcessTimeline) {
+            onPostProcessTimeline(actor, timelineTime);
+        }
+    };
+
     return {
         start,
         fixedUpdate,
+        beforeUpdate,
         update,
         lastUpdate,
         processPropertyBinder,
+        postProcessTimeline,
     };
 }

@@ -2,10 +2,11 @@
 import { AttributeNames } from '@/PaleGL/constants';
 import { Attribute } from '@/PaleGL/core/Attribute';
 import { GPU } from '@/PaleGL/core/GPU';
+import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 
 export function createBoxGeometryRawData(size: number = 1) {
     const s = size / 2;
-    
+
     // -----------------------------
     //
     //   6 ---- 4
@@ -108,17 +109,34 @@ export function createBoxGeometryData(size: number) {
             size: 3,
         }),
     ];
-    
+
     return {
         attributes,
         indices: rawData.indices,
         drawCount: rawData.drawCount,
-    };   
+    };
 }
 
+const edgePairs = [
+    [0, 1],
+    [1, 3],
+    [3, 2],
+    [2, 0],
+    [0, 6],
+    [1, 7],
+    [2, 4],
+    [3, 5],
+    [4, 6],
+    [5, 7],
+    [6, 7],
+    [4, 5],
+];
+
 export class BoxGeometry extends Geometry {
-    // size ... 1辺の長さ
-    constructor({ gpu, size = 1 }: { gpu: GPU, size?: number }) {
+    // localPositions: number[];
+    cornerPositions: number[][];
+
+    constructor({ gpu, size = 1 }: { gpu: GPU; size?: number }) {
         const s = size / 2;
         const boxPosition_0 = [-s, s, s];
         const boxPosition_1 = [-s, -s, s];
@@ -128,14 +146,39 @@ export class BoxGeometry extends Geometry {
         const boxPosition_5 = [s, -s, -s];
         const boxPosition_6 = [-s, s, -s];
         const boxPosition_7 = [-s, -s, -s];
-        // const boxPosition_0 = [-1, 1, 1];
-        // const boxPosition_1 = [-1, -1, 1];
-        // const boxPosition_2 = [1, 1, 1];
-        // const boxPosition_3 = [1, -1, 1];
-        // const boxPosition_4 = [1, 1, -1];
-        // const boxPosition_5 = [1, -1, -1];
-        // const boxPosition_6 = [-1, 1, -1];
-        // const boxPosition_7 = [-1, -1, -1];
+
+        const localPositions = [
+            // front
+            ...boxPosition_0,
+            ...boxPosition_1,
+            ...boxPosition_2,
+            ...boxPosition_3,
+            // right
+            ...boxPosition_2,
+            ...boxPosition_3,
+            ...boxPosition_4,
+            ...boxPosition_5,
+            // back
+            ...boxPosition_4,
+            ...boxPosition_5,
+            ...boxPosition_6,
+            ...boxPosition_7,
+            // left
+            ...boxPosition_6,
+            ...boxPosition_7,
+            ...boxPosition_0,
+            ...boxPosition_1,
+            // top
+            ...boxPosition_6,
+            ...boxPosition_0,
+            ...boxPosition_4,
+            ...boxPosition_2,
+            // bottom
+            ...boxPosition_1,
+            ...boxPosition_7,
+            ...boxPosition_3,
+            ...boxPosition_5,
+        ];
 
         const normals = [
             [0, 0, 1], // front
@@ -159,38 +202,7 @@ export class BoxGeometry extends Geometry {
                 // -----------------------------
                 new Attribute({
                     name: AttributeNames.Position,
-                    data: new Float32Array([
-                        // front
-                        ...boxPosition_0,
-                        ...boxPosition_1,
-                        ...boxPosition_2,
-                        ...boxPosition_3,
-                        // right
-                        ...boxPosition_2,
-                        ...boxPosition_3,
-                        ...boxPosition_4,
-                        ...boxPosition_5,
-                        // back
-                        ...boxPosition_4,
-                        ...boxPosition_5,
-                        ...boxPosition_6,
-                        ...boxPosition_7,
-                        // left
-                        ...boxPosition_6,
-                        ...boxPosition_7,
-                        ...boxPosition_0,
-                        ...boxPosition_1,
-                        // top
-                        ...boxPosition_6,
-                        ...boxPosition_0,
-                        ...boxPosition_4,
-                        ...boxPosition_2,
-                        // bottom
-                        ...boxPosition_1,
-                        ...boxPosition_7,
-                        ...boxPosition_3,
-                        ...boxPosition_5,
-                    ]),
+                    data: new Float32Array(localPositions),
                     size: 3,
                 }),
                 new Attribute({
@@ -214,5 +226,25 @@ export class BoxGeometry extends Geometry {
                 .flat(),
             drawCount: 6 * 6, // indices count
         });
+
+        this.cornerPositions = [
+            boxPosition_0,
+            boxPosition_1,
+            boxPosition_2,
+            boxPosition_3,
+            boxPosition_4,
+            boxPosition_5,
+            boxPosition_6,
+            boxPosition_7,
+        ];
+    }
+
+    getRandomLocalPositionOnEdge(): Vector3 {
+        const edgeIndex = Math.floor(Math.random() * edgePairs.length);
+        const edgePair = edgePairs[edgeIndex];
+        const p0 = this.cornerPositions[edgePair[0]];
+        const p1 = this.cornerPositions[edgePair[1]];
+        const t = Math.random();
+        return Vector3.lerpVectors(new Vector3(p0[0], p0[1], p0[2]), new Vector3(p1[0], p1[1], p1[2]), t);
     }
 }

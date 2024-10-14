@@ -220,8 +220,8 @@ export class Actor {
         if (this._onPostProcessTimeline) {
             this._onPostProcessTimeline(timelineTime);
         }
-        // this.components.forEach((component) => {
-        //     component.processTimeline?.(timelineTime, timelinePrevTime, timelineDeltaTime);
-        // });
+        this.components.forEach((component) => {
+            component.postProcessTimeline?.(this, timelineTime);
+        });
     }
 }

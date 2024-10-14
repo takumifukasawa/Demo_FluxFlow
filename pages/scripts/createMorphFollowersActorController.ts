@@ -47,15 +47,16 @@ export type TransformFeedbackAttractMode =
 
 export type MorphFollowersActorController = {
     getActor: () => Mesh;
+    updateBuffers: () => void;
     addInstance: () => void;
     activateInstance: () => void;
     setInstancePosition: (index: number, p: Vector3) => void;
+    setInstanceVelocity: (index: number, v: Vector3) => void;
     setInstanceMorphRate: (index: number, morphRate: number) => void;
-    setInstanceAttractorTarget: (index: number, actor: Actor) => void;
+    setInstanceAttractorTarget: (index: number, actor: Actor | null) => void;
     setInstanceAttractTargetPosition: (index: number, p: Vector3) => void;
     setInstanceNum: (instanceNum: number) => void;
     getCurrentTransformFeedbackState: (index: number) => number[];
-    // updateTransformFeedBackState: (index: number, values: { seed?: number; attractType?: number }) => number[];
 };
 
 const createInstanceUpdater = ({
@@ -223,15 +224,15 @@ export const createMorphFollowersActor = ({
         rotation: number[][];
         velocity: number[][];
         color: number[][];
-        states: number[][]; // [morphRate, 0, 0, 0]
-        transformFeedbackStates: number[][]; // [seed, attractType, 0, 0]
+        instanceStates: number[][]; // [morphRate, 0, 0, 0]
+        transformFeedbackStates: number[][]; // [seed, attractType, morphRate, 0]
     } = {
         position: [],
         scale: [],
         rotation: [],
         velocity: [],
         color: [],
-        states: [],
+        instanceStates: [],
         transformFeedbackStates: [],
     };
 
@@ -262,7 +263,7 @@ export const createMorphFollowersActor = ({
         tmpInstanceInfo.color.push([...c.elements]);
 
         // states
-        tmpInstanceInfo.states.push([1, 0, 0, 0]);
+        tmpInstanceInfo.instanceStates.push([1, 0, 0, 0]);
 
         tmpInstanceInfo.transformFeedbackStates.push([i, 0, 0, 0]);
     });
@@ -273,7 +274,7 @@ export const createMorphFollowersActor = ({
         rotation: Float32Array;
         velocity: Float32Array;
         color: Float32Array;
-        states: Float32Array;
+        instanceStates: Float32Array;
         transformFeedbackStates: Float32Array;
         attractType: FollowerAttractMode[];
         attractorTarget: (Actor | null)[];
@@ -285,7 +286,7 @@ export const createMorphFollowersActor = ({
         rotation: new Float32Array(tmpInstanceInfo.rotation.flat()),
         velocity: new Float32Array(tmpInstanceInfo.velocity.flat()),
         color: new Float32Array(tmpInstanceInfo.color.flat()),
-        states: new Float32Array(tmpInstanceInfo.states.flat()),
+        instanceStates: new Float32Array(tmpInstanceInfo.instanceStates.flat()),
         transformFeedbackStates: new Float32Array(tmpInstanceInfo.transformFeedbackStates.flat()),
         attractType: maton.range(MAX_INSTANCE_NUM).map(() => FollowerAttractMode.None),
         attractorTarget: maton.range(MAX_INSTANCE_NUM).map(() => null),
@@ -345,7 +346,7 @@ export const createMorphFollowersActor = ({
     mesh.geometry.setAttribute(
         new Attribute({
             name: AttributeNames.InstanceState,
-            data: instancingInfo.states,
+            data: instancingInfo.instanceStates,
             size: 4,
             divisor: 1,
         })
@@ -370,7 +371,7 @@ export const createMorphFollowersActor = ({
             index,
             p.elements
         );
-        
+
         // TODO: attractTypeを更新する
     };
 
@@ -388,12 +389,14 @@ export const createMorphFollowersActor = ({
 
     const setInstanceMorphRate = (index: number, morphRate: number) => {
         // js側のデータとbufferのデータを更新
-        instancingInfo.states[index * 4 + 0] = morphRate;
+        instancingInfo.instanceStates[index * 4 + 0] = morphRate;
         mesh.geometry.vertexArrayObject.updateBufferSubData(
             AttributeNames.InstanceState,
             index,
             new Float32Array([morphRate, 0, 0, 0])
         );
+
+        setTransformFeedBackState(index, { morphRate });
     };
 
     const setInstanceAttractorTarget = (index: number, actor: Actor | null) => {
@@ -403,18 +406,20 @@ export const createMorphFollowersActor = ({
 
     const getCurrentTransformFeedbackState = (index: number) => {
         const seed = instancingInfo.transformFeedbackStates[index * 4 + 0];
+        const morphRate = instancingInfo.transformFeedbackStates[index * 4 + 2];
 
         const attractType = 1;
         instancingInfo.transformFeedbackStates[index * 4 + 1] = attractType; // attract enabled
 
-        return [seed, attractType, 0, 0];
+        return [seed, attractType, morphRate, 0];
     };
 
-    const updateTransformFeedBackState = (
+    const setTransformFeedBackState = (
         index: number,
         values: {
             seed?: number;
             attractType?: TransformFeedbackAttractMode;
+            morphRate?: number;
         }
     ) => {
         if (values.seed !== undefined) {
@@ -423,11 +428,14 @@ export const createMorphFollowersActor = ({
         if (values.attractType !== undefined) {
             instancingInfo.transformFeedbackStates[index * 4 + 1] = values.attractType;
         }
+        if (values.morphRate !== undefined) {
+            instancingInfo.transformFeedbackStates[index * 4 + 2] = values.morphRate;
+        }
 
         const data = [
             instancingInfo.transformFeedbackStates[index * 4 + 0],
             instancingInfo.transformFeedbackStates[index * 4 + 1],
-            0,
+            instancingInfo.transformFeedbackStates[index * 4 + 2],
             0,
         ];
 
@@ -462,7 +470,7 @@ export const createMorphFollowersActor = ({
 
         const [seed, , ,] = getCurrentTransformFeedbackState(index);
 
-        const newState = updateTransformFeedBackState(index, {
+        const newState = setTransformFeedBackState(index, {
             seed,
             attractType: TransformFeedbackAttractMode.Attract,
         });
@@ -471,7 +479,7 @@ export const createMorphFollowersActor = ({
         instancingInfo.transformFeedbackStates[index * 4 + 1] = newState[1];
         instancingInfo.transformFeedbackStates[index * 4 + 2] = newState[2];
         instancingInfo.transformFeedbackStates[index * 4 + 3] = newState[3];
-        
+
         transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
             TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
             index,
@@ -518,27 +526,39 @@ export const createMorphFollowersActor = ({
 
     // for debug
 
-    // 増やすテスト
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'a') {
-            instancingInfo.instanceNum++;
-            instancingInfo.instanceNum %= MAX_INSTANCE_NUM;
-        }
-    });
+    // // 増やすテスト
+    // window.addEventListener('keydown', (e) => {
+    //     if (e.key === 'a') {
+    //         instancingInfo.instanceNum++;
+    //         instancingInfo.instanceNum %= MAX_INSTANCE_NUM;
+    //     }
+    // });
 
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'j') {
-            // for(let i = 0; i < )
-            setInstanceAttractTargetPosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0));
+    // window.addEventListener('keydown', (e) => {
+    //     if (e.key === 'j') {
+    //         // for(let i = 0; i < )
+    //         setInstanceAttractTargetPosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0)// );
+    //     }
+    // });
+    // window.addEventListener('keydown', (e) => {
+    //     if (e.key === 'v') {
+    //         setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0));
+    //         // setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5, // Math.random() * 5 - 2.5));
+    //         setInstanceVelocity(0, new Vector3(0, 0.1, 0));
+    //     }
+    // });
+
+    const updateBuffers = () => {
+        for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
+            const attractTarget = instancingInfo.attractorTarget[i];
+            if (attractTarget != null) {
+                setInstanceAttractTargetPosition(i, attractTarget.transform.position);
+                setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+            }
         }
-    });
-    window.addEventListener('keydown', (e) => {
-        if (e.key === 'v') {
-            setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0));
-            // setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5, Math.random() * 5 - 2.5));
-            setInstanceVelocity(0, new Vector3(0, 0.1, 0));
-        }
-    });
+
+        // TODO: 全部setbufferしちゃう
+    };
 
     mesh.onUpdate = () => {
         // tmp
@@ -611,11 +631,13 @@ export const createMorphFollowersActor = ({
         addInstance: () => {},
         activateInstance: () => {},
         setInstancePosition,
+        setInstanceVelocity,
         setInstanceMorphRate,
         setInstanceAttractorTarget,
         setInstanceAttractTargetPosition,
         setInstanceNum,
         getCurrentTransformFeedbackState,
+        updateBuffers,
         // updateTransformFeedBackState,
     };
 };

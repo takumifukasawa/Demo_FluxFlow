@@ -1236,23 +1236,25 @@ vec2 mainSound(float time) {
     // 2 measure = 4 sec
     // 64 measure = 128 sec
     // 72 measucre = 144 sec 
-    
+   
+    // intro
+    // 0 ~ 8
 
     // melody A_1
-    if(0. <= measure && measure < 8.) {
+    if(8. <= measure && measure < 16.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
             ;
     // melody A_2
-    } else if(8. <= measure && measure < 16.) {
+    } else if(8. <= measure && measure < 24.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
             + hihat1BaseLoopSeq(beat, time)
             ;
     // melody A_3
-    } else if(16. <= measure && measure < 24.) {
+    } else if(24. <= measure && measure < 32.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
@@ -1261,14 +1263,14 @@ vec2 mainSound(float time) {
             + kickSeqBase(beat, time);
             ;
     // melody B_1
-    } else if(24. <= measure && measure < 32.) {
+    } else if(32. <= measure && measure < 40.) {
         sound +=
             0.
             + bassLowSeqBase(beat, time)
             + arpBaseLoopSeqBase(beat, time)
             ;
     // melody B_2
-    } else if(32. <= measure && measure < 40.) {
+    } else if(40. <= measure && measure < 48.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
@@ -1276,7 +1278,7 @@ vec2 mainSound(float time) {
             + hihat1BaseLoopSeq(beat, time)
             ;
     // melody hook_1
-    } else if(40. <= measure && measure < 48.) {
+    } else if(48. <= measure && measure < 56.) {
         sound +=
             0.
             + epianoHarmonySeqHook(beat, time)
@@ -1284,7 +1286,7 @@ vec2 mainSound(float time) {
             // + arpBaseLoopSeqBase(beat, time)
             ;
     // melody hook_2
-    } else if(48. <= measure && measure < 56.) {
+    } else if(56. <= measure && measure < 64.) {
         sound +=
             0.
             + epianoHarmonySeqHook(beat, time)
@@ -1295,7 +1297,7 @@ vec2 mainSound(float time) {
             // + arpBaseLoopSeqBase(beat, time)
             ;
     // melody outro
-    } else if(56. <= measure && measure < 64.) {
+    } else if(64. <= measure && measure < 72.) {
         sound *= (1. - smoothstep(71., 72., measure));
         sound +=
             0.
