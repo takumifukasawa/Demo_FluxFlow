@@ -7,9 +7,10 @@ import { DEG_TO_RAD, FaceSide, UniformTypes } from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
-import { MorphFollowersActorController } from './createMorphFollowersActorController.ts';
-import { lerp } from '@/PaleGL/utilities/mathUtilities.ts';
-import { isSequencePhase1, isSequencePhase2, phase1NormalizedRate, phase2NormalizedRate } from './demoSequencer.ts';
+import { FollowerAttractMode, MorphFollowersActorController } from './createMorphFollowersActorController.ts';
+import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
+import { Scene } from '@/PaleGL/core/Scene.ts';
+// import { isSequencePhase1, phase1NormalizedRate } from './demoSequencer.ts';
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
@@ -20,8 +21,49 @@ const METABALL_NUM = 16;
 const UNIFORM_NAME_METABALL_CENTER_POSITION = 'uCP';
 const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
 
+// [startTime, duration, mode?]
+type TimeStampedOccurrenceSequence = [number, number, FollowerAttractMode?];
+
+const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
+    [0, 4],
+    [4, 2, FollowerAttractMode.Position],
+    [8, 2, FollowerAttractMode.Position],
+    [16, 2, FollowerAttractMode.Position],
+    [24, 2, FollowerAttractMode.Position],
+];
+
+type OccurrenceSequenceData = {
+    index: number;
+    startTime: number;
+    duration: number;
+    rate: number;
+    instanceNumStart: number;
+    instanceNum: number;
+};
+
+function findOccurrenceSequenceData(time: number): OccurrenceSequenceData | null {
+    for (let index = 0; index < occurrenceSequenceTimestamps.length; index++) {
+        const startTime = occurrenceSequenceTimestamps[index][0];
+        const duration = occurrenceSequenceTimestamps[index][1];
+        if (startTime <= time && time < startTime + duration) {
+            const rate = (time - startTime) / duration;
+            const instanceNum = 16 * index;
+            return {
+                index,
+                startTime,
+                duration,
+                rate,
+                instanceNumStart: instanceNum - 16,
+                instanceNum,
+            };
+        }
+    }
+    return null;
+}
+
 export function createOriginForgeActorController(
     gpu: GPU,
+    scene: Scene,
     morphFollowersActor: MorphFollowersActorController
 ): OriginForgeActorController {
     // let childPositionRadius = 0;
@@ -104,32 +146,100 @@ export function createOriginForgeActorController(
         return p;
     };
 
-    mesh.onPostProcessTimeline = (time: number) => {
-        if (isSequencePhase1(time)) {
-            const r = phase1NormalizedRate(time);
-            const instancePositions = calcPhase1InstancePositions(r, false);
-            for (let i = 0; i < METABALL_NUM; i++) {
-                morphFollowersActor.setInstancePosition(i, Vector3.zero);
-                morphFollowersActor.setInstanceMorphRate(i, 0);
-            }
+    let followTargetA: Actor | null;
+
+    const childOccurrenceSequence = (data: OccurrenceSequenceData) => {
+        if (!followTargetA) {
+            followTargetA = scene.find('F_A');
+        }
+
+        const rawRate = data.rate;
+        let rate: number;
+        // console.log(data);
+        // console.log(data);
+        if (rawRate < 0.5) {
+            // 0~0.5 -> 0~1
+            // 中央から出現するフェーズ
+            rate = saturate(rawRate * 2);
+            const instancePositions = calcPhase1InstancePositions(rate, false);
+            // for (let i = 0; i < METABALL_NUM; i++) {
+            //     morphFollowersActor.setInstancePosition(i, Vector3.zero);
+            //     morphFollowersActor.setInstanceMorphRate(i, 0);
+            // }
+            morphFollowersActor.setInstanceNum(data.instanceNumStart);
+
+            // const phase1InstancePositions = calcPhase1InstancePositions(1, true);
             metaballPositions = instancePositions;
             mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
-            return;
-        }
-        if (isSequencePhase2(time)) {
-            const r = phase2NormalizedRate(time);
+        } else {
+            // 0.5~1 -> 0~1
+            // 発生したインスタンスが移動場所を決めるフェーズ
+            rate = saturate((rawRate - 0.5) * 2);
             const phase1InstancePositions = calcPhase1InstancePositions(1, true);
             for (let i = 0; i < METABALL_NUM; i++) {
-                const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, r);
-                morphFollowersActor.setInstancePosition(i, v);
-                morphFollowersActor.setInstanceMorphRate(i, r);
+                const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, rate);
+                const si = data.instanceNumStart + i;
+                // morphFollowersActor.setInstancePosition(si, v);
+                morphFollowersActor.setInstanceAttractPosition(si, v);
+                morphFollowersActor.setInstanceMorphRate(si, rate);
             }
-            metaballPositions = maton.range(METABALL_NUM, true).map(() => {
-                return new Vector3(0, 0, 0);
-            });
-            mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
-            return;
+            morphFollowersActor.setInstanceNum(data.instanceNum);
+
+            hideMetaballChildren();
         }
+        return;
+    };
+
+    const hideMetaballChildren = () => {
+        metaballPositions = maton.range(METABALL_NUM, true).map(() => {
+            return new Vector3(0, 0, 0);
+        });
+        mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+    };
+
+    mesh.onPostProcessTimeline = (time: number) => {
+        const sequenceData = findOccurrenceSequenceData(time);
+        if (sequenceData) {
+            if (sequenceData.index === 0) {
+                morphFollowersActor.setInstanceNum(0);
+                hideMetaballChildren();
+            } else {
+                childOccurrenceSequence(sequenceData);
+                // morphFollowersActor.setInstanceNum(sequenceData.instanceNum);
+            }
+        } else {
+            hideMetaballChildren();
+        }
+
+        // tmp2
+        // if (isSequencePhase1(time)) {
+        //     const rate = phase1NormalizedRate(time);
+        //     childOccurrenceSequence(rate)
+        // }
+
+        // tmp1
+        // if (isSequencePhase1(time)) {
+        //     const r = phase1NormalizedRate(time);
+        //     const instancePositions = calcPhase1InstancePositions(r, false);
+        //     for (let i = 0; i < METABALL_NUM; i++) {
+        //         morphFollowersActor.setInstancePosition(i, Vector3.zero);
+        //         morphFollowersActor.setInstanceMorphRate(i, 0);
+        //     }
+        //     metaballPositions = instancePositions;
+        //     mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+        //     return;
+        // }
+        // if (isSequencePhase2(time)) {
+        //     const r = phase2NormalizedRate(time);
+        //     const phase1InstancePositions = calcPhase1InstancePositions(1, true);
+        //     for (let i = 0; i < METABALL_NUM; i++) {
+        //         const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, r);
+        //         morphFollowersActor.setInstancePosition(i, v);
+        //         morphFollowersActor.setInstanceMorphRate(i, r);
+        //     }
+        //     hideMetaballChildren()
+        //     return;
+        // }
     };
 
     // const setMetaballPosition = (index: number) => {

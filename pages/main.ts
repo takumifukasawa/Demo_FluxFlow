@@ -478,7 +478,7 @@ const load = async () => {
     // origin forge actor object
     //
 
-    originForgeActorController = createOriginForgeActorController(gpu, morphFollowersActorController);
+    originForgeActorController = createOriginForgeActorController(gpu, captureScene, morphFollowersActorController);
     captureScene.add(originForgeActorController.getActor());
     // originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
 

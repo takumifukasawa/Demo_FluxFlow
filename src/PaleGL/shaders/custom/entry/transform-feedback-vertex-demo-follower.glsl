@@ -5,14 +5,16 @@ precision highp float;
 // TODO: ここ動的に構築してもいい
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec3 aVelocity;
-layout(location = 2) in vec3 aAttractTargetPosition;
-layout(location = 3) in vec4 aState; // [seed, attractEnabled, morphRate]
+layout(location = 2) in vec3 aAttractTargetPosition; // uniformにする方がいいか？
+layout(location = 3) in vec4 aState; // [seed, attractType]
 
 #include ../../partial/uniform-block-common.glsl
 
 out vec3 vPosition;
 // out mat4 vTransform;
 out vec3 vVelocity;
+
+// uniform vec3 aAttractTargetPosition;
 
 // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
 float noise(vec2 seed)
@@ -23,8 +25,10 @@ float noise(vec2 seed)
 void main() {
     // stateを分割
     float seed = aState.x;
-    float attractEnabled = aState.y;
-    float morphRate = aState.z;
+    // 0: none
+    // 1: position
+    // 2: attract
+    float attractType = aState.y;
    
     vPosition = aPosition + aVelocity;
     
@@ -59,5 +63,6 @@ void main() {
 
     // attract: 簡易版
     vVelocity = diffP * uDeltaTime;
+    // TODO: stateによってはvelocityを適用する
     vVelocity = vec3(0.);
 }

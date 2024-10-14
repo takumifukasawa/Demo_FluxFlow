@@ -13,6 +13,7 @@ import { Color } from '@/PaleGL/math/Color.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
+import { Actor } from '@/PaleGL/actors/Actor.ts';
 
 const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 1;
@@ -29,22 +30,36 @@ const ATTRIBUTE_STATE_NAME = 'aState';
 //     Line: 3,
 // } as const;
 
+export const FollowerAttractMode = {
+    None: 0,
+    Position: 1,
+    Attractor: 2,
+} as const;
+export type FollowerAttractMode = (typeof FollowerAttractMode)[keyof typeof FollowerAttractMode];
+
 export type MorphFollowersActorController = {
     getActor: () => Mesh;
     addInstance: () => void;
     activateInstance: () => void;
     setInstancePosition: (index: number, p: Vector3) => void;
     setInstanceMorphRate: (index: number, morphRate: number) => void;
+    setInstanceAttractorTarget: (index: number, actor: Actor) => void;
+    setInstanceAttractPosition: (index: number, p: Vector3) => void;
+    setInstanceNum: (instanceNum: number) => void;
+    getCurrentTransformFeedbackState: (index: number) => number[];
+    updateTransformFeedBackState: (index: number, values: { seed?: number; attractType?: number }) => void;
 };
 
 const createInstanceUpdater = ({
     gpu,
     renderer,
     instanceNum,
+    initialTransformFeedbackStates,
 }: {
     gpu: GPU;
     renderer: Renderer;
     instanceNum: number;
+    initialTransformFeedbackStates: number[][];
 }) => {
     //
     // begin create mesh
@@ -56,12 +71,8 @@ const createInstanceUpdater = ({
         maton
             .range(instanceNum)
             .map(() => {
-                const range = 10;
-                return [
-                    Math.random() * range - range * 0.5,
-                    Math.random() * 4 + 2,
-                    Math.random() * range - range * 0.5,
-                ];
+                const range = 10000;
+                return [range, range, range];
             })
             .flat()
     );
@@ -80,16 +91,6 @@ const createInstanceUpdater = ({
             .range(instanceNum)
             .map(() => {
                 return [0, 0, 0];
-            })
-            .flat()
-    );
-
-    // 要素: [seed(=instanceId), attractEnabled, morphRate, 0]
-    const initialState = new Float32Array(
-        maton
-            .range(instanceNum, true)
-            .map((i) => {
-                return [i, 0, 0, 0];
             })
             .flat()
     );
@@ -117,7 +118,7 @@ const createInstanceUpdater = ({
             }),
             new Attribute({
                 name: ATTRIBUTE_STATE_NAME,
-                data: initialState,
+                data: new Float32Array(initialTransformFeedbackStates.flat()),
                 size: 4,
                 usageType: AttributeUsageType.DynamicDraw,
             }),
@@ -215,6 +216,7 @@ export const createMorphFollowersActor = ({
         velocity: number[][];
         color: number[][];
         states: number[][]; // [morphRate, 0, 0, 0]
+        transformFeedbackStates: number[][]; // [seed, attractType, 0, 0]
     } = {
         position: [],
         scale: [],
@@ -222,9 +224,10 @@ export const createMorphFollowersActor = ({
         velocity: [],
         color: [],
         states: [],
+        transformFeedbackStates: [],
     };
 
-    maton.range(MAX_INSTANCE_NUM).forEach(() => {
+    maton.range(MAX_INSTANCE_NUM, true).forEach((i) => {
         // position
         tmpInstanceInfo.position.push([0, 0, 0]);
 
@@ -252,6 +255,8 @@ export const createMorphFollowersActor = ({
 
         // states
         tmpInstanceInfo.states.push([1, 0, 0, 0]);
+
+        tmpInstanceInfo.transformFeedbackStates.push([i, 0, 0, 0]);
     });
 
     const instancingInfo: {
@@ -261,6 +266,10 @@ export const createMorphFollowersActor = ({
         velocity: Float32Array;
         color: Float32Array;
         states: Float32Array;
+        transformFeedbackStates: Float32Array;
+        attractType: FollowerAttractMode[];
+        attractorTarget: (Actor | null)[];
+        attractPosition: Float32Array;
         instanceNum: number;
     } = {
         position: new Float32Array(tmpInstanceInfo.position.flat()),
@@ -269,9 +278,18 @@ export const createMorphFollowersActor = ({
         velocity: new Float32Array(tmpInstanceInfo.velocity.flat()),
         color: new Float32Array(tmpInstanceInfo.color.flat()),
         states: new Float32Array(tmpInstanceInfo.states.flat()),
+        transformFeedbackStates: new Float32Array(tmpInstanceInfo.transformFeedbackStates.flat()),
+        attractType: maton.range(MAX_INSTANCE_NUM).map(() => FollowerAttractMode.None),
+        attractorTarget: maton.range(MAX_INSTANCE_NUM).map(() => null),
+        attractPosition: new Float32Array(
+            maton
+                .range(MAX_INSTANCE_NUM)
+                .map(() => [0, 0, 0])
+                .flat()
+        ),
         instanceNum,
     };
-    
+
     mesh.castShadow = true;
     mesh.geometry.instanceCount = instancingInfo.instanceNum;
 
@@ -325,13 +343,14 @@ export const createMorphFollowersActor = ({
         })
     );
 
-    const transformFeedbackDoubleBuffer = createInstanceUpdater({ gpu, renderer, instanceNum: MAX_INSTANCE_NUM });
+    const transformFeedbackDoubleBuffer = createInstanceUpdater({
+        gpu,
+        renderer,
+        instanceNum: MAX_INSTANCE_NUM,
+        initialTransformFeedbackStates: tmpInstanceInfo.transformFeedbackStates,
+    });
 
     // let needsJumpPosition: boolean = false;
-
-    // const setNeedsJumpPosition = (needsJump: boolean) => {
-    //     needsJumpPosition = needsJump;
-    // }
 
     const setInstancePosition = (index: number, p: Vector3) => {
         // js側のデータとbufferのデータを更新
@@ -364,6 +383,78 @@ export const createMorphFollowersActor = ({
         );
     };
 
+    const setInstanceAttractorTarget = (index: number, actor: Actor | null) => {
+        instancingInfo.attractType[index] = FollowerAttractMode.Attractor;
+        instancingInfo.attractorTarget[index] = actor;
+    };
+
+    const getCurrentTransformFeedbackState = (index: number) => {
+        const seed = instancingInfo.transformFeedbackStates[index * 4 + 0];
+
+        const attractType = 1;
+        instancingInfo.transformFeedbackStates[index * 4 + 1] = attractType; // attract enabled
+
+        return [seed, attractType, 0, 0];
+    };
+
+    const updateTransformFeedBackState = (index: number, values: { seed?: number; attractType?: number }) => {
+        if (values.seed !== undefined) {
+            instancingInfo.transformFeedbackStates[index * 4 + 0] = values.seed;
+        }
+        if (values.attractType !== undefined) {
+            instancingInfo.transformFeedbackStates[index * 4 + 1] = values.attractType;
+        }
+        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+            ATTRIBUTE_STATE_NAME,
+            index,
+            new Float32Array([
+                instancingInfo.transformFeedbackStates[index * 4 + 0],
+                instancingInfo.transformFeedbackStates[index * 4 + 1],
+                0,
+                0,
+            ])
+        );
+    };
+
+    const setInstanceAttractPosition = (index: number, p: Vector3) => {
+        instancingInfo.attractType[index] = FollowerAttractMode.Position;
+
+        instancingInfo.attractPosition[index * 3] = p.x;
+        instancingInfo.attractPosition[index * 3 + 1] = p.y;
+        instancingInfo.attractPosition[index * 3 + 2] = p.z;
+        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+            ATTRIBUTE_POSITION_NAME,
+            index,
+            p.elements
+        );
+
+        // transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+        //     ATTRIBUTE_ATTRACT_TARGET_NAME,
+        //     index,
+        //     p.elements
+        // );
+
+        // const [seed, attractType] = getCurrentTransformFeedbackState(index);
+        // 
+        // updateTransformFeedBackState(index, {
+        //     attractType: 1,
+        // });
+
+        // instancingInfo.transformFeedbackStates[index * 4 + 1] = attractType; // attract enabled
+
+        // const newState = [seed, attractType, 0, 0];
+        // transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+        //     ATTRIBUTE_STATE_NAME,
+        //     index,
+        //     new Float32Array(newState)
+        // );
+    };
+    
+    const setInstanceNum = (instanceNum: number) => {
+        instancingInfo.instanceNum = instanceNum;
+        mesh.geometry.instanceCount = instanceNum;
+    };
+
     // const updateInstanceState = (index: number, values: { seed?: number; attractEnabled?: boolean }) => {
     //     const { seed, attractEnabled } = values;
     //     const elementSize = 4;
@@ -393,6 +484,8 @@ export const createMorphFollowersActor = ({
     //         p.elements
     //     );
     // }
+
+    // let needsUpdate = false;
 
     // for debug
 
@@ -478,11 +571,11 @@ export const createMorphFollowersActor = ({
         // needsJumpPosition = false;
     };
 
-    mesh.onProcessPropertyBinder = (key: string, value: number) => {
-        if (key === 'ic') {
-            instancingInfo.instanceNum = Math.floor(value);
-        }
-    };
+    // mesh.onProcessPropertyBinder = (key: string, value: number) => {
+    //     if (key === 'ic') {
+    //         instancingInfo.instanceNum = Math.floor(value);
+    //     }
+    // };
 
     return {
         getActor: () => mesh,
@@ -490,5 +583,10 @@ export const createMorphFollowersActor = ({
         activateInstance: () => {},
         setInstancePosition,
         setInstanceMorphRate,
+        setInstanceAttractorTarget,
+        setInstanceAttractPosition,
+        setInstanceNum,
+        getCurrentTransformFeedbackState,
+        updateTransformFeedBackState
     };
 };
