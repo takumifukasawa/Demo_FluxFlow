@@ -3,7 +3,7 @@ import { DebuggerGUI } from '@/DebuggerGUI.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { GLSLSound } from '@/PaleGL/core/GLSLSound.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
-import {OrbitCameraController} from "@/PaleGL/core/OrbitCameraController.ts";
+import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
 
 export function initDebugger({
     bufferVisualizerPass,
@@ -82,12 +82,12 @@ export function initDebugger({
         initialValue: bufferVisualizerPass.parameters.enabled,
         onChange: (value) => {
             bufferVisualizerPass.parameters.enabled = value;
-            if(value) {
+            if (value) {
                 bufferVisualizerPass.showDom();
             } else {
                 bufferVisualizerPass.hideDom();
             }
-        }
+        },
     });
 
     //
@@ -101,14 +101,13 @@ export function initDebugger({
         initialValue: orbitCameraController.enabledUpdateCamera,
         onChange: (value) => {
             // TODO: enabledになったときはその位置でorbit controlsしたいよね
-            if(value) {
+            if (value) {
                 orbitCameraController.enabledUpdateCamera = true;
             } else {
                 orbitCameraController.enabledUpdateCamera = false;
             }
-        }
+        },
     });
-
 
     // bufferVisualizerPass.beforeRender = () => {
     //     bufferVisualizerPass.material.uniforms.setValue(
@@ -336,7 +335,6 @@ export function initDebugger({
         },
     });
 
-
     debuggerGUI.addBorderSpacer();
 
     const fogDebuggerGroup = debuggerGUI.addGroup('fog');
@@ -347,16 +345,24 @@ export function initDebugger({
     //     onChange: (value) => (renderer.lightShaftPass.enabled = value),
     // });
 
-    // fogDebuggerGroup.addSliderDebugger({
-    //     label: 'strength',
-    //     minValue: 0,
-    //     maxValue: 0.2,
-    //     stepValue: 0.0001,
-    //     initialValue: renderer.fogPass.fogStrength,
-    //     onChange: (value) => {
-    //         renderer.fogPass.fogStrength = value;
-    //     },
-    // });
+    fogDebuggerGroup.addColorDebugger({
+        label: 'fog color',
+        initialValue: renderer.fogPass.parameters.fogColor.getHexCoord(),
+        onChange: (value) => {
+            renderer.fogPass.parameters.fogColor = Color.fromHex(value);
+        },
+    });
+
+    fogDebuggerGroup.addSliderDebugger({
+        label: 'strength',
+        minValue: 0,
+        maxValue: 0.2,
+        stepValue: 0.0001,
+        initialValue: renderer.fogPass.parameters.fogStrength,
+        onChange: (value) => {
+            renderer.fogPass.parameters.fogStrength = value;
+        },
+    });
 
     fogDebuggerGroup.addSliderDebugger({
         label: 'density',
@@ -380,16 +386,51 @@ export function initDebugger({
         },
     });
 
-    // fogDebuggerGroup.addSliderDebugger({
-    //     label: 'fog end height',
-    //     minValue: -5,
-    //     maxValue: 5,
-    //     stepValue: 0.0001,
-    //     initialValue: renderer.fogPass.fogEndHeight,
-    //     onChange: (value) => {
-    //         renderer.fogPass.fogEndHeight = value;
-    //     },
-    // });
+    fogDebuggerGroup.addSliderDebugger({
+        label: 'fog end height',
+        minValue: -5,
+        maxValue: 5,
+        stepValue: 0.0001,
+        initialValue: renderer.fogPass.parameters.fogEndHeight,
+        onChange: (value) => {
+            renderer.fogPass.parameters.fogEndHeight = value;
+        },
+    });
+
+    fogDebuggerGroup.addSliderDebugger({
+        label: 'distance fog start',
+        minValue: 0,
+        maxValue: 100,
+        stepValue: 0.0001,
+        initialValue: renderer.fogPass.parameters.distanceFogPower,
+        onChange: (value) => {
+            renderer.fogPass.parameters.distanceFogStart = value;
+        },
+    });
+    
+    fogDebuggerGroup.addSliderDebugger({
+        label: 'distance fog power',
+        minValue: 0,
+        maxValue: 0.2,
+        stepValue: 0.0001,
+        initialValue: renderer.fogPass.parameters.distanceFogPower,
+        onChange: (value) => {
+            renderer.fogPass.parameters.distanceFogPower = value;
+        },
+    });
+    
+    fogDebuggerGroup.addSliderDebugger({
+        label: 'blend rate',
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.0001,
+        initialValue: renderer.fogPass.parameters.blendRate,
+        onChange: (value) => {
+            renderer.fogPass.parameters.blendRate = value;
+        },
+    });
+
+
 
     //
     // depth of field
@@ -482,6 +523,73 @@ export function initDebugger({
         initialValue: renderer.bloomPass.parameters.tone,
         onChange: (value) => {
             renderer.bloomPass.parameters.tone = value;
+        },
+    });
+
+    //
+    // streak debuggers
+    //
+
+    debuggerGUI.addBorderSpacer();
+
+    const streakDebuggerGroup = debuggerGUI.addGroup('streak', false);
+
+    streakDebuggerGroup.addSliderDebugger({
+        label: 'threshold',
+        minValue: 0,
+        maxValue: 4,
+        stepValue: 0.001,
+        initialValue: renderer.streakPass.parameters.threshold,
+        onChange: (value) => {
+            renderer.streakPass.parameters.threshold = value;
+        },
+    });
+    streakDebuggerGroup.addSliderDebugger({
+        label: 'vertical scale',
+        minValue: 0,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: renderer.streakPass.parameters.verticalScale,
+        onChange: (value) => {
+            renderer.streakPass.parameters.verticalScale = value;
+        },
+    });
+    streakDebuggerGroup.addSliderDebugger({
+        label: 'horizontal scale',
+        minValue: 0,
+        maxValue: 2,
+        stepValue: 0.001,
+        initialValue: renderer.streakPass.parameters.horizontalScale,
+        onChange: (value) => {
+            renderer.streakPass.parameters.horizontalScale = value;
+        },
+    });
+
+    streakDebuggerGroup.addSliderDebugger({
+        label: 'stretch',
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        initialValue: renderer.streakPass.parameters.stretch,
+        onChange: (value) => {
+            renderer.streakPass.parameters.stretch = value;
+        },
+    });
+    streakDebuggerGroup.addColorDebugger({
+        label: 'color',
+        initialValue: renderer.streakPass.parameters.color.getHexCoord(),
+        onChange: (value) => {
+            renderer.streakPass.parameters.color = Color.fromHex(value);
+        },
+    });
+    streakDebuggerGroup.addSliderDebugger({
+        label: 'intensity',
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        initialValue: renderer.streakPass.parameters.intensity,
+        onChange: (value) => {
+            renderer.streakPass.parameters.intensity = value;
         },
     });
 

@@ -223,6 +223,7 @@ export const AttributeNames = {
     InstanceAnimationOffset: 'aInstanceAnimationOffset',
     InstanceVertexColor: 'aInstanceVertexColor',
     InstanceVelocity: 'aInstanceVelocity',
+    InstanceState: 'aInstanceState'
 } as const;
 
 export type AttributeName = (typeof AttributeNames)[keyof typeof AttributeNames];

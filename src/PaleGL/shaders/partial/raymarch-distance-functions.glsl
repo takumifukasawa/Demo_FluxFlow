@@ -63,6 +63,7 @@ float opSm( float d1, float d2, float k )
 // distance functions
 //
 
+// radius ... 半径
 float dfSp(vec3 p, float radius) {
     return length(p) - radius;
 }
@@ -223,14 +224,23 @@ vec2 opFlower(vec3 p) {
     return res;
 }
 
+//
+// CUSTOM
 // しょうがないのでここでいろいろ宣言する
+//
+
 #define BN 16
+#define CS .25
 uniform vec3 uCP;
 uniform vec3 uBPs[BN];
 float dfMB(vec3 p, float d) {
     for(int i = 0; i < BN; i++) {
-        float s = dfSp(opTranslate(p, uBPs[i].xyz), .25);
-        d = opSm(d, s, .5);
+        float cd = dfSp(opTranslate(p, uBPs[i].xyz), CS);
+        d = opSm(d, cd, .25);
     }
     return d;
+}
+
+vec2 opMo(vec2 d1, vec2 d2, float rate) {
+    return mix(d1, d2, rate);
 }

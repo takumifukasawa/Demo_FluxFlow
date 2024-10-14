@@ -132,7 +132,7 @@ function buildPostProcessVolumeActor({
  */
 export function buildMarionetterScene(
     gpu: GPU,
-    marionetterScene: MarionetterScene,
+    marionetterScene: MarionetterScene
     // placedScene: Scene
 ): MarionetterSceneStructure {
     const actors: Actor[] = [];
@@ -252,8 +252,8 @@ export function buildMarionetterScene(
             // others
             actor = new Actor({ name });
         }
-        
-        console.log(actor)
+
+        console.log(actor);
 
         //
         // component関連
@@ -346,7 +346,7 @@ export function buildMarionetterScene(
     //
     const marionetterTimeline = buildMarionetterTimelineFromScene(
         marionetterScene,
-        actors,
+        actors
         // placedScene
     );
 
@@ -355,16 +355,16 @@ export function buildMarionetterScene(
 
 export function buildMarionetterTimelineFromScene(
     marionetterScene: MarionetterScene,
-    marionetterSceneActors: Actor[],
+    marionetterSceneActors: Actor[]
     // placedScene: Scene
-) {
+): MarionetterTimeline | null {
     let marionetterTimeline: MarionetterTimeline | null = null;
     marionetterScene.o.forEach((obj) => {
         const timelineComponent = obj.co.find((c) => c.t === MarionetterComponentType.PlayableDirector);
         if (timelineComponent) {
             marionetterTimeline = buildMarionetterTimeline(
                 marionetterSceneActors,
-                timelineComponent as MarionetterPlayableDirectorComponentInfo,
+                timelineComponent as MarionetterPlayableDirectorComponentInfo
                 // placedScene
                 // needsSomeActorsConvertLeftHandAxisToRightHandAxis
             );

@@ -7,16 +7,18 @@ export type ComponentFixedUpdateArgs = { actor: Actor; gpu: GPU; fixedTime: numb
 export type ComponentUpdateArgs = { actor: Actor; gpu: GPU; time: number; deltaTime: number };
 export type ComponentLastUpdateArgs = { actor: Actor; gpu: GPU; time: number; deltaTime: number };
 
-type OnStartCallback = (args: { scene: Scene, actor: Actor; gpu: GPU }) => void;
+type OnStartCallback = (args: { scene: Scene; actor: Actor; gpu: GPU }) => void;
 type OnFixedUpdateCallback = (args: { actor: Actor; gpu: GPU; fixedTime: number; fixedDeltaTime: number }) => void;
 type OnUpdateCallback = (args: { actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
 type OnLastUpdateCallback = (args: { actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
+type OnProcessPropertyBinderCallback = (key: string, value: number) => void;
 
 export type Component = {
     start: (args: ComponentStartArgs) => void;
     fixedUpdate: (args: ComponentFixedUpdateArgs) => void;
     update: (args: ComponentUpdateArgs) => void;
     lastUpdate: (args: ComponentLastUpdateArgs) => void;
+    processPropertyBinder?: (key: string, value: number) => void;
 };
 
 export type ComponentArgs = {
@@ -24,10 +26,12 @@ export type ComponentArgs = {
     onUpdateCallback?: OnUpdateCallback;
     onFixedUpdateCallback?: OnFixedUpdateCallback;
     onLastUpdateCallback?: OnLastUpdateCallback;
+    onProcessPropertyBinder?: OnProcessPropertyBinderCallback;
 };
 
 export function createComponent(args: ComponentArgs): Component {
-    const { onStartCallback, onFixedUpdateCallback, onUpdateCallback, onLastUpdateCallback } = args;
+    const { onStartCallback, onFixedUpdateCallback, onUpdateCallback, onLastUpdateCallback, onProcessPropertyBinder } =
+        args;
 
     const start = (args: ComponentStartArgs) => {
         if (onStartCallback) {
@@ -53,10 +57,17 @@ export function createComponent(args: ComponentArgs): Component {
         }
     };
 
+    const processPropertyBinder = (key: string, value: number) => {
+        if (onProcessPropertyBinder) {
+            onProcessPropertyBinder(key, value);
+        }
+    };
+
     return {
         start,
         fixedUpdate,
         update,
         lastUpdate,
+        processPropertyBinder,
     };
 }

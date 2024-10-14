@@ -65,6 +65,7 @@ import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
 import { BloomPassParameters } from '@/PaleGL/postprocess/BloomPass.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import { ObjectMoveAndLookAtController } from '@/PaleGL/components/objectMoveAndLookAtController.ts';
+import { isTimeInClip } from '@/Marionetter/timelineUtilities.ts';
 
 // import { resolveInvertRotationLeftHandAxisToRightHandAxis } from '@/Marionetter/buildMarionetterScene.ts';
 
@@ -74,7 +75,7 @@ import { ObjectMoveAndLookAtController } from '@/PaleGL/components/objectMoveAnd
  */
 export function buildMarionetterTimeline(
     marionetterActors: Actor[],
-    marionetterPlayableDirectorComponentInfo: MarionetterPlayableDirectorComponentInfo,
+    marionetterPlayableDirectorComponentInfo: MarionetterPlayableDirectorComponentInfo
     // placedScene: Scene
     // needsSomeActorsConvertLeftHandAxisToRightHandAxis = false
 ): MarionetterTimeline {
@@ -145,11 +146,22 @@ export function buildMarionetterTimeline(
                 execute: (args: MarionetterTimelineTrackExecuteArgs) => {
                     targetActors.forEach((targetActor) => {
                         const { time, scene } = args;
+                        const clipAtTime = marionetterClips.find(
+                            // (clip) => clip.clipInfo.s <= time && time < clip.clipInfo.s + clip.clipInfo.d
+                            (clip) => isTimeInClip(time, clip.clipInfo.s, clip.clipInfo.s + clip.clipInfo.d)
+                        );
+
+                        // NOTE: 渡されるtimeそのものがframeTimeになった
+                        // const frameTime = time % marionetterPlayableDirectorComponentInfo.d;
+
+                        // まずactorのprocessTimelineを実行
+                        targetActor?.preProcessTimeline(time);
+
                         if (track.t === MarionetterTrackInfoType.ActivationControlTrack) {
                             if (targetActor != null) {
-                                const clipAtTime = marionetterClips.find(
-                                    (clip) => clip.clipInfo.s < time && time < clip.clipInfo.s + clip.clipInfo.d
-                                );
+                                // const clipAtTime = marionetterClips.find(
+                                //     (clip) => clip.clipInfo.s < time && time < clip.clipInfo.s + clip.clipInfo.d
+                                // );
                                 if (clipAtTime) {
                                     targetActor.enabled = true;
                                 } else {
@@ -158,11 +170,16 @@ export function buildMarionetterTimeline(
                             }
                         } else {
                             if (targetActor != null) {
-                                for (let j = 0; j < marionetterClips.length; j++) {
-                                    marionetterClips[j].execute({ actor: targetActor, time, scene });
-                                }
+                                // // tmp
+                                // for (let j = 0; j < marionetterClips.length; j++) {
+                                //     marionetterClips[j].execute({ actor: targetActor, time, scene });
+                                // }
+                                clipAtTime?.execute({ actor: targetActor, time, scene });
                             }
                         }
+
+                        // clipの実行後にupdate
+                        targetActor?.postProcessTimeline(time);
                     });
                 },
             } as MarionetterTimelineDefaultTrack;
@@ -352,6 +369,8 @@ function createMarionetterAnimationClip(
 
         if (hasLocalScale) {
             actor.transform.scale.copy(localScale);
+        } else {
+            actor.transform.scale.copy(Vector3.one);
         }
 
         // TODO: なぜか一回行列に落とさないとうまく動かない. まわりくどいかつ余計な計算が走るが
@@ -366,17 +385,15 @@ function createMarionetterAnimationClip(
             actor.transform.rotation = new Rotator(
                 actor.type === ActorTypes.Light && (actor as Light).lightType === LightTypes.Spot ? q.invertAxis() : q
             );
+        } else {
+            actor.transform.rotation = Rotator.fromQuaternion(Quaternion.identity());
         }
 
         if (hasLocalPosition) {
             // localPosition.z *= -1;
             actor.transform.position.copy(localPosition);
-        }
-
-        if (actor.name === 'Leader') {
-            console.log(actor, localPosition);
-            actor.transform.position.log();
-            localPosition.log();
+        } else {
+            actor.transform.position.copy(Vector3.zero);
         }
     };
 

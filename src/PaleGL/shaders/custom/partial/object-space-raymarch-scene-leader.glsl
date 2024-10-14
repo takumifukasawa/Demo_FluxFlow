@@ -1,5 +1,6 @@
 vec2 dfScene(vec3 p) {
-    return dfSphere(p, .5);
+    vec2 butterflyR = opButterfly(p, 0.);
+    return butterflyR;
     
     // 全体のスケール調整
     p /= .5;

@@ -71,14 +71,19 @@ import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-1
 import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.json';
 */
 
-import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
+// import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
-import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
+// import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
 import { createLeaderActor, LeaderActor } from './scripts/createLeaderActor.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
 import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
+import {
+    createMorphFollowersActor,
+    MorphFollowersActorController,
+} from './scripts/createMorphFollowersActorController.ts';
+import { SOUND_DURATION } from './scripts/demoSequencer.ts';
 
 const stylesText = `
 :root {
@@ -196,7 +201,7 @@ if (!gl) {
 
 const gpu = new GPU({ gl });
 
-const glslSoundWrapper = initGLSLSound(gpu, soundVertexShader, 144);
+const glslSoundWrapper = initGLSLSound(gpu, soundVertexShader, SOUND_DURATION);
 
 let currentTimeForTimeline = 0;
 
@@ -219,12 +224,10 @@ const marionetter: Marionetter = createMarionetter({
 
 const captureScene = new Scene();
 
-const pixelRatio = Math.min(window.devicePixelRatio, 1.5);
-
 const renderer = new Renderer({
     gpu,
     canvas: canvasElement,
-    pixelRatio,
+    pixelRatio: Math.min(window.devicePixelRatio, 1),
 });
 
 const engine = new Engine({ gpu, renderer, updateFps: 60 });
@@ -368,6 +371,7 @@ const initHotReloadAndParseScene = () => {
                     sceneJson,
                     marionetterSceneStructure.actors
                 );
+                marionetterSceneStructure.marionetterTimeline?.bindActors(captureScene.children);
             }
         });
     };
@@ -419,7 +423,9 @@ const hideStartupWrapper = () => {
 };
 
 let leaderActor: LeaderActor;
-let metaMorphActor: ObjectSpaceRaymarchMesh;
+// let subLeaderActor: LeaderActor;
+let morphFollowersActorController: MorphFollowersActorController;
+// let metaMorphActor: ObjectSpaceRaymarchMesh;
 let originForgeActorController: OriginForgeActorController;
 
 let screenSpaceRaymarchMesh: Mesh;
@@ -439,7 +445,7 @@ const load = async () => {
     console.log('====== main ======');
     console.log(import.meta.env);
     console.log(sceneJsonUrl);
-    
+
     //
     // meta morph actor object
     //
@@ -447,22 +453,32 @@ const load = async () => {
     leaderActor = createLeaderActor(gpu);
     captureScene.add(leaderActor.getActor());
 
+    //subLeaderActor = createLeaderActor(gpu);
+    //captureScene.add(subLeaderActor.getActor());
+
+    //
+    // morph follower actor controller
+    //
+
+    morphFollowersActorController = createMorphFollowersActor({ gpu, renderer });
+    captureScene.add(morphFollowersActorController.getActor());
+
     //
     // meta morph actor object
     //
 
-    metaMorphActor = createMetaMorphActor({
-        gpu,
-        renderer,
-        // instanceNum: 12,
-    });
-    captureScene.add(metaMorphActor);
+    // metaMorphActor = createMetaMorphActor({
+    //     gpu,
+    //     renderer,
+    //     // instanceNum: 12,
+    // });
+    // captureScene.add(metaMorphActor);
 
     //
     // origin forge actor object
     //
 
-    originForgeActorController = createOriginForgeActorController(gpu);
+    originForgeActorController = createOriginForgeActorController(gpu, morphFollowersActorController);
     captureScene.add(originForgeActorController.getActor());
     // originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
 
@@ -533,16 +549,15 @@ const load = async () => {
         initMarionetter();
         initHotReloadAndParseScene();
     }
-    
+
     //
     // events
     //
 
-
     // TODO: engine側に移譲したい
     const onWindowResize = () => {
-        width = wrapperElement.offsetWidth;
-        height = wrapperElement.offsetHeight;
+        width = Math.floor(wrapperElement.offsetWidth);
+        height = Math.floor(wrapperElement.offsetHeight);
         inputController.setSize(width, height);
         engine.setSize(width, height);
     };
@@ -554,9 +569,7 @@ const load = async () => {
 
     engine.onBeforeUpdate = () => {
         inputController.update();
-    };
 
-    engine.onRender = (time, deltaTime) => {
         // pattern_1: timeがRAFからわたってくる場合
         // if (marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
         //     // TODO: prodの時はこっちを使いたい
@@ -578,12 +591,18 @@ const load = async () => {
                 // console.log(`[main] time: ${currentTimeForTimeline}`);
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
             }
+            const snapToStep = (v: number, s: number) => Math.floor(v / s) * s;
+            const s = snapToStep(currentTimeForTimeline, 1 / 60);
+            // console.log('hogehoge', s);
             marionetterSceneStructure.marionetterTimeline.execute({
-                time: currentTimeForTimeline,
+                time: s,
                 scene: captureScene,
             });
-            originForgeActorController.updateSequence(currentTimeForTimeline);
+            // originForgeActorController.updateSequence(currentTimeForTimeline);
         }
+    };
+
+    engine.onRender = (time, deltaTime) => {
         if (captureSceneCamera) {
             renderer.render(captureScene, captureSceneCamera, { time, deltaTime });
         }

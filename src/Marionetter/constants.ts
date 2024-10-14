@@ -77,7 +77,7 @@ export const PROPERTY_COLOR_A = NeedsShorten
 export type PROPERTY_COLOR_A = typeof PROPERTY_COLOR_A;
 
 export const PROPERTY_FIELD_OF_VIEW = NeedsShorten
-    ? 'field of view'
+    ? 'fov'
     : 'field of view' as const;
 export type PROPERTY_FIELD_OF_VIEW = typeof PROPERTY_FIELD_OF_VIEW;
 

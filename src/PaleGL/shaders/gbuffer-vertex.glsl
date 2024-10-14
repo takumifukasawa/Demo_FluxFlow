@@ -23,12 +23,12 @@ out mat4 vInverseWorldMatrix;
 
 #ifdef USE_INSTANCING
 out float vInstanceId;
+out vec4 vInstanceState;
 #endif
 
 #include ./partial/normal-map-vertex-varyings.glsl
 #include ./partial/receive-shadow-vertex-varyings.glsl
 #include ./partial/vertex-color-vertex-varyings.glsl
-
 
 // uniform mat4 uWorldMatrix;
 // uniform mat4 uViewMatrix;
@@ -176,7 +176,7 @@ void main() {
             
         );
     #endif
-    
+   
     #pragma INSTANCE_TRANSFORM_PRE_PROCESS
    
     // TODO: actor自体のworldMatirxは使わない方がいい
@@ -184,6 +184,8 @@ void main() {
     worldMatrix = uWorldMatrix * instanceTranslation * instanceRotation * instanceScaling;
     
     vInstanceId = float(gl_InstanceID);
+
+    vInstanceState = aInstanceState;
 #endif
 
     vec4 worldPosition = worldMatrix * localPosition;

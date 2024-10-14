@@ -1238,18 +1238,21 @@ vec2 mainSound(float time) {
     // 72 measucre = 144 sec 
     
 
-    if(8. <= measure && measure < 16.) {
+    // melody A_1
+    if(0. <= measure && measure < 8.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
             ;
-    } else if(16. <= measure && measure < 24.) {
+    // melody A_2
+    } else if(8. <= measure && measure < 16.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
             + hihat1BaseLoopSeq(beat, time)
             ;
-    } else if(24. <= measure && measure < 32.) {
+    // melody A_3
+    } else if(16. <= measure && measure < 24.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
@@ -1257,27 +1260,31 @@ vec2 mainSound(float time) {
             + snareFillIntroSeq(beat, time)
             + kickSeqBase(beat, time);
             ;
-    } else if(32. <= measure && measure < 40.) {
+    // melody B_1
+    } else if(24. <= measure && measure < 32.) {
         sound +=
             0.
             + bassLowSeqBase(beat, time)
             + arpBaseLoopSeqBase(beat, time)
             ;
-    } else if(40. <= measure && measure < 48.) {
+    // melody B_2
+    } else if(32. <= measure && measure < 40.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
             + bassHighSeqBase(beat, time)
             + hihat1BaseLoopSeq(beat, time)
             ;
-    } else if(48. <= measure && measure < 56.) {
+    // melody hook_1
+    } else if(40. <= measure && measure < 48.) {
         sound +=
             0.
             + epianoHarmonySeqHook(beat, time)
             + bassHighSeqBase(beat, time)
             // + arpBaseLoopSeqBase(beat, time)
             ;
-    } else if(56. <= measure && measure < 64.) {
+    // melody hook_2
+    } else if(48. <= measure && measure < 56.) {
         sound +=
             0.
             + epianoHarmonySeqHook(beat, time)
@@ -1287,7 +1294,8 @@ vec2 mainSound(float time) {
             + kickSeqBase(beat, time)
             // + arpBaseLoopSeqBase(beat, time)
             ;
-    } else if(64. <= measure && measure < 72.) {
+    // melody outro
+    } else if(56. <= measure && measure < 64.) {
         sound *= (1. - smoothstep(71., 72., measure));
         sound +=
             0.

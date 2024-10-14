@@ -22,7 +22,9 @@ type OnFixedUpdateCallback = (args: {
 }) => void;
 type OnUpdateCallback = (args: { scene: Scene; actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
 type OnLastUpdateCallback = (args: { scene: Scene; actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
-type OnProcessClipFrame = (key: string, value: number) => void;
+// type OnProcessClipFrame = (time: number, prevTime: number, deltaTime: number) => void;
+type OnProcessPropertyBinder = (key: string, value: number) => void;
+type OnProcessTimeline = (timelineTime: number) => void;
 
 export type ActorArgs = { name?: string; type?: ActorType };
 
@@ -42,7 +44,10 @@ export class Actor {
     private _onFixedUpdate: OnFixedUpdateCallback | null = null;
     private _onUpdate: OnUpdateCallback | null = null;
     private _onLastUpdate: OnLastUpdateCallback | null = null;
-    private _onProcessPropertyBinder: OnProcessClipFrame | null = null;
+    // private _onProcessClipFrame: OnProcessPropertyBinder | null = null;
+    private _onProcessPropertyBinder: OnProcessPropertyBinder | null = null;
+    private _onPreProcessTimeline: OnProcessTimeline | null = null;
+    private _onPostProcessTimeline: OnProcessTimeline | null = null;
     private _enabled: boolean = true;
 
     get childCount() {
@@ -78,9 +83,17 @@ export class Actor {
     set onLastUpdate(value: OnLastUpdateCallback) {
         this._onLastUpdate = value;
     }
-    
-    set onProcessPropertyBinder(value: OnProcessClipFrame) {
+
+    set onProcessPropertyBinder(value: OnProcessPropertyBinder) {
         this._onProcessPropertyBinder = value;
+    }
+    
+    set onPreProcessTimeline(value: OnProcessTimeline) {
+        this._onPreProcessTimeline = value;
+    }
+    
+    set onPostProcessTimeline(value: OnProcessTimeline) {
+        this._onPostProcessTimeline = value;
     }
 
     constructor({ name = '', type = ActorTypes.Null }: ActorArgs = {}) {
@@ -174,6 +187,10 @@ export class Actor {
         }
     }
 
+    // updateTimeline(time: number, prevTime: number, deltaTime: number) {
+    //     if()
+    // }
+
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -185,5 +202,26 @@ export class Actor {
         if (this._onProcessPropertyBinder) {
             this._onProcessPropertyBinder(key, value);
         }
+        this.components.forEach((component) => {
+            component.processPropertyBinder?.(key, value);
+        });
+    }
+
+    preProcessTimeline(timelineTime: number) {
+        if (this._onPreProcessTimeline) {
+            this._onPreProcessTimeline(timelineTime);
+        }
+        // this.components.forEach((component) => {
+        //     component.processTimeline?.(timelineTime, timelinePrevTime, timelineDeltaTime);
+        // });
+    }
+    
+    postProcessTimeline(timelineTime: number) {
+        if (this._onPostProcessTimeline) {
+            this._onPostProcessTimeline(timelineTime);
+        }
+        // this.components.forEach((component) => {
+        //     component.processTimeline?.(timelineTime, timelinePrevTime, timelineDeltaTime);
+        // });
     }
 }

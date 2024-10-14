@@ -10,6 +10,7 @@ precision highp float;
 
 #ifdef USE_INSTANCING
 in float vInstanceId;
+in vec4 vInstanceState;
 #endif
 
 #pragma BLOCK_BEFORE_RAYMARCH_CONTENT

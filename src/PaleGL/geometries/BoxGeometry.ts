@@ -117,6 +117,7 @@ export function createBoxGeometryData(size: number) {
 }
 
 export class BoxGeometry extends Geometry {
+    // size ... 1辺の長さ
     constructor({ gpu, size = 1 }: { gpu: GPU, size?: number }) {
         const s = size / 2;
         const boxPosition_0 = [-s, s, s];

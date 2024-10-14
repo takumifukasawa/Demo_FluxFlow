@@ -11,9 +11,10 @@ import { shaderMinifierPlugin } from './vite-shader-minifier-plugin';
 import * as process from 'process';
 import { transformGlslUnroll } from './vite-transform-glsl-unroll-plugin.ts';
 import { transformGlslLayout } from './vite-transform-glsl-layout-plugin.ts';
-import { transformExtractGlslRaymarchTemplate } from "./vite-extract-glsl-raymarch-template-plugin.ts";
+import { transformExtractGlslRaymarchTemplate } from './vite-extract-glsl-raymarch-template-plugin.ts';
 import { deleteTmpCachesPlugin } from './vite-delete-tmp-caches-plugin.ts';
 import { roundFloatPlugin } from './vite-round-float-plugin.ts';
+import { viteGlslShaderMinifierCustomNoRenamingList } from './vite-glsl-shader-minifier-custom-no-renaming-list.ts';
 
 type EntryPointInfo = { name: string; path: string };
 // type EntryPointInfo = { path: string };
@@ -144,24 +145,12 @@ export default defineConfig(async (config) => {
                 minify: isMinifyShader,
                 minifierOptions: {
                     preserveExternals: true,
-                    noRenamingList: [
-                        'main',
-                        'dfScene',
-                        // CUSTOM
-                        'dfSp',
-                        'dfMB',
-                        'opTr',
-                        'opSm',
-                        'opButterfly',
-                        'opFlower',
-                        'opWing',
-                        'uBPs'
-                    ],
-                    aggressiveInlining: false
+                    noRenamingList: ['main', 'dfScene', ...viteGlslShaderMinifierCustomNoRenamingList],
+                    aggressiveInlining: false,
                 },
             }),
             transformExtractGlslRaymarchTemplate({
-                extractEnabled: true
+                extractEnabled: true,
             }),
             roundFloatPlugin(),
             checker({
