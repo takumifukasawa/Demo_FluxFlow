@@ -152,8 +152,9 @@ export function createOriginForgeActorController(
         if (!followTargetA) {
             followTargetA = scene.find('F_A');
         }
-
+        
         const rawRate = data.rate;
+        
         let rate: number;
         // console.log(data);
         // console.log(data);
@@ -161,13 +162,18 @@ export function createOriginForgeActorController(
             // 0~0.5 -> 0~1
             // 中央から出現するフェーズ
             rate = saturate(rawRate * 2);
-            const instancePositions = calcPhase1InstancePositions(rate, false);
-            // for (let i = 0; i < METABALL_NUM; i++) {
-            //     morphFollowersActor.setInstancePosition(i, Vector3.zero);
-            //     morphFollowersActor.setInstanceMorphRate(i, 0);
-            // }
+            
+            // 発生前の段階では、metaballの位置と同期
+            const hiddenInstancePositions = calcPhase1InstancePositions(1, true);
+            for (let i = data.instanceNumStart; i < data.instanceNum; i++) {
+                const positionIndex = i - data.instanceNumStart;
+                const p = hiddenInstancePositions[positionIndex];
+                morphFollowersActor.setInstancePosition(i, p);
+                morphFollowersActor.setInstanceMorphRate(i, 0);
+            }
             morphFollowersActor.setInstanceNum(data.instanceNumStart);
 
+            const instancePositions = calcPhase1InstancePositions(rate, false);
             // const phase1InstancePositions = calcPhase1InstancePositions(1, true);
             metaballPositions = instancePositions;
             mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
@@ -175,12 +181,13 @@ export function createOriginForgeActorController(
             // 0.5~1 -> 0~1
             // 発生したインスタンスが移動場所を決めるフェーズ
             rate = saturate((rawRate - 0.5) * 2);
-            const phase1InstancePositions = calcPhase1InstancePositions(1, true);
+            // const phase1InstancePositions = calcPhase1InstancePositions(1, true);
             for (let i = 0; i < METABALL_NUM; i++) {
-                const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, rate);
+                // const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, rate);
+                const v = Vector3.zero;
                 const si = data.instanceNumStart + i;
-                morphFollowersActor.setInstancePosition(si, v);
-                // morphFollowersActor.setInstanceAttractTargetPosition(si, v);
+                // morphFollowersActor.setInstancePosition(si, v);
+                morphFollowersActor.setInstanceAttractTargetPosition(si, v);
                 morphFollowersActor.setInstanceMorphRate(si, rate);
             }
             morphFollowersActor.setInstanceNum(data.instanceNum);

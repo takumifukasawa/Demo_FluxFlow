@@ -30,9 +30,6 @@ void main() {
     // 2: attract
     float attractType = aState.y;
     
-    vPosition = aPosition;
-    vVelocity = vec3(0.);
-    return;
     
     // for debug
     // vPosition = aPosition;
@@ -47,6 +44,7 @@ void main() {
     // return;
     
     if(attractType < .5) {
+        vPosition = aPosition;
         vVelocity = vec3(0.);
         return;
     }
