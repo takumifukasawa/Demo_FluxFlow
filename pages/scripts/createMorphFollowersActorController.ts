@@ -18,10 +18,10 @@ import { Actor } from '@/PaleGL/actors/Actor.ts';
 const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 1;
 
-const ATTRIBUTE_POSITION_NAME = 'aPosition';
-const ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
-const ATTRIBUTE_ATTRACT_TARGET_NAME = 'aAttractTargetPosition';
-const ATTRIBUTE_STATE_NAME = 'aState';
+const TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME = 'aPosition';
+const TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
+const TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION = 'aAttractTargetPosition';
+const TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME = 'aState';
 
 // const attractTargetType = {
 //     Attractor: 0,
@@ -37,6 +37,14 @@ export const FollowerAttractMode = {
 } as const;
 export type FollowerAttractMode = (typeof FollowerAttractMode)[keyof typeof FollowerAttractMode];
 
+const TransformFeedbackAttractMode = {
+    None: 0,
+    Jump: 1,
+    Attract: 2,
+} as const;
+export type TransformFeedbackAttractMode =
+    (typeof TransformFeedbackAttractMode)[keyof typeof TransformFeedbackAttractMode];
+
 export type MorphFollowersActorController = {
     getActor: () => Mesh;
     addInstance: () => void;
@@ -44,10 +52,10 @@ export type MorphFollowersActorController = {
     setInstancePosition: (index: number, p: Vector3) => void;
     setInstanceMorphRate: (index: number, morphRate: number) => void;
     setInstanceAttractorTarget: (index: number, actor: Actor) => void;
-    setInstanceAttractPosition: (index: number, p: Vector3) => void;
+    setInstanceAttractTargetPosition: (index: number, p: Vector3) => void;
     setInstanceNum: (instanceNum: number) => void;
     getCurrentTransformFeedbackState: (index: number) => number[];
-    updateTransformFeedBackState: (index: number, values: { seed?: number; attractType?: number }) => void;
+    // updateTransformFeedBackState: (index: number, values: { seed?: number; attractType?: number }) => number[];
 };
 
 const createInstanceUpdater = ({
@@ -99,25 +107,25 @@ const createInstanceUpdater = ({
         gpu,
         attributes: [
             new Attribute({
-                name: ATTRIBUTE_POSITION_NAME,
+                name: TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME,
                 data: initialPosition,
                 size: 3,
                 usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
-                name: ATTRIBUTE_VELOCITY_NAME,
+                name: TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME,
                 data: initialVelocity,
                 size: 3,
                 usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
-                name: ATTRIBUTE_ATTRACT_TARGET_NAME,
+                name: TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
                 data: initialAttractTargetPosition,
                 size: 3,
                 usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
-                name: ATTRIBUTE_STATE_NAME,
+                name: TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
                 data: new Float32Array(initialTransformFeedbackStates.flat()),
                 size: 4,
                 usageType: AttributeUsageType.DynamicDraw,
@@ -357,7 +365,13 @@ export const createMorphFollowersActor = ({
         instancingInfo.position[index * 3] = p.x;
         instancingInfo.position[index * 3 + 1] = p.y;
         instancingInfo.position[index * 3 + 2] = p.z;
-        transformFeedbackDoubleBuffer.updateBufferSubData(ATTRIBUTE_POSITION_NAME, index, p.elements);
+        transformFeedbackDoubleBuffer.updateBufferSubData(
+            TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME,
+            index,
+            p.elements
+        );
+        
+        // TODO: attractTypeを更新する
     };
 
     const setInstanceVelocity = (index: number, v: Vector3) => {
@@ -365,12 +379,11 @@ export const createMorphFollowersActor = ({
         instancingInfo.velocity[index * 3] = v.x;
         instancingInfo.velocity[index * 3 + 1] = v.y;
         instancingInfo.velocity[index * 3 + 2] = v.z;
-        transformFeedbackDoubleBuffer.updateBufferSubData(ATTRIBUTE_VELOCITY_NAME, index, v.elements);
-    };
-
-    const setInstanceAttractTargetPosition = (index: number, p: Vector3) => {
-        // TODO: js側のデータとbufferのデータを更新
-        transformFeedbackDoubleBuffer.updateBufferSubData(ATTRIBUTE_ATTRACT_TARGET_NAME, index, p.elements);
+        transformFeedbackDoubleBuffer.updateBufferSubData(
+            TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME,
+            index,
+            v.elements
+        );
     };
 
     const setInstanceMorphRate = (index: number, morphRate: number) => {
@@ -397,59 +410,75 @@ export const createMorphFollowersActor = ({
         return [seed, attractType, 0, 0];
     };
 
-    const updateTransformFeedBackState = (index: number, values: { seed?: number; attractType?: number }) => {
+    const updateTransformFeedBackState = (
+        index: number,
+        values: {
+            seed?: number;
+            attractType?: TransformFeedbackAttractMode;
+        }
+    ) => {
         if (values.seed !== undefined) {
             instancingInfo.transformFeedbackStates[index * 4 + 0] = values.seed;
         }
         if (values.attractType !== undefined) {
             instancingInfo.transformFeedbackStates[index * 4 + 1] = values.attractType;
         }
+
+        const data = [
+            instancingInfo.transformFeedbackStates[index * 4 + 0],
+            instancingInfo.transformFeedbackStates[index * 4 + 1],
+            0,
+            0,
+        ];
+
         transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-            ATTRIBUTE_STATE_NAME,
+            TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
             index,
-            new Float32Array([
-                instancingInfo.transformFeedbackStates[index * 4 + 0],
-                instancingInfo.transformFeedbackStates[index * 4 + 1],
-                0,
-                0,
-            ])
+            new Float32Array(data)
         );
+
+        return data;
     };
 
-    const setInstanceAttractPosition = (index: number, p: Vector3) => {
-        instancingInfo.attractType[index] = FollowerAttractMode.Position;
+    const setInstanceAttractTargetPosition = (index: number, p: Vector3) => {
+        //
+        // transform feedback: 追従先の位置を更新
+        //
 
         instancingInfo.attractPosition[index * 3] = p.x;
         instancingInfo.attractPosition[index * 3 + 1] = p.y;
         instancingInfo.attractPosition[index * 3 + 2] = p.z;
         transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-            ATTRIBUTE_POSITION_NAME,
+            TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
             index,
             p.elements
         );
 
-        // transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-        //     ATTRIBUTE_ATTRACT_TARGET_NAME,
-        //     index,
-        //     p.elements
-        // );
+        //
+        // transform feedback: stateを更新
+        //
 
-        // const [seed, attractType] = getCurrentTransformFeedbackState(index);
-        // 
-        // updateTransformFeedBackState(index, {
-        //     attractType: 1,
-        // });
+        instancingInfo.attractType[index] = FollowerAttractMode.Position;
 
-        // instancingInfo.transformFeedbackStates[index * 4 + 1] = attractType; // attract enabled
+        const [seed, , ,] = getCurrentTransformFeedbackState(index);
 
-        // const newState = [seed, attractType, 0, 0];
-        // transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-        //     ATTRIBUTE_STATE_NAME,
-        //     index,
-        //     new Float32Array(newState)
-        // );
+        const newState = updateTransformFeedBackState(index, {
+            seed,
+            attractType: TransformFeedbackAttractMode.Attract,
+        });
+
+        instancingInfo.transformFeedbackStates[index * 4] = newState[0];
+        instancingInfo.transformFeedbackStates[index * 4 + 1] = newState[1];
+        instancingInfo.transformFeedbackStates[index * 4 + 2] = newState[2];
+        instancingInfo.transformFeedbackStates[index * 4 + 3] = newState[3];
+        
+        transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
+            TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
+            index,
+            new Float32Array(newState)
+        );
     };
-    
+
     const setInstanceNum = (instanceNum: number) => {
         instancingInfo.instanceNum = instanceNum;
         mesh.geometry.instanceCount = instanceNum;
@@ -460,7 +489,7 @@ export const createMorphFollowersActor = ({
     //     const elementSize = 4;
     //     // TODO: getBufferSubDataをせずに、js内でstate管理する
     //     const currentData = transformFeedbackDoubleBuffer.read.vertexArrayObject.getBufferSubData(
-    //         ATTRIBUTE_STATE_NAME,
+    //         TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
     //         index,
     //         elementSize
     //     );
@@ -471,7 +500,7 @@ export const createMorphFollowersActor = ({
     //     }
     //     const newStates = new Float32Array([newSeed, newAttractEnabled, 0, 0]);
     //     transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-    //         ATTRIBUTE_STATE_NAME,
+    //         TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
     //         index,
     //         newStates
     //     );
@@ -479,7 +508,7 @@ export const createMorphFollowersActor = ({
 
     // const setInstanceState = (index: number, state: number) => {
     //     transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-    //         ATTRIBUTE_ATTRACT_TARGET_NAME,
+    //         TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
     //         index,
     //         p.elements
     //     );
@@ -559,11 +588,11 @@ export const createMorphFollowersActor = ({
         // インスタンスのメッシュを更新
         mesh.geometry.vertexArrayObject.replaceBuffer(
             AttributeNames.InstancePosition,
-            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(ATTRIBUTE_POSITION_NAME)
+            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME)
         );
         mesh.geometry.vertexArrayObject.replaceBuffer(
             AttributeNames.InstanceVelocity,
-            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(ATTRIBUTE_VELOCITY_NAME)
+            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME)
         );
 
         mesh.geometry.instanceCount = instancingInfo.instanceNum;
@@ -584,9 +613,9 @@ export const createMorphFollowersActor = ({
         setInstancePosition,
         setInstanceMorphRate,
         setInstanceAttractorTarget,
-        setInstanceAttractPosition,
+        setInstanceAttractTargetPosition,
         setInstanceNum,
         getCurrentTransformFeedbackState,
-        updateTransformFeedBackState
+        // updateTransformFeedBackState,
     };
 };

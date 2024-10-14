@@ -179,8 +179,8 @@ export function createOriginForgeActorController(
             for (let i = 0; i < METABALL_NUM; i++) {
                 const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, rate);
                 const si = data.instanceNumStart + i;
-                // morphFollowersActor.setInstancePosition(si, v);
-                morphFollowersActor.setInstanceAttractPosition(si, v);
+                morphFollowersActor.setInstancePosition(si, v);
+                // morphFollowersActor.setInstanceAttractTargetPosition(si, v);
                 morphFollowersActor.setInstanceMorphRate(si, rate);
             }
             morphFollowersActor.setInstanceNum(data.instanceNum);
