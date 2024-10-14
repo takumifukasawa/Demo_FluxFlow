@@ -16,7 +16,9 @@ import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 
 const MAX_INSTANCE_NUM = 256;
-const INITIAL_INSTANCE_NUM = 1;
+const INITIAL_INSTANCE_NUM = 0;
+
+const FOLLOWER_ACTOR_NAME_A = 'F_A';
 
 const TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME = 'aPosition';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
@@ -183,8 +185,8 @@ const createInstanceUpdater = ({
 export const createMorphFollowersActor = ({
     gpu,
     renderer, // instanceNum,
-} // attractorActor,
-: {
+    // attractorActor,
+}: {
     gpu: GPU;
     renderer: Renderer;
     // instanceNum: number;
@@ -193,7 +195,7 @@ export const createMorphFollowersActor = ({
     const instanceNum = INITIAL_INSTANCE_NUM;
 
     const mesh = new ObjectSpaceRaymarchMesh({
-        name: 'Followers',
+        name: FOLLOWER_ACTOR_NAME_A,
         gpu,
         size: 1,
         fragmentShaderContent: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
@@ -621,9 +623,6 @@ export const createMorphFollowersActor = ({
     };
 
     // mesh.onProcessPropertyBinder = (key: string, value: number) => {
-    //     if (key === 'ic') {
-    //         instancingInfo.instanceNum = Math.floor(value);
-    //     }
     // };
 
     return {

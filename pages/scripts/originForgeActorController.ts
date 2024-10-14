@@ -7,7 +7,7 @@ import { DEG_TO_RAD, FaceSide, UniformTypes } from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
-import { FollowerAttractMode, MorphFollowersActorController } from './createMorphFollowersActorController.ts';
+import { MorphFollowersActorController } from './createMorphFollowersActorController.ts';
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
 import { Scene } from '@/PaleGL/core/Scene.ts';
 import { easeInOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
@@ -22,24 +22,16 @@ const METABALL_NUM = 16;
 const UNIFORM_NAME_METABALL_CENTER_POSITION = 'uCP';
 const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
 
-const FOLLOW_TARGET_OBJECT_NAME_A = 'F_A';
+const ORBIT_MOVER_NAME_A = 'O_A';
 
-// [startTime, duration, mode?]
-type TimeStampedOccurrenceSequence = [number, number, FollowerAttractMode?];
+// [startTime[sec], endTime[sec], targetFollowerName, instanceNum]
+type TimeStampedOccurrenceSequence = [number, number, string? ,number?];
 
 // 16回やりたいが・・・
 const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
-    [0, 4],
-    [4, 2],
-    [8, 2],
-    [16, 2],
-    [24, 2],
-    [32, 2],
-    [40, 2],
-    [48, 2],
-    [56, 2],
-    [64, 2],
-    [72, 2],
+    [0, 8], // なにもしない時間
+    [8, 16],
+    [16, 24],
 ];
 
 type OccurrenceSequenceData = {
@@ -54,7 +46,8 @@ type OccurrenceSequenceData = {
 function findOccurrenceSequenceData(time: number): OccurrenceSequenceData | null {
     for (let index = 0; index < occurrenceSequenceTimestamps.length; index++) {
         const startTime = occurrenceSequenceTimestamps[index][0];
-        const duration = occurrenceSequenceTimestamps[index][1];
+        const endTime = occurrenceSequenceTimestamps[index][1];
+        const duration = endTime - startTime;
         if (startTime <= time && time < startTime + duration) {
             const rate = (time - startTime) / duration;
             const instanceNum = 16 * index;
@@ -79,6 +72,7 @@ export function createOriginForgeActorController(
     // let childPositionRadius = 0;
 
     let followTargetA: Actor | null;
+    // let occuranceRadius = 2;
 
     let metaballPositions = maton.range(METABALL_NUM).map(() => {
         return new Vector3(0, 0, 0);
@@ -113,20 +107,10 @@ export function createOriginForgeActorController(
         castShadow: true,
     });
 
-    // mesh.transform.scale.set(4, 4, 4);
-
-    // mesh.onUpdate = () => {
-    //     const dist = 2;
-    //     metaballPositions = maton.range(METABALL_NUM, true).map((i) => {
-    //         const pd = 360 / METABALL_NUM;
-    //         const rad = i * pd * DEG_TO_RAD;
-    //         const x = Math.cos(rad) * dist;
-    //         const z = Math.sin(rad) * dist;
-    //         const v = new Vector3(x, 0, z);
-    //         return v;
-    //     });
-    //     mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
-    // };
+    mesh.subscribeOnStart(() => {
+        followTargetA = scene.find(ORBIT_MOVER_NAME_A);
+        followTargetA?.addComponent(createOrbitMoverBinder());
+    });
 
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
         if (key === 'cpr') {
@@ -139,16 +123,13 @@ export function createOriginForgeActorController(
                 return v;
             });
             mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+            return;
         }
-        // if(key === 'ic') {
-        //     mesh.geometry.instanceCount = value;
+        // if(key === "or") {
+        //     occuranceRadius = value;
+        //     return;
         // }
     };
-
-    mesh.subscribeOnStart(() => {
-        followTargetA = scene.find(FOLLOW_TARGET_OBJECT_NAME_A);
-        followTargetA?.addComponent(createOrbitMoverBinder());
-    });
 
     const calcPhase1InstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
         const range = lerp(0, 2, r);

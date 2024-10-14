@@ -72,7 +72,6 @@ import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128
 */
 
 // import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
-import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 // import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
 import { createLeaderActor, LeaderActor } from './scripts/createLeaderActor.ts';
@@ -427,8 +426,6 @@ let leaderActor: LeaderActor;
 let morphFollowersActorController: MorphFollowersActorController;
 // let metaMorphActor: ObjectSpaceRaymarchMesh;
 let originForgeActorController: OriginForgeActorController;
-
-let screenSpaceRaymarchMesh: Mesh;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 const load = async () => {
