@@ -10,8 +10,7 @@ vec2 objectSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale) {
 
 vec2 blendSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale, float blendRate) {
     vec3 localPos = toLocal(worldPos, WtoO, scale);
-    // vec3 p = mix(localPos, worldPos, blendRate);
-    vec3 p = mix(localPos, worldPos, sin(uTime) * .5 + .5);
+    vec3 p = mix(localPos, worldPos, blendRate);
     return dfScene(p);
 }
 

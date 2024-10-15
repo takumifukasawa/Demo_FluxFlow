@@ -152,17 +152,6 @@ export function createOriginForgeActorController(
     const childOccurrenceSequence = (data: OccurrenceSequenceData) => {
         const rawRate = easeInOutQuad(data.rate);
 
-        const hiddenInstancePositions = calcPhase1InstancePositions(1, true);
-        for(let i = 0; i < 16; i++) {
-            morphFollowersActor.setInstancePosition(i, hiddenInstancePositions[i]);
-            morphFollowersActor.setInstanceVelocity(i, Vector3.zero);
-            morphFollowersActor.setInstanceMorphRate(i, 0);
-            morphFollowersActor.setInstanceNum(16);
-        }
-        
-        return;
-        
-
         let rate: number;
         // console.log(data);
         // console.log(data);

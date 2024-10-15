@@ -83,11 +83,8 @@ void main() {
     float minDistance = .0001;
     for(int i = 0; i < 64; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
-#ifdef USE_INSTANCING
-        distance = blendSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale, vInstanceState.x).x;
-#else
-        distance = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale).x;
-#endif
+        // distance = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale).x;
+        distance = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale).x;
         accLen += distance;
         if(
             // !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
