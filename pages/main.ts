@@ -80,6 +80,7 @@ import { createOriginForgeActorController, OriginForgeActorController } from './
 import { Color } from '@/PaleGL/math/Color.ts';
 import {
     createMorphFollowersActor,
+    FOLLOWER_ACTOR_NAME_A,
     MorphFollowersActorController,
 } from './scripts/createMorphFollowersActorController.ts';
 import { SOUND_DURATION } from './scripts/demoSequencer.ts';
@@ -457,7 +458,11 @@ const load = async () => {
     // morph follower actor controller
     //
 
-    morphFollowersActorController = createMorphFollowersActor({ gpu, renderer });
+    morphFollowersActorController = createMorphFollowersActor({
+        name: FOLLOWER_ACTOR_NAME_A,
+        gpu,
+        renderer,
+    });
     captureScene.add(morphFollowersActorController.getActor());
 
     //

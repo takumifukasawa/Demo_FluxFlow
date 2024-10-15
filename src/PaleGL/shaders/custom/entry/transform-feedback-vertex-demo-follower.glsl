@@ -4,7 +4,7 @@ precision highp float;
 
 // TODO: ここ動的に構築してもいい
 layout(location = 0) in vec3 aPosition;
-layout(location = 1) in vec3 aVelocity;
+layout(location = 1) in vec4 aVelocity; // [nx, ny, nz, length]
 layout(location = 2) in vec3 aAttractTargetPosition;// uniformにする方がいいか？
 layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, 0]
 
@@ -12,14 +12,30 @@ layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, 0]
 
 out vec3 vPosition;
 // out mat4 vTransform;
-out vec3 vVelocity;
+out vec4 vVelocity;
 
 // uniform vec3 aAttractTargetPosition;
+
+// v minmag
+#define VMM .0001
 
 // https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
 float noise(vec2 seed)
 {
     return fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec3 unpackVelocity(vec4 v) {
+    return v.xyz * max(v.w, VMM);
+}
+
+vec4 packVelocity(vec3 v) {
+    float mag = max(length(v), VMM);
+    if(mag <= VMM) {
+        return vec4(0., 0., 1., mag);
+    } else {
+        return vec4(normalize(v.xyz), mag);
+    }
 }
 
 void main() {
@@ -31,34 +47,28 @@ void main() {
     float attractType = aState.y;
     float morphRate = aState.z;
     
-    
-    // for debug
+    // // for debug
     // vPosition = aPosition;
-    // vPosition = vec3(2., 2., 0.);
-    
-    // if(attractType < .5) {
-    //     vPosition = vec3(2., 2., 0.);
-    //     // return;
-    // } else {
-    //     vPosition = vec3(2., 4., 0.);
-    // }
     // return;
+   
+    vec3 velocity = unpackVelocity(aVelocity);
+    float mag = length(velocity);
     
     if(attractType < .5) {
         vPosition = aPosition;
-        vVelocity = vec3(0.);
+        vVelocity = vec4(0., 0., 1., mag);
         return;
     }
 
     if (.5 < attractType && attractType < 1.5) {
     // 座標にすぐ移動する場合
         vPosition = aAttractTargetPosition;
-        vVelocity = vec3(0.);
+        vVelocity = vec4(0., 0., 1., mag);
         return;
     }
     
     if(1.5 < attractType && attractType < 2.5) {
-        vPosition = aPosition + aVelocity;
+        vPosition = aPosition + velocity;
 
         // vec3 target = uAttractTargetPosition;
         vec3 target = aAttractTargetPosition;
@@ -80,18 +90,22 @@ void main() {
         // vec3 vVelocity = newP - vPosition;
 
         // なにかをattractする場合
-        vVelocity = mix(
-            aVelocity,
+        velocity = mix(
+            velocity,
             mix(
-                aVelocity,
+                velocity,
                 diffDir * (.1 + morphRate * .1),
                 .03 + sin(uTime * .2 + rand * 100.) * .02
             ),
             morphRate
             // step(.5, attractEnabled)
         );
-
-        // attract: 簡易版
-        // vVelocity = diffP * uDeltaTime;
+      
+        vVelocity = packVelocity(velocity.xyz);
+        // vVelocity = vec4(0., 0., 1., .1);
+        
+        // // attract: 簡易版
+        // velocity = diffP * uDeltaTime;
+        // vVelocity = vec4(normalize(velocity.xyz), length(velocity));
     }
 }

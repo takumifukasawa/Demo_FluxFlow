@@ -64,6 +64,11 @@ function findOccurrenceSequenceData(time: number): OccurrenceSequenceData | null
     return null;
 }
 
+function isOverOccurrenceSequence(time: number): boolean {
+    // TODO: 不等号正しい？
+    return occurrenceSequenceTimestamps[occurrenceSequenceTimestamps.length - 1][1] <= time;
+}
+
 export function createOriginForgeActorController(
     gpu: GPU,
     scene: Scene,
@@ -214,8 +219,11 @@ export function createOriginForgeActorController(
         } else {
             hideMetaballChildren();
         }
+       
+        // TODO: followerごとに分けたくない？
+        morphFollowersActor.setControlled(isOverOccurrenceSequence(time));
 
-        morphFollowersActor.updateBuffers();
+        morphFollowersActor.updateStatesAndBuffers();
     };
 
     return {

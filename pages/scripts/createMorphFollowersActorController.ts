@@ -18,12 +18,24 @@ import { Actor } from '@/PaleGL/actors/Actor.ts';
 const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 0;
 
-const FOLLOWER_ACTOR_NAME_A = 'F_A';
+const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;
+const TRANSFORM_FEEDBACK_VELOCITY_ELEMENTS_NUM = 4;
+
+export const FOLLOWER_ACTOR_NAME_A = 'F_A';
 
 const TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME = 'aPosition';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION = 'aAttractTargetPosition';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME = 'aState';
+
+const shadersPair = [
+    // sp -> butterfly -> sp -> flower -> sp
+    {
+        fragment: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
+        depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent,
+    },
+];
+console.log(shadersPair);
 
 // const attractTargetType = {
 //     Attractor: 0,
@@ -32,13 +44,17 @@ const TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME = 'aState';
 //     Line: 3,
 // } as const;
 
-export const FollowerAttractMode = {
+// インスタンスごとの追従モード管理
+const FollowerAttractMode = {
     None: 0,
-    Position: 1,
-    Attractor: 2,
+    Attractor: 1,
+    Position: 2,
+    FollowCubeEdge: 3,
+    FollowSphereSurface: 4,
 } as const;
-export type FollowerAttractMode = (typeof FollowerAttractMode)[keyof typeof FollowerAttractMode];
+type FollowerAttractMode = (typeof FollowerAttractMode)[keyof typeof FollowerAttractMode];
 
+// transform feedback での位置計算をする際のモード
 const TransformFeedbackAttractMode = {
     None: 0,
     Jump: 1,
@@ -49,7 +65,7 @@ export type TransformFeedbackAttractMode =
 
 export type MorphFollowersActorController = {
     getActor: () => Mesh;
-    updateBuffers: () => void;
+    updateStatesAndBuffers: () => void;
     addInstance: () => void;
     activateInstance: () => void;
     setInstancePosition: (index: number, p: Vector3) => void;
@@ -59,6 +75,8 @@ export type MorphFollowersActorController = {
     setInstanceAttractTargetPosition: (index: number, p: Vector3) => void;
     setInstanceNum: (instanceNum: number) => void;
     getCurrentTransformFeedbackState: (index: number) => number[];
+    setControlled: (flag: boolean) => void;
+    isControlled: () => boolean;
 };
 
 const createInstanceUpdater = ({
@@ -92,7 +110,7 @@ const createInstanceUpdater = ({
         maton
             .range(instanceNum)
             .map(() => {
-                return [0, 0, 0];
+                return [0, 0, 1, 0];
             })
             .flat()
     );
@@ -118,7 +136,7 @@ const createInstanceUpdater = ({
             new Attribute({
                 name: TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME,
                 data: initialVelocity,
-                size: 3,
+                size: TRANSFORM_FEEDBACK_VELOCITY_ELEMENTS_NUM,
                 usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
@@ -183,10 +201,12 @@ const createInstanceUpdater = ({
 };
 
 export const createMorphFollowersActor = ({
+    name,
     gpu,
     renderer, // instanceNum,
-    // attractorActor,
-}: {
+} // attractorActor,
+: {
+    name: string;
     gpu: GPU;
     renderer: Renderer;
     // instanceNum: number;
@@ -195,7 +215,7 @@ export const createMorphFollowersActor = ({
     const instanceNum = INITIAL_INSTANCE_NUM;
 
     const mesh = new ObjectSpaceRaymarchMesh({
-        name: FOLLOWER_ACTOR_NAME_A,
+        name,
         gpu,
         size: 1,
         fragmentShaderContent: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
@@ -254,7 +274,7 @@ export const createMorphFollowersActor = ({
         tmpInstanceInfo.rotation.push([0, 0, 0]);
 
         // velocity
-        tmpInstanceInfo.velocity.push([0, 0, 0]);
+        tmpInstanceInfo.velocity.push([0, 0, 1, 0]);
 
         // color
         const c = Color.fromRGB(
@@ -341,7 +361,7 @@ export const createMorphFollowersActor = ({
         new Attribute({
             name: AttributeNames.InstanceVelocity,
             data: instancingInfo.velocity,
-            size: 3,
+            size: ATTRIBUTE_VELOCITY_ELEMENTS_NUM,
             divisor: 1,
         })
     );
@@ -378,14 +398,17 @@ export const createMorphFollowersActor = ({
     };
 
     const setInstanceVelocity = (index: number, v: Vector3) => {
+        const mag = v.magnitude;
+        const nv = v.normalize();
         // js側のデータとbufferのデータを更新
-        instancingInfo.velocity[index * 3] = v.x;
-        instancingInfo.velocity[index * 3 + 1] = v.y;
-        instancingInfo.velocity[index * 3 + 2] = v.z;
+        instancingInfo.velocity[index * ATTRIBUTE_VELOCITY_ELEMENTS_NUM] = nv.x;
+        instancingInfo.velocity[index * ATTRIBUTE_VELOCITY_ELEMENTS_NUM + 1] = nv.y;
+        instancingInfo.velocity[index * ATTRIBUTE_VELOCITY_ELEMENTS_NUM + 2] = nv.z;
+        instancingInfo.velocity[index * ATTRIBUTE_VELOCITY_ELEMENTS_NUM + 3] = mag;
         transformFeedbackDoubleBuffer.updateBufferSubData(
             TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME,
             index,
-            v.elements
+            new Float32Array([nv.x, nv.y, nv.z, mag])
         );
     };
 
@@ -408,10 +431,10 @@ export const createMorphFollowersActor = ({
 
     const getCurrentTransformFeedbackState = (index: number) => {
         const seed = instancingInfo.transformFeedbackStates[index * 4 + 0];
+        const attractType = instancingInfo.transformFeedbackStates[index * 4 + 1];
         const morphRate = instancingInfo.transformFeedbackStates[index * 4 + 2];
 
-        const attractType = 1;
-        instancingInfo.transformFeedbackStates[index * 4 + 1] = attractType; // attract enabled
+        // instancingInfo.transformFeedbackStates[index * 4 + 1] = attractType;
 
         return [seed, attractType, morphRate, 0];
     };
@@ -550,18 +573,24 @@ export const createMorphFollowersActor = ({
     //     }
     // });
 
-    const updateBuffers = () => {
+    let currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
+
+    const updateStatesAndBuffers = () => {
         for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
+            const attractType = instancingInfo.attractType[i];
             const attractTarget = instancingInfo.attractorTarget[i];
-            if (attractTarget != null) {
-                setInstanceAttractTargetPosition(i, attractTarget.transform.position);
+            if (attractType === FollowerAttractMode.Attractor) {
+                // if (attractTarget != null) {
+                setInstanceAttractTargetPosition(i, attractTarget!.transform.position);
                 setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
             }
         }
 
-        // TODO: 全部setbufferしちゃう
+        // TODO: 全部ここでsetbufferしちゃう？
     };
 
+    // transform feedback の更新とかをするだけ
+    // states準拠な更新をする
     mesh.onUpdate = () => {
         // tmp
         // for (let i = 0; i < instanceNum; i++) {
@@ -618,12 +647,16 @@ export const createMorphFollowersActor = ({
         );
 
         mesh.geometry.instanceCount = instancingInfo.instanceNum;
-
-        // needsJumpPosition = false;
     };
 
-    // mesh.onProcessPropertyBinder = (key: string, value: number) => {
-    // };
+    mesh.onProcessPropertyBinder = (key: string, value: number) => {
+        if (key === 'fm') {
+            currentFollowMode = value as FollowerAttractMode;
+            console.log(currentFollowMode);
+        }
+    };
+
+    let _isControlled = false;
 
     return {
         getActor: () => mesh,
@@ -636,7 +669,9 @@ export const createMorphFollowersActor = ({
         setInstanceAttractTargetPosition,
         setInstanceNum,
         getCurrentTransformFeedbackState,
-        updateBuffers,
+        updateStatesAndBuffers,
+        setControlled: (flag: boolean) => (_isControlled = flag),
+        isControlled: () => _isControlled,
         // updateTransformFeedBackState,
     };
 };

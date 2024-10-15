@@ -166,9 +166,9 @@ void main() {
         // pattern_1: 速度ベクトルを使って回転
         // instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
         // pattern_2: 速度ベクトルをnormalizeして使って回転
-        instanceRotation = getLookAtMat(aInstancePosition + normalize(aInstanceVelocity) * 1000., aInstancePosition);
-        // // pattern_3
-        // // for debug: 回転させない
+        instanceRotation = getLookAtMat(aInstancePosition + normalize(aInstanceVelocity.xyz) * 1000., aInstancePosition);
+        // pattern_3
+        // for debug: 回転させない
         // instanceRotation = mat4(
         //     1., 0., 0., 0.,
         //     0., 1., 0., 0.,
