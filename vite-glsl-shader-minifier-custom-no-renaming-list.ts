@@ -7,5 +7,6 @@ export const viteGlslShaderMinifierCustomNoRenamingList = [
     'opButterfly',
     'opFlower',
     'opWing',
+    'opDb',
     'uBPs', // いらない気がする
 ];

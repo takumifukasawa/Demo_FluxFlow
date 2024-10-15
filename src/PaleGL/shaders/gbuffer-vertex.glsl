@@ -163,18 +163,19 @@ void main() {
     // instanceごとのvelocityが必要なことに注意
     // TODO: 追従率をuniformで渡したい
     #ifdef USE_INSTANCE_LOOK_DIRECTION
-        // velocityはnormalizeした方がいいかも
+        // pattern_1: 速度ベクトルを使って回転
         // instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
+        // pattern_2: 速度ベクトルをnormalizeして使って回転
         instanceRotation = getLookAtMat(aInstancePosition + normalize(aInstanceVelocity) * 1000., aInstancePosition);
-        // instanceRotation = getLookAtMat(aInstancePosition + vec3(0., 10., 0.) * 1000., aInstancePosition);
-        // for debug
-        instanceRotation = mat4(
-            1., 0., 0., 0.,
-            0., 1., 0., 0.,
-            0., 0., 1., 0.,
-            0., 0., 0., 1.
-            
-        );
+        // // pattern_3
+        // // for debug: 回転させない
+        // instanceRotation = mat4(
+        //     1., 0., 0., 0.,
+        //     0., 1., 0., 0.,
+        //     0., 0., 1., 0.,
+        //     0., 0., 0., 1.
+        //     
+        // );
     #endif
    
     #pragma INSTANCE_TRANSFORM_PRE_PROCESS
