@@ -226,15 +226,15 @@ vec2 opFlower(vec3 p) {
 
 // 距離関数の5段階のblend
 float opDb(float x, float A, float B, float C, float D, float E) {
-    float AB = mix(A, B, smoothstep(0.0, 0.25, x));
-    float BC = mix(B, C, smoothstep(0.25, 0.5, x));
-    float CD = mix(C, D, smoothstep(0.5, 0.75, x));
-    float DE = mix(D, E, smoothstep(0.75, 1.0, x));
+    float AB = mix(A, B, smoothstep(0., .25, x));
+    float BC = mix(B, C, smoothstep(.25, .5, x));
+    float CD = mix(C, D, smoothstep(.5, .75, x));
+    float DE = mix(D, E, smoothstep(.75, 1., x));
     
-    float ABC = mix(AB, BC, smoothstep(0.25, 0.5, x));
-    float CDE = mix(CD, DE, smoothstep(0.5, 0.75, x));
+    float ABC = mix(AB, BC, smoothstep(.25, .5, x));
+    float CDE = mix(CD, DE, smoothstep(.5, .75, x));
 
-    return mix(ABC, CDE, smoothstep(0.5, 1.0, x));
+    return mix(ABC, CDE, smoothstep(.5, 1., x));
 }
 
 //
