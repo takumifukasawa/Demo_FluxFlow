@@ -25,7 +25,7 @@ const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
 const ORBIT_MOVER_NAME_A = 'O_A';
 
 // [startTime[sec], endTime[sec], targetFollowerName, instanceNum]
-type TimeStampedOccurrenceSequence = [number, number, string? ,number?];
+type TimeStampedOccurrenceSequence = [number, number, string?, number?];
 
 // 16回やりたいが・・・
 // [startTime[sec], endTime[sec]]
@@ -54,7 +54,7 @@ function findOccurrenceSequenceData(time: number): OccurrenceSequenceData | null
             const rate = (time - startTime) / duration;
             const instanceNum = 16 * index;
             const startIndex = instanceNum - 16;
-            const endIndex = startIndex + 16;
+            const endIndex = startIndex + 16 - 1;
             return {
                 index,
                 startTime,
@@ -156,10 +156,10 @@ export function createOriginForgeActorController(
 
     const childOccurrenceSequence = (data: OccurrenceSequenceData) => {
         const rawRate = easeInOutQuad(data.rate);
-
+        
         let rate: number;
         // console.log(data);
-        // console.log(data);
+        
         if (rawRate < 0.5) {
             // 0~0.5 -> 0~1
             // 中央から出現するフェーズ
@@ -168,9 +168,11 @@ export function createOriginForgeActorController(
             // 発生前の段階では、metaballの位置と同期
             // TODO: フレームが飛びまくるとおかしくなる可能性大なので、対象のinstance16子以外は常にmetaballと同期でもいい気がする
             const hiddenInstancePositions = calcEmitInstancePositions(1, true);
-            for(let i = 0; i < 256; i++) {
-                const isCurrentTarget = data.instanceNumStartIndex <= i && i < data.instanceNumEndIndex;
-                if(isCurrentTarget) {
+            for (let i = 0; i < morphFollowersActor.maxInstanceNum; i++) {
+                if (i < data.instanceNumStartIndex) {
+                    // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
+                } else if (i <= data.instanceNumEndIndex) {
+                    // data.instanceNumStartIndex <= i && i < data.instanceNumEndIndex
                     const positionIndex = i - data.instanceNumStartIndex;
                     const p = hiddenInstancePositions[positionIndex];
                     morphFollowersActor.setInstancePosition(i, p);
@@ -191,20 +193,36 @@ export function createOriginForgeActorController(
             // 0.5~1 -> 0~1
             // 発生したインスタンスが移動場所を決めるフェーズ
             rate = saturate((rawRate - 0.5) * 2);
-            // const phase1InstancePositions = calcPhase1InstancePositions(1, true);
-            for (let i = 0; i < METABALL_NUM; i++) {
-                const si = data.instanceNumStartIndex + i;
-                // pattern1: 座標を直接更新しちゃうパターン
-                // const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, rate);
-                // morphFollowersActor.setInstancePosition(si, v);
-                // pattern2: 移動先を座標にするパターン
-                // const v = Vector3.zero;
-                // morphFollowersActor.setInstanceAttractTargetPosition(si, v);
-                // pattern3: 移動先をActorにするパターン
-                morphFollowersActor.setInstanceAttractorTarget(si, followTargetA);
+           
+            // // default
+            // for (let i = 0; i < METABALL_NUM; i++) {
+            //     const si = data.instanceNumStartIndex + i;
+            //     // pattern1: 座標を直接更新しちゃうパターン
+            //     // const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, rate);
+            //     // morphFollowersActor.setInstancePosition(si, v);
+            //     // pattern2: 移動先を座標にするパターン
+            //     // const v = Vector3.zero;
+            //     // morphFollowersActor.setInstanceAttractTargetPosition(si, v);
+            //     // pattern3: 移動先をActorにするパターン
+            //     morphFollowersActor.setInstanceAttractorTarget(si, followTargetA);
 
-                morphFollowersActor.setInstanceMorphRate(si, rate);
+            //     morphFollowersActor.setInstanceMorphRate(si, rate);
+            // }
+
+            for (let i = 0; i < morphFollowersActor.maxInstanceNum; i++) {
+                if (i < data.instanceNumStartIndex) {
+                    // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
+                } else if (i <= data.instanceNumEndIndex) {
+                    morphFollowersActor.setInstanceMorphRate(i, 0);
+                    morphFollowersActor.setInstanceAttractorTarget(i, followTargetA);
+                    morphFollowersActor.setInstanceMorphRate(i, rate);
+                } else {
+                    morphFollowersActor.setInstancePosition(i, Vector3.zero);
+                    morphFollowersActor.setInstanceVelocity(i, Vector3.zero);
+                    morphFollowersActor.setInstanceMorphRate(i, 0);
+                }
             }
+
             morphFollowersActor.setInstanceNum(data.instanceNum);
 
             hideMetaballChildren();
@@ -231,7 +249,7 @@ export function createOriginForgeActorController(
         } else {
             hideMetaballChildren();
         }
-       
+
         // TODO: followerごとに分けたくない？
         morphFollowersActor.setControlled(isOverOccurrenceSequence(time));
 
