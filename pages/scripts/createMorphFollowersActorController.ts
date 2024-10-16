@@ -14,6 +14,7 @@ import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
+import {generateRandomValue, randomOnUnitSphere} from '@/PaleGL/utilities/mathUtilities.ts';
 
 const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 0;
@@ -65,6 +66,7 @@ export type TransformFeedbackAttractMode =
 
 export type MorphFollowersActorController = {
     getActor: () => Mesh;
+    initialize: (attractorTargetBox: Mesh, attractorTargetSphereActor: Actor) => void;
     updateStatesAndBuffers: () => void;
     addInstance: () => void;
     activateInstance: () => void;
@@ -212,6 +214,16 @@ export const createMorphFollowersActor = ({
     // instanceNum: number;
     // attractorActor: Actor;
 }): MorphFollowersActorController => {
+    let _currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
+    let _isControlled = false;
+    let _attractorTargetBox: Mesh | null = null;
+    let _attractorTargetSphereActor: Actor | null = null;
+
+    const initialize = (attractorTargetBox: Mesh, attractorTargetSphereActor: Actor) => {
+        _attractorTargetBox = attractorTargetBox;
+        _attractorTargetSphereActor = attractorTargetSphereActor;
+    };
+
     const instanceNum = INITIAL_INSTANCE_NUM;
 
     const mesh = new ObjectSpaceRaymarchMesh({
@@ -517,77 +529,44 @@ export const createMorphFollowersActor = ({
         mesh.geometry.instanceCount = instanceNum;
     };
 
-    // const updateInstanceState = (index: number, values: { seed?: number; attractEnabled?: boolean }) => {
-    //     const { seed, attractEnabled } = values;
-    //     const elementSize = 4;
-    //     // TODO: getBufferSubDataをせずに、js内でstate管理する
-    //     const currentData = transformFeedbackDoubleBuffer.read.vertexArrayObject.getBufferSubData(
-    //         TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
-    //         index,
-    //         elementSize
-    //     );
-    //     const newSeed = seed ?? currentData[0];
-    //     let newAttractEnabled = currentData[1];
-    //     if (attractEnabled !== undefined) {
-    //         newAttractEnabled = attractEnabled ? 1 : 0;
-    //     }
-    //     const newStates = new Float32Array([newSeed, newAttractEnabled, 0, 0]);
-    //     transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-    //         TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
-    //         index,
-    //         newStates
-    //     );
-    // };
-
-    // const setInstanceState = (index: number, state: number) => {
-    //     transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
-    //         TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
-    //         index,
-    //         p.elements
-    //     );
-    // }
-
-    // let needsUpdate = false;
-
-    // for debug
-
-    // // 増やすテスト
-    // window.addEventListener('keydown', (e) => {
-    //     if (e.key === 'a') {
-    //         instancingInfo.instanceNum++;
-    //         instancingInfo.instanceNum %= MAX_INSTANCE_NUM;
-    //     }
-    // });
-
-    // window.addEventListener('keydown', (e) => {
-    //     if (e.key === 'j') {
-    //         // for(let i = 0; i < )
-    //         setInstanceAttractTargetPosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0)// );
-    //     }
-    // });
-    // window.addEventListener('keydown', (e) => {
-    //     if (e.key === 'v') {
-    //         setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, 5, 0));
-    //         // setInstancePosition(0, new Vector3(Math.random() * 5 - 2.5, Math.random() * 5 - 2.5, // Math.random() * 5 - 2.5));
-    //         setInstanceVelocity(0, new Vector3(0, 0.1, 0));
-    //     }
-    // });
-
-    let currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
-
     const updateStatesAndBuffers = () => {
         for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
             const attractType = instancingInfo.attractType[i];
             const attractTarget = instancingInfo.attractorTarget[i];
             if (attractType === FollowerAttractMode.Attractor) {
-                // if (attractTarget != null) {
+                // attractTypeならTargetは必ずあるはず
                 setInstanceAttractTargetPosition(i, attractTarget!.transform.position);
                 setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+                return;
+            }
+
+            // TODO: follow cube edge から違うmodeに戻った時の処理
+            if (_currentFollowMode === FollowerAttractMode.FollowCubeEdge && !!_attractorTargetBox) {
+                // set edge
+                const lp = _attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
+                    generateRandomValue(0, i),
+                    generateRandomValue(0, i + 1)
+                );
+                const wp = _attractorTargetBox.transform.localPointToWorld(lp);
+                setInstanceAttractTargetPosition(i, wp);
+                return;
+            }
+
+            if (_currentFollowMode === FollowerAttractMode.FollowSphereSurface && !!_attractorTargetSphereActor) {
+                const size = _attractorTargetSphereActor.transform.scale.x;
+                const lp = randomOnUnitSphere(i).scale(size);
+                const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
+                setInstanceAttractTargetPosition(i, wp);
+                return;
             }
         }
-
-        // TODO: 全部ここでsetbufferしちゃう？
     };
+
+    // let attractorTargetBox: Actor | null;
+
+    // mesh.subscribeOnStart((args) => {
+    //     attractorTargetBox = args.scene.find("AB_1")
+    // });
 
     // transform feedback の更新とかをするだけ
     // states準拠な更新をする
@@ -651,15 +630,15 @@ export const createMorphFollowersActor = ({
 
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
         if (key === 'fm') {
-            currentFollowMode = value as FollowerAttractMode;
-            console.log(currentFollowMode);
+            _currentFollowMode = Math.round(value) as FollowerAttractMode;
+            //if (_currentFollowMode === FollowerAttractMode.FollowCubeEdge) {
+            //}
         }
     };
 
-    let _isControlled = false;
-
     return {
         getActor: () => mesh,
+        initialize,
         addInstance: () => {},
         activateInstance: () => {},
         setInstancePosition,

@@ -28,11 +28,21 @@ export class Scene {
     }
 
     find(name: string): Actor | null {
-        const result = this.children.find((child) => child.name === name);
+        // tmp
+        // const result = this.children.find((child) => child.name === name);
+
+        let result: Actor | undefined;
+        this.traverse((actor) => {
+            if(actor.name === name) {
+                result = actor;
+                // TODO: break;
+            }
+        });
         return result || null;
     }
     
     static find(actors: Actor[], name: string) {
+        // TODO: recursive
         return actors.find((child) => child.name === name);
     }
 

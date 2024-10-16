@@ -28,6 +28,7 @@ const ORBIT_MOVER_NAME_A = 'O_A';
 type TimeStampedOccurrenceSequence = [number, number, string? ,number?];
 
 // 16回やりたいが・・・
+// [startTime[sec], endTime[sec]]
 const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
     [0, 8], // なにもしない時間
     [8, 16],
@@ -39,7 +40,8 @@ type OccurrenceSequenceData = {
     startTime: number;
     duration: number;
     rate: number;
-    instanceNumStart: number;
+    instanceNumStartIndex: number;
+    instanceNumEndIndex: number;
     instanceNum: number;
 };
 
@@ -51,12 +53,15 @@ function findOccurrenceSequenceData(time: number): OccurrenceSequenceData | null
         if (startTime <= time && time < startTime + duration) {
             const rate = (time - startTime) / duration;
             const instanceNum = 16 * index;
+            const startIndex = instanceNum - 16;
+            const endIndex = startIndex + 16;
             return {
                 index,
                 startTime,
                 duration,
                 rate,
-                instanceNumStart: instanceNum - 16,
+                instanceNumStartIndex: startIndex,
+                instanceNumEndIndex: endIndex,
                 instanceNum,
             };
         }
@@ -136,7 +141,7 @@ export function createOriginForgeActorController(
         // }
     };
 
-    const calcPhase1InstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
+    const calcEmitInstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
         const range = lerp(0, 2, r);
         const p = maton.range(METABALL_NUM, true).map((i) => {
             const pd = 360 / METABALL_NUM;
@@ -162,17 +167,24 @@ export function createOriginForgeActorController(
 
             // 発生前の段階では、metaballの位置と同期
             // TODO: フレームが飛びまくるとおかしくなる可能性大なので、対象のinstance16子以外は常にmetaballと同期でもいい気がする
-            const hiddenInstancePositions = calcPhase1InstancePositions(1, true);
-            for (let i = data.instanceNumStart; i < data.instanceNum; i++) {
-                const positionIndex = i - data.instanceNumStart;
-                const p = hiddenInstancePositions[positionIndex];
-                morphFollowersActor.setInstancePosition(i, p);
-                morphFollowersActor.setInstanceVelocity(i, Vector3.zero);
-                morphFollowersActor.setInstanceMorphRate(i, 0);
+            const hiddenInstancePositions = calcEmitInstancePositions(1, true);
+            for(let i = 0; i < 256; i++) {
+                const isCurrentTarget = data.instanceNumStartIndex <= i && i < data.instanceNumEndIndex;
+                if(isCurrentTarget) {
+                    const positionIndex = i - data.instanceNumStartIndex;
+                    const p = hiddenInstancePositions[positionIndex];
+                    morphFollowersActor.setInstancePosition(i, p);
+                    morphFollowersActor.setInstanceVelocity(i, Vector3.zero);
+                    morphFollowersActor.setInstanceMorphRate(i, 0);
+                } else {
+                    morphFollowersActor.setInstancePosition(i, Vector3.zero);
+                    morphFollowersActor.setInstanceVelocity(i, Vector3.zero);
+                    morphFollowersActor.setInstanceMorphRate(i, 0);
+                }
             }
-            morphFollowersActor.setInstanceNum(data.instanceNumStart);
+            morphFollowersActor.setInstanceNum(data.instanceNumStartIndex);
 
-            const instancePositions = calcPhase1InstancePositions(rate, false);
+            const instancePositions = calcEmitInstancePositions(rate, false);
             metaballPositions = instancePositions;
             mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
         } else {
@@ -181,7 +193,7 @@ export function createOriginForgeActorController(
             rate = saturate((rawRate - 0.5) * 2);
             // const phase1InstancePositions = calcPhase1InstancePositions(1, true);
             for (let i = 0; i < METABALL_NUM; i++) {
-                const si = data.instanceNumStart + i;
+                const si = data.instanceNumStartIndex + i;
                 // pattern1: 座標を直接更新しちゃうパターン
                 // const v = Vector3.lerpVectors(phase1InstancePositions[i], Vector3.zero, rate);
                 // morphFollowersActor.setInstancePosition(si, v);

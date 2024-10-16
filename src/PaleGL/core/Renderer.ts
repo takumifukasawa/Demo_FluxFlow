@@ -802,6 +802,10 @@ export class Renderer {
                     return;
                 case ActorTypes.Mesh:
                 case ActorTypes.SkinnedMesh:
+                    if (!(actor as Mesh).renderEnabled) {
+                        // skip
+                        return;
+                    }
                     (actor as Mesh).materials.forEach((material, i) => {
                         if (material.alphaTest) {
                             renderMeshInfoEachQueue[RenderQueueType.AlphaTest].push(
@@ -1889,7 +1893,7 @@ export class Renderer {
      *
      * @param time
      */
-    updateCommonUniforms({ time, deltaTime }: { time: number, deltaTime: number }) {
+    updateCommonUniforms({ time, deltaTime }: { time: number; deltaTime: number }) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
         this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.Time, time);
         this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.DeltaTime, deltaTime);

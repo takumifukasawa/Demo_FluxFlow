@@ -24,6 +24,8 @@
 //
 // ------------------------------------------------------
 
+import {Vector3} from "@/PaleGL/math/Vector3.ts";
+
 /**
  * ref: https://techblog.kayac.com/unity-light-weight-bloom-effect
  * @param sigma
@@ -35,7 +37,7 @@ export function gaussCoefficient(sigma: number, x: number) {
 }
 
 /**
- * 
+ *
  * @param x
  * @param min
  * @param max
@@ -45,7 +47,7 @@ export function clamp(x: number, min: number, max: number) {
 }
 
 /**
- * 
+ *
  * @param x
  */
 export function saturate(x: number) {
@@ -53,7 +55,7 @@ export function saturate(x: number) {
 }
 
 /**
- * 
+ *
  * @param a
  * @param b
  * @param t
@@ -63,7 +65,7 @@ export function lerp(a: number, b: number, t: number) {
 }
 
 /**
- * 
+ *
  * @param a
  * @param b
  */
@@ -72,7 +74,7 @@ export function randomRange(a: number, b: number) {
 }
 
 /**
- * 
+ *
  * @param rad
  */
 export function rad2Deg(rad: number) {
@@ -80,9 +82,37 @@ export function rad2Deg(rad: number) {
 }
 
 /**
- * 
+ *
  * @param deg
  */
 export function deg2Rad(deg: number) {
     return deg * (Math.PI / 180);
+}
+
+// ref: https://gist.github.com/avilde/3736a903560b35fd587d213a3f79fad7
+function mulberry32(seed: number): number {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let imul = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    imul = (imul + Math.imul(imul ^ (imul >>> 7), 61 | imul)) ^ imul;
+    return ((imul ^ (imul >>> 14)) >>> 0) / 4294967296;
+}
+
+export function generateRandomValue(seed: number, id: number): number {
+    // seedとidを組み合わせて一意の値にする
+    const combinedSeed = seed ^ id;
+    return mulberry32(combinedSeed);
+}
+
+export function randomOnUnitSphere(seed: number) {
+    const theta = lerp(
+        -Math.PI,
+        Math.PI,
+        generateRandomValue(seed, 0)
+    );
+    const phi = Math.asin(generateRandomValue(seed, 1) * 2 - 1);
+    const x = Math.cos(theta) * Math.sin(phi);
+    const y = Math.cos(phi);
+    const z = Math.sin(theta) * Math.sin(phi);
+    return new Vector3(x, y, z);
 }

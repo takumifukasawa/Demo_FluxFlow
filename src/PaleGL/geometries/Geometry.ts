@@ -47,7 +47,7 @@ export class Geometry {
         if (indices) {
             this.indices = indices;
         }
-        
+
         // TODO: vaoの生成2回やっちゃってる. constructorとstartで
 
         // fallback
@@ -159,6 +159,11 @@ export class Geometry {
             binormals,
         };
     }
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getRandomLocalPositionOnEdge(rand1: number, rand2: number): Vector3 {}
 
     static createBinormals(normals: number[], tangents: number[]) {
         const binormals = [];

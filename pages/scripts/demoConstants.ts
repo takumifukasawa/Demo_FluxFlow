@@ -1,0 +1,3 @@
+
+export const ATTRACTOR_TARGET_BOX_1_MESH = 'AB_1M';
+export const ATTRACTOR_TARGET_SPHERE_ACTOR = 'AS';

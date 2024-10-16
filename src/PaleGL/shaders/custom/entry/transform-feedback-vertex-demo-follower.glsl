@@ -77,10 +77,10 @@ void main() {
         vec2 seed = vec2(seed, seed);
         float rand = noise(seed);
         target += vec3(
-            cos(uTime + rand * 100. + seed.x) * (2. + rand * 1.),
-            sin(uTime - rand * 400. + seed.x) * (1. + rand * 1.),
-            cos(uTime - rand * 300. + seed.x) * (2. + rand * 1.)
-        ) * .1;
+            cos((uTime + rand * 100. + seed.x)) * (2. + rand * 1.),
+            sin((uTime - rand * 400. + seed.x)) * (2. + rand * 1.),
+            cos((uTime - rand * 300. + seed.x)) * (2. + rand * 1.)
+        ) * .2;
 
         vec3 diffP = target - vPosition;
         vec3 diffDir = normalize(diffP);
@@ -100,12 +100,13 @@ void main() {
             morphRate
             // step(.5, attractEnabled)
         );
-      
-        vVelocity = packVelocity(velocity.xyz);
-        // vVelocity = vec4(0., 0., 1., .1);
         
-        // // attract: 簡易版
+        // attract: 簡易版
         // velocity = diffP * uDeltaTime;
-        // vVelocity = vec4(normalize(velocity.xyz), length(velocity));
+        // attract: 簡易版_等速
+        // velocity = diffDir * uDeltaTime;
+
+        // pack
+        vVelocity = packVelocity(velocity.xyz);
     }
 }

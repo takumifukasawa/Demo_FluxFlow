@@ -84,6 +84,12 @@ import {
     MorphFollowersActorController,
 } from './scripts/createMorphFollowersActorController.ts';
 import { SOUND_DURATION } from './scripts/demoSequencer.ts';
+import { Mesh } from '@/PaleGL/actors/Mesh.ts';
+import {
+    ATTRACTOR_TARGET_BOX_1_MESH,
+    ATTRACTOR_TARGET_SPHERE_ACTOR,
+} from './scripts/demoConstants.ts';
+import {Actor} from "@/PaleGL/actors/Actor.ts";
 
 const stylesText = `
 :root {
@@ -449,7 +455,8 @@ const load = async () => {
     //
 
     leaderActor = createLeaderActor(gpu);
-    captureScene.add(leaderActor.getActor());
+    console.log(leaderActor)
+    // captureScene.add(leaderActor.getActor());
 
     //subLeaderActor = createLeaderActor(gpu);
     //captureScene.add(subLeaderActor.getActor());
@@ -552,6 +559,15 @@ const load = async () => {
         initHotReloadAndParseScene();
     }
 
+    // timelineでsceneを構築した後の処理
+    const attractorTargetBox1Mesh = captureScene.find(ATTRACTOR_TARGET_BOX_1_MESH) as Mesh;
+    console.log(ATTRACTOR_TARGET_BOX_1_MESH, attractorTargetBox1Mesh)
+    attractorTargetBox1Mesh.renderEnabled = false;
+    const attractorTargetSphereActor = captureScene.find(ATTRACTOR_TARGET_SPHERE_ACTOR) as Actor;
+    console.log(ATTRACTOR_TARGET_SPHERE_ACTOR, attractorTargetSphereActor)
+    morphFollowersActorController.initialize(attractorTargetBox1Mesh, attractorTargetSphereActor);
+
+    
     //
     // events
     //

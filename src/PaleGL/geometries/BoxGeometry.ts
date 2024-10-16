@@ -239,12 +239,12 @@ export class BoxGeometry extends Geometry {
         ];
     }
 
-    getRandomLocalPositionOnEdge(): Vector3 {
-        const edgeIndex = Math.floor(Math.random() * edgePairs.length);
+    getRandomLocalPositionOnEdge(rand1: number, rand2: number): Vector3 {
+        const edgeIndex = Math.floor(rand1 * edgePairs.length);
         const edgePair = edgePairs[edgeIndex];
         const p0 = this.cornerPositions[edgePair[0]];
         const p1 = this.cornerPositions[edgePair[1]];
-        const t = Math.random();
+        const t = rand2 % 1;
         return Vector3.lerpVectors(new Vector3(p0[0], p0[1], p0[2]), new Vector3(p1[0], p1[1], p1[2]), t);
     }
 }
