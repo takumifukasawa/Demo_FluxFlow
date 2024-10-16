@@ -158,7 +158,6 @@ export function createOriginForgeActorController(
         const rawRate = easeInOutQuad(data.rate);
         
         let rate: number;
-        // console.log(data);
         
         if (rawRate < 0.5) {
             // 0~0.5 -> 0~1
@@ -227,7 +226,6 @@ export function createOriginForgeActorController(
 
             hideMetaballChildren();
         }
-        return;
     };
 
     const hideMetaballChildren = () => {
