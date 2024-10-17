@@ -12,9 +12,7 @@ import { Scene } from '@/PaleGL/core/Scene';
 import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController';
 
 // loaders
-
 // materials
-
 // math
 import { Vector3 } from '@/PaleGL/math/Vector3';
 import { Vector4 } from '@/PaleGL/math/Vector4';
@@ -41,12 +39,7 @@ import { wait } from '@/utilities/wait.ts';
 import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
 // import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
-import {
-    Marionetter,
-    // MarionetterPlayableDirectorComponentInfo,
-    MarionetterScene,
-    MarionetterSceneStructure,
-} from '@/Marionetter/types';
+import { Marionetter, MarionetterScene, MarionetterSceneStructure } from '@/Marionetter/types';
 import { buildMarionetterScene, buildMarionetterTimelineFromScene } from '@/Marionetter/buildMarionetterScene.ts';
 // import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
 import { initDebugger } from './scripts/initDebugger.ts';
@@ -70,7 +63,6 @@ import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json
 import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.dds?url';
 import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.json';
 */
-
 // import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 // import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
@@ -80,16 +72,24 @@ import { createOriginForgeActorController, OriginForgeActorController } from './
 import { Color } from '@/PaleGL/math/Color.ts';
 import {
     createMorphFollowersActor,
-    FOLLOWER_ACTOR_NAME_A,
-    MorphFollowersActorController,
+    MorphFollowerActorControllerBinder,
+    MorphFollowerActorControllerEntity,
 } from './scripts/createMorphFollowersActorController.ts';
 import { SOUND_DURATION } from './scripts/demoSequencer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import {
-    ATTRACTOR_TARGET_BOX_1_MESH,
+    ATTRACTOR_ORBIT_MOVER_A,
+    ATTRACTOR_ORBIT_MOVER_B,
+    ATTRACTOR_ORBIT_MOVER_C,
+    ATTRACTOR_TARGET_BOX_A_MESH,
+    ATTRACTOR_TARGET_BOX_B_MESH,
     ATTRACTOR_TARGET_SPHERE_ACTOR,
+    FOLLOWERS_ACTOR_NAME_A,
+    FOLLOWERS_ACTOR_NAME_B,
+    FOLLOWERS_ACTOR_NAME_C,
 } from './scripts/demoConstants.ts';
-import {Actor} from "@/PaleGL/actors/Actor.ts";
+import { Actor } from '@/PaleGL/actors/Actor.ts';
+import { createOrbitMoverBinder } from './scripts/orbitMoverBinder.ts';
 
 const stylesText = `
 :root {
@@ -430,7 +430,8 @@ const hideStartupWrapper = () => {
 
 let leaderActor: LeaderActor;
 // let subLeaderActor: LeaderActor;
-let morphFollowersActorController: MorphFollowersActorController;
+const morphFollowersActorControllerBinders: MorphFollowerActorControllerBinder[] = [];
+const attractorTargetBoxMeshes: Mesh[] = [];
 // let metaMorphActor: ObjectSpaceRaymarchMesh;
 let originForgeActorController: OriginForgeActorController;
 
@@ -455,7 +456,7 @@ const load = async () => {
     //
 
     leaderActor = createLeaderActor(gpu);
-    console.log(leaderActor)
+    console.log(leaderActor);
     // captureScene.add(leaderActor.getActor());
 
     //subLeaderActor = createLeaderActor(gpu);
@@ -465,12 +466,34 @@ const load = async () => {
     // morph follower actor controller
     //
 
-    morphFollowersActorController = createMorphFollowersActor({
-        name: FOLLOWER_ACTOR_NAME_A,
-        gpu,
-        renderer,
+    morphFollowersActorControllerBinders.push({
+        morphFollowersActorController: createMorphFollowersActor({
+            name: FOLLOWERS_ACTOR_NAME_A,
+            gpu,
+            renderer,
+        }),
+        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_A,
     });
-    captureScene.add(morphFollowersActorController.getActor());
+    morphFollowersActorControllerBinders.push({
+        morphFollowersActorController: createMorphFollowersActor({
+            name: FOLLOWERS_ACTOR_NAME_B,
+            gpu,
+            renderer,
+        }),
+        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_B,
+    });
+    morphFollowersActorControllerBinders.push({
+        morphFollowersActorController: createMorphFollowersActor({
+            name: FOLLOWERS_ACTOR_NAME_C,
+            gpu,
+            renderer,
+        }),
+        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_C,
+    });
+
+    morphFollowersActorControllerBinders.forEach((elem) => {
+        captureScene.add(elem.morphFollowersActorController.getActor());
+    });
 
     //
     // meta morph actor object
@@ -487,7 +510,7 @@ const load = async () => {
     // origin forge actor object
     //
 
-    originForgeActorController = createOriginForgeActorController(gpu, captureScene, morphFollowersActorController);
+    originForgeActorController = createOriginForgeActorController(gpu);
     captureScene.add(originForgeActorController.getActor());
     // originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
 
@@ -559,15 +582,36 @@ const load = async () => {
         initHotReloadAndParseScene();
     }
 
+    //
     // timelineでsceneを構築した後の処理
-    const attractorTargetBox1Mesh = captureScene.find(ATTRACTOR_TARGET_BOX_1_MESH) as Mesh;
-    console.log(ATTRACTOR_TARGET_BOX_1_MESH, attractorTargetBox1Mesh)
-    attractorTargetBox1Mesh.renderEnabled = false;
-    const attractorTargetSphereActor = captureScene.find(ATTRACTOR_TARGET_SPHERE_ACTOR) as Actor;
-    console.log(ATTRACTOR_TARGET_SPHERE_ACTOR, attractorTargetSphereActor)
-    morphFollowersActorController.initialize(attractorTargetBox1Mesh, attractorTargetSphereActor);
+    //
 
+    const morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
+    const attractorTargetSphereActor = captureScene.find(ATTRACTOR_TARGET_SPHERE_ACTOR) as Actor;
+
+    [ATTRACTOR_TARGET_BOX_A_MESH, ATTRACTOR_TARGET_BOX_B_MESH].forEach((name) => {
+        const mesh = captureScene.find(name) as Mesh;
+        attractorTargetBoxMeshes.push(mesh);
+        mesh.renderEnabled = false;
+    });
+    morphFollowersActorControllerBinders.forEach((elem, i) => {
+        const orbitActor = captureScene.find(elem.orbitFollowTargetActorName) as Actor;
+        orbitActor.addComponent(createOrbitMoverBinder());
+
+        morphFollowersActorControllerEntities.push({
+            morphFollowersActorController: elem.morphFollowersActorController,
+            orbitFollowTargetActor: orbitActor,
+        });
+        elem.morphFollowersActorController.initialize(attractorTargetBoxMeshes, attractorTargetSphereActor);
+        if(i > 0) {
+            elem.morphFollowersActorController.getActor().enabled = false;
+        }
+    });
+
+    originForgeActorController.initialize(morphFollowersActorControllerEntities);
     
+    console.log("hogehoge", morphFollowersActorControllerEntities)
+
     //
     // events
     //

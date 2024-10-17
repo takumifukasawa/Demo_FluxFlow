@@ -25,8 +25,6 @@ const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;
 const TRANSFORM_FEEDBACK_VELOCITY_ELEMENTS_NUM = 4;
 const TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM = 4;
 
-export const FOLLOWER_ACTOR_NAME_A = 'F_A';
-
 const TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME = 'aPosition';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION = 'aAttractTargetPosition';
@@ -70,10 +68,20 @@ const TransformFeedbackAttractMode = {
 export type TransformFeedbackAttractMode =
     (typeof TransformFeedbackAttractMode)[keyof typeof TransformFeedbackAttractMode];
 
+export type MorphFollowerActorControllerBinder = {
+    morphFollowersActorController: MorphFollowersActorController;
+    orbitFollowTargetActorName: string;
+};
+
+export type MorphFollowerActorControllerEntity = {
+    morphFollowersActorController: MorphFollowersActorController;
+    orbitFollowTargetActor: Actor;
+};
+
 export type MorphFollowersActorController = {
     getActor: () => Mesh;
     maxInstanceNum: number;
-    initialize: (attractorTargetBox: Mesh, attractorTargetSphereActor: Actor) => void;
+    initialize: (attractorTargetBoxMeshes: Mesh[], attractorTargetSphereActor: Actor) => void;
     updateStatesAndBuffers: () => void;
     addInstance: () => void;
     activateInstance: () => void;
@@ -90,6 +98,7 @@ export type MorphFollowersActorController = {
     getCurrentTransformFeedbackState: (index: number) => number[];
     setControlled: (flag: boolean) => void;
     isControlled: () => boolean;
+    setFollowAttractMode: (mode: FollowerAttractMode) => void;
 };
 
 const createInstanceUpdater = ({
@@ -217,8 +226,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-} // attractorActor,
-: {
+    // attractorActor,
+}: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -227,11 +236,11 @@ export const createMorphFollowersActor = ({
 }): MorphFollowersActorController => {
     let _currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
     let _isControlled = false;
-    let _attractorTargetBox: Mesh | null = null;
+    let _attractorTargetBoxMeshes: Mesh[] = [];
     let _attractorTargetSphereActor: Actor | null = null;
 
-    const initialize = (attractorTargetBox: Mesh, attractorTargetSphereActor: Actor) => {
-        _attractorTargetBox = attractorTargetBox;
+    const initialize = (attractorTargetBoxMeshes: Mesh[], attractorTargetSphereActor: Actor) => {
+        _attractorTargetBoxMeshes = attractorTargetBoxMeshes;
         _attractorTargetSphereActor = attractorTargetSphereActor;
     };
 
@@ -458,6 +467,9 @@ export const createMorphFollowersActor = ({
     const setInstanceAttractorTarget = (index: number, actor: Actor | null) => {
         instancingInfo.attractType[index] = FollowerAttractMode.Attractor;
         instancingInfo.attractorTarget[index] = actor;
+        if (mesh.enabled) {
+            console.log(index, instancingInfo.attractType[index], actor);
+        }
     };
 
     const getCurrentTransformFeedbackState = (index: number) => {
@@ -582,33 +594,26 @@ export const createMorphFollowersActor = ({
 
     const updateStatesAndBuffers = () => {
         for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
+            const attractType = instancingInfo.attractType[i];
             const attractTarget = instancingInfo.attractorTarget[i];
 
             switch (_currentFollowMode) {
-                case FollowerAttractMode.Attractor:
-                    // attractTypeならTargetは必ずあるはず
-                    setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
-                        p: attractTarget!.transform.position,
-                        attractAmplitude: 0.2,
-                    });
-                    setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-                    break;
-
                 case FollowerAttractMode.FollowCubeEdge:
-                    if (_attractorTargetBox) {
+                    const attractorTargetBox = _attractorTargetBoxMeshes[0];
+                    if (attractorTargetBox) {
                         // set edge
-                        const lp = _attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
+                        const lp = attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
                             generateRandomValue(0, i),
                             generateRandomValue(0, i + 1)
                         );
-                        const wp = _attractorTargetBox.transform.localPointToWorld(lp);
+                        const wp = attractorTargetBox.transform.localPointToWorld(lp);
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
                             p: wp,
                             attractAmplitude: 0.2,
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
-                    break;
+                    continue;
 
                 case FollowerAttractMode.FollowSphereSurface:
                     if (_attractorTargetSphereActor) {
@@ -623,7 +628,7 @@ export const createMorphFollowersActor = ({
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
-                    break;
+                    continue;
 
                 case FollowerAttractMode.Ground:
                     const wp = randomOnUnitPlane(i, 5);
@@ -632,7 +637,16 @@ export const createMorphFollowersActor = ({
                         attractAmplitude: 0,
                     });
                     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-                    break;
+                    continue;
+            }
+
+            if (attractType === FollowerAttractMode.Attractor) {
+                // attractTypeならTargetは必ずあるはず
+                setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
+                    p: attractTarget!.transform.position,
+                    attractAmplitude: 0.2,
+                });
+                setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
             }
 
             // tmp
@@ -790,6 +804,7 @@ export const createMorphFollowersActor = ({
         updateStatesAndBuffers,
         setControlled: (flag: boolean) => (_isControlled = flag),
         isControlled: () => _isControlled,
+        setFollowAttractMode: (mode: FollowerAttractMode) => (_currentFollowMode = mode),
         // updateTransformFeedBackState,
     };
 };

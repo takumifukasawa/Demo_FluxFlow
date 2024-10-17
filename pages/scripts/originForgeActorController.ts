@@ -7,22 +7,19 @@ import { DEG_TO_RAD, FaceSide, UniformTypes } from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
-import { MorphFollowersActorController } from './createMorphFollowersActorController.ts';
+import { MorphFollowerActorControllerEntity } from './createMorphFollowersActorController.ts';
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
-import { Scene } from '@/PaleGL/core/Scene.ts';
 import { easeInOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
-import { createOrbitMoverBinder } from './orbitMoverBinder.ts';
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
+    initialize: (arr: MorphFollowerActorControllerEntity[]) => void;
 };
 
 const METABALL_NUM = 16;
 
 const UNIFORM_NAME_METABALL_CENTER_POSITION = 'uCP';
 const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
-
-const ORBIT_MOVER_NAME_A = 'O_A';
 
 // [startTime[sec], endTime[sec], targetFollowerName, instanceNum]
 type TimeStampedOccurrenceSequence = [number, number, string?, number?];
@@ -74,14 +71,11 @@ function isOverOccurrenceSequence(time: number): boolean {
     return occurrenceSequenceTimestamps[occurrenceSequenceTimestamps.length - 1][1] <= time;
 }
 
-export function createOriginForgeActorController(
-    gpu: GPU,
-    scene: Scene,
-    morphFollowersActor: MorphFollowersActorController
-): OriginForgeActorController {
+export function createOriginForgeActorController(gpu: GPU): OriginForgeActorController {
     // let childPositionRadius = 0;
 
-    let followTargetA: Actor | null;
+    // const orbitFollowTargets: Actor[] = [];
+
     // let occuranceRadius = 2;
 
     let metaballPositions = maton.range(METABALL_NUM).map(() => {
@@ -117,10 +111,16 @@ export function createOriginForgeActorController(
         castShadow: true,
     });
 
-    mesh.subscribeOnStart(() => {
-        followTargetA = scene.find(ORBIT_MOVER_NAME_A);
-        followTargetA?.addComponent(createOrbitMoverBinder());
-    });
+    let morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
+
+    const initialize = (arr: MorphFollowerActorControllerEntity[]) => {
+        morphFollowersActorControllerEntities = arr;
+    };
+
+    // mesh.subscribeOnStart(() => {
+    //     followTargetA = scene.find(ATTRACTOR_ORBIT_MOVER_A);
+    //     followTargetA?.addComponent(createOrbitMoverBinder());
+    // });
 
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
         if (key === 'cpr') {
@@ -168,38 +168,45 @@ export function createOriginForgeActorController(
         // 発生前の段階では、metaballの位置と同期
         // TODO: フレームが飛びまくるとおかしくなる可能性大なので、対象のinstance16子以外は常にmetaballと同期でもいい気がする
         const hiddenInstancePositions = calcEmitInstancePositions(1, true);
-        for (let i = 0; i < morphFollowersActor.maxInstanceNum; i++) {
-            if (i < data.instanceNumStartIndex) {
-                // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
-            } else if (i <= data.instanceNumEndIndex) {
-                if (rawRate < 0.5) {
-                    // data.instanceNumStartIndex <= i && i < data.instanceNumEndIndex
-                    const positionIndex = i - data.instanceNumStartIndex;
-                    const p = hiddenInstancePositions[positionIndex];
-                    morphFollowersActor.setInstancePosition(i, p);
-                    morphFollowersActor.setInstanceVelocity(i, Vector3.zero);
-                    morphFollowersActor.setInstanceMorphRate(i, 0);
-                } else {
-                    morphFollowersActor.setInstanceMorphRate(i, 0);
-                    morphFollowersActor.setInstanceAttractorTarget(i, followTargetA);
-                    morphFollowersActor.setInstanceMorphRate(i, rate);
-                }
-            } else {
-                morphFollowersActor.setInstancePosition(i, Vector3.zero);
-                morphFollowersActor.setInstanceVelocity(i, Vector3.zero);
-                morphFollowersActor.setInstanceMorphRate(i, 0);
+        morphFollowersActorControllerEntities.forEach((entity) => {
+            const { morphFollowersActorController } = entity;
+            if (!morphFollowersActorController.getActor().enabled) {
+                return;
             }
-        }
-        
-        if (rawRate < 0.5) {
-            morphFollowersActor.setInstanceNum(data.instanceNumStartIndex);
-            const instancePositions = calcEmitInstancePositions(rate, false);
-            metaballPositions = instancePositions;
-            mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
-        } else {
-            morphFollowersActor.setInstanceNum(data.instanceNum);
-            hideMetaballChildren();
-        }
+            for (let i = 0; i < morphFollowersActorController.maxInstanceNum; i++) {
+                if (i < data.instanceNumStartIndex) {
+                    // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
+                } else if (i <= data.instanceNumEndIndex) {
+                    if (rawRate < 0.5) {
+                        // data.instanceNumStartIndex <= i && i < data.instanceNumEndIndex
+                        const positionIndex = i - data.instanceNumStartIndex;
+                        const p = hiddenInstancePositions[positionIndex];
+                        morphFollowersActorController.setInstancePosition(i, p);
+                        morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
+                        morphFollowersActorController.setInstanceMorphRate(i, 0);
+                    } else {
+                        console.log('hogehoge');
+                        // morphFollowersActorController.setFollowAttractMode(FollowerAttractMode.Attractor);
+                        morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
+                        morphFollowersActorController.setInstanceMorphRate(i, rate);
+                    }
+                } else {
+                    morphFollowersActorController.setInstancePosition(i, Vector3.zero);
+                    morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
+                    morphFollowersActorController.setInstanceMorphRate(i, 0);
+                }
+            }
+
+            if (rawRate < 0.5) {
+                morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
+                const instancePositions = calcEmitInstancePositions(rate, false);
+                metaballPositions = instancePositions;
+                mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+            } else {
+                morphFollowersActorController.setInstanceNum(data.instanceNum);
+                hideMetaballChildren();
+            }
+        });
     };
 
     const hideMetaballChildren = () => {
@@ -213,7 +220,10 @@ export function createOriginForgeActorController(
         const sequenceData = findOccurrenceSequenceData(time);
         if (sequenceData) {
             if (sequenceData.index === 0) {
-                morphFollowersActor.setInstanceNum(0);
+                morphFollowersActorControllerEntities.forEach((entity) => {
+                    const { morphFollowersActorController } = entity;
+                    morphFollowersActorController.setInstanceNum(0);
+                });
                 hideMetaballChildren();
             } else {
                 childOccurrenceSequence(sequenceData);
@@ -223,12 +233,14 @@ export function createOriginForgeActorController(
         }
 
         // TODO: followerごとに分けたくない？
-        morphFollowersActor.setControlled(isOverOccurrenceSequence(time));
-
-        morphFollowersActor.updateStatesAndBuffers();
+        morphFollowersActorControllerEntities.forEach((entity) => {
+            entity.morphFollowersActorController.setControlled(isOverOccurrenceSequence(time));
+            entity.morphFollowersActorController.updateStatesAndBuffers();
+        });
     };
 
     return {
         getActor: () => mesh,
+        initialize,
     };
 }

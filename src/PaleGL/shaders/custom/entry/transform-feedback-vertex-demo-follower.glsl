@@ -56,7 +56,7 @@ void main() {
    
     vec3 velocity = unpackVelocity(aVelocity);
     float mag = length(velocity);
-    
+
     if(attractType < .5) {
         vPosition = aPosition;
         vVelocity = vec4(0., 0., 1., mag);
