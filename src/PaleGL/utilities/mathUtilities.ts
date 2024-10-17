@@ -24,7 +24,7 @@
 //
 // ------------------------------------------------------
 
-import {Vector3} from "@/PaleGL/math/Vector3.ts";
+import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 
 /**
  * ref: https://techblog.kayac.com/unity-light-weight-bloom-effect
@@ -105,16 +105,18 @@ export function generateRandomValue(seed: number, id: number): number {
 }
 
 export function randomOnUnitSphere(seed: number) {
-    const theta = lerp(
-        0,
-        Math.PI * 2,
-        generateRandomValue(seed, 0)
-    );
+    const theta = lerp(0, Math.PI * 2, generateRandomValue(seed, 0));
     const phi = Math.asin(generateRandomValue(seed, 1) * 2 - 1);
 
     const x = Math.cos(phi) * Math.cos(theta);
     const y = Math.cos(phi) * Math.sin(theta);
     const z = Math.sin(phi);
-    
+
     return new Vector3(x, y, z);
+}
+
+export function randomOnUnitPlane(seed: number, scale: number = 1) {
+    const x = generateRandomValue(seed, 0) * 2 - 1;
+    const z = generateRandomValue(seed, 1) * 2 - 1;
+    return new Vector3(x * scale, 0, z * seed);
 }

@@ -5,7 +5,7 @@ precision highp float;
 // TODO: ここ動的に構築してもいい
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec4 aVelocity; // [nx, ny, nz, length]
-layout(location = 2) in vec3 aAttractTargetPosition;// uniformにする方がいいか？
+layout(location = 2) in vec4 aAttractTargetPosition; // [x,y,z, attractAmplitude]
 layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, 0]
 
 #include ../../partial/uniform-block-common.glsl
@@ -47,6 +47,9 @@ void main() {
     float attractType = aState.y;
     float morphRate = aState.z;
     
+    vec3 attractTargetPosition = aAttractTargetPosition.xyz;
+    float attractAmplitude = aAttractTargetPosition.w;
+    
     // // for debug
     // vPosition = aPosition;
     // return;
@@ -62,7 +65,7 @@ void main() {
 
     if (.5 < attractType && attractType < 1.5) {
     // 座標にすぐ移動する場合
-        vPosition = aAttractTargetPosition;
+        vPosition = aAttractTargetPosition.xyz;
         vVelocity = vec4(0., 0., 1., mag);
         return;
     }
@@ -71,7 +74,7 @@ void main() {
         vPosition = aPosition + velocity;
 
         // vec3 target = uAttractTargetPosition;
-        vec3 target = aAttractTargetPosition;
+        vec3 target = aAttractTargetPosition.xyz;
 
         // // fuwafuwa
         vec2 seed = vec2(seed, seed);
@@ -80,7 +83,7 @@ void main() {
             cos((uTime + rand * 100. + seed.x)) * (2. + rand * 1.),
             sin((uTime - rand * 400. + seed.x)) * (2. + rand * 1.),
             cos((uTime - rand * 300. + seed.x)) * (2. + rand * 1.)
-        ) * .2;
+        ) * attractAmplitude;
 
         vec3 diffP = target - vPosition;
         vec3 diffDir = normalize(diffP);

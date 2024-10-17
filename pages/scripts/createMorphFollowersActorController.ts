@@ -14,7 +14,7 @@ import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
-import { generateRandomValue, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
+import { generateRandomValue, randomOnUnitPlane, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
 
 const updateBufferSubDataEnabled = false;
 
@@ -23,6 +23,7 @@ const INITIAL_INSTANCE_NUM = 0;
 
 const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;
 const TRANSFORM_FEEDBACK_VELOCITY_ELEMENTS_NUM = 4;
+const TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM = 4;
 
 export const FOLLOWER_ACTOR_NAME_A = 'F_A';
 
@@ -56,6 +57,7 @@ const FollowerAttractMode = {
     Position: 2,
     FollowCubeEdge: 3,
     FollowSphereSurface: 4,
+    Ground: 10, // 追加するかもなので10に
 } as const;
 type FollowerAttractMode = (typeof FollowerAttractMode)[keyof typeof FollowerAttractMode];
 
@@ -79,7 +81,12 @@ export type MorphFollowersActorController = {
     setInstanceVelocity: (index: number, v: Vector3) => void;
     setInstanceMorphRate: (index: number, morphRate: number) => void;
     setInstanceAttractorTarget: (index: number, actor: Actor | null) => void;
-    setInstanceAttractTargetPosition: (index: number, p: Vector3, mode: FollowerAttractMode) => void;
+    setInstanceAttractTargetPosition: (
+        index: number,
+        mode: FollowerAttractMode,
+        p: Vector3,
+        attractAmplitude: number
+    ) => void;
     setInstanceNum: (instanceNum: number) => void;
     getCurrentTransformFeedbackState: (index: number) => number[];
     setControlled: (flag: boolean) => void;
@@ -126,7 +133,7 @@ const createInstanceUpdater = ({
         maton
             .range(instanceNum)
             .map(() => {
-                return [0, 0, 0];
+                return [0, 0, 0, 0];
             })
             .flat()
     );
@@ -149,7 +156,7 @@ const createInstanceUpdater = ({
             new Attribute({
                 name: TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
                 data: initialAttractTargetPosition,
-                size: 3,
+                size: TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM,
                 usageType: AttributeUsageType.DynamicDraw,
             }),
             new Attribute({
@@ -211,8 +218,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-    // attractorActor,
-}: {
+} // attractorActor,
+: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -332,7 +339,7 @@ export const createMorphFollowersActor = ({
         attractPosition: new Float32Array(
             maton
                 .range(MAX_INSTANCE_NUM)
-                .map(() => [0, 0, 0])
+                .map(() => [0, 0, 0, 0])
                 .flat()
         ),
         instanceNum,
@@ -500,7 +507,12 @@ export const createMorphFollowersActor = ({
         return data;
     };
 
-    const setInstanceAttractTargetPosition = (index: number, p: Vector3, mode: FollowerAttractMode) => {
+    const setInstanceAttractTargetPosition = (
+        index: number,
+        mode: FollowerAttractMode,
+        p: Vector3,
+        attractAmplitude: number = 0
+    ) => {
         if (mode === FollowerAttractMode.None) {
             console.error('mode is None');
             return;
@@ -510,14 +522,15 @@ export const createMorphFollowersActor = ({
         // transform feedback: 追従先の位置を更新
         //
 
-        instancingInfo.attractPosition[index * 3] = p.x;
-        instancingInfo.attractPosition[index * 3 + 1] = p.y;
-        instancingInfo.attractPosition[index * 3 + 2] = p.z;
+        instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM] = p.x;
+        instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 1] = p.y;
+        instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 2] = p.z;
+        instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 3] = attractAmplitude;
         if (updateBufferSubDataEnabled) {
             transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
                 TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
                 index,
-                p.elements
+                new Float32Array([...p.elements, attractAmplitude])
             );
         }
 
@@ -556,43 +569,88 @@ export const createMorphFollowersActor = ({
 
     const updateStatesAndBuffers = () => {
         for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
-            const attractType = instancingInfo.attractType[i];
             const attractTarget = instancingInfo.attractorTarget[i];
 
-            // TODO: follow cube edge から違うmodeに戻った時の処理
-            if (_currentFollowMode === FollowerAttractMode.FollowCubeEdge && !!_attractorTargetBox) {
-                // set edge
-                const lp = _attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
-                    generateRandomValue(0, i),
-                    generateRandomValue(0, i + 1)
-                );
-                const wp = _attractorTargetBox.transform.localPointToWorld(lp);
-                setInstanceAttractTargetPosition(i, wp, FollowerAttractMode.FollowCubeEdge);
-                setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-                continue;
+            switch (_currentFollowMode) {
+                case FollowerAttractMode.Attractor:
+                    // attractTypeならTargetは必ずあるはず
+                    setInstanceAttractTargetPosition(
+                        i,
+                        FollowerAttractMode.Attractor,
+                        attractTarget!.transform.position,
+                        .2
+                    );
+                    setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+                    break;
+
+                case FollowerAttractMode.FollowCubeEdge:
+                    if (_attractorTargetBox) {
+                        // set edge
+                        const lp = _attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
+                            generateRandomValue(0, i),
+                            generateRandomValue(0, i + 1)
+                        );
+                        const wp = _attractorTargetBox.transform.localPointToWorld(lp);
+                        setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, wp, .2);
+                        setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+                    }
+                    break;
+
+                case FollowerAttractMode.FollowSphereSurface:
+                    if (_attractorTargetSphereActor) {
+                        // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
+                        const lp = randomOnUnitSphere(i).scale(0.5);
+                        const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
+                        // for debug
+                        // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
+                        setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, wp, .2);
+                        setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+                    }
+                    break;
+
+                case FollowerAttractMode.Ground:
+                    const wp = randomOnUnitPlane(i);
+                    setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, wp, 0);
+                    setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+                    break;
             }
 
-            if (_currentFollowMode === FollowerAttractMode.FollowSphereSurface && !!_attractorTargetSphereActor) {
-                // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
-                const lp = randomOnUnitSphere(i).scale(0.5);
-                const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
-                // for debug
-                // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
-                setInstanceAttractTargetPosition(i, wp, FollowerAttractMode.FollowSphereSurface);
-                setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-                continue;
-            }
+            // tmp
+            // const attractType = instancingInfo.attractType[i];
+            // // TODO: follow cube edge から違うmodeに戻った時の処理
+            // if (_currentFollowMode === FollowerAttractMode.FollowCubeEdge && !!_attractorTargetBox) {
+            //     // set edge
+            //     const lp = _attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
+            //         generateRandomValue(0, i),
+            //         generateRandomValue(0, i + 1)
+            //     );
+            //     const wp = _attractorTargetBox.transform.localPointToWorld(lp);
+            //     setInstanceAttractTargetPosition(i, wp, FollowerAttractMode.FollowCubeEdge);
+            //     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+            //     continue;
+            // }
 
-            //
-            // 先にuniformなfollowModeを確認してからinstanceごとのattractTypeを確認する
-            //
+            // if (_currentFollowMode === FollowerAttractMode.FollowSphereSurface && !!_attractorTargetSphereActor) {
+            //     // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
+            //     const lp = randomOnUnitSphere(i).scale(0.5);
+            //     const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
+            //     // for debug
+            //     // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
+            //     setInstanceAttractTargetPosition(i, wp, FollowerAttractMode.FollowSphereSurface);
+            //     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+            //     continue;
+            // }
 
-            if (attractType === FollowerAttractMode.Attractor) {
-                // attractTypeならTargetは必ずあるはず
-                setInstanceAttractTargetPosition(i, attractTarget!.transform.position, FollowerAttractMode.Attractor);
-                setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-                continue;
-            }
+            // //
+            // // 先にuniformなfollowModeを確認してからinstanceごとのattractTypeを確認する
+            // //
+
+            // if (attractType === FollowerAttractMode.Attractor) {
+            //     // attractTypeならTargetは必ずあるはず
+            //     setInstanceAttractTargetPosition(i, attractTarget!.transform.position, FollowerAttractMode.Attractor);
+            //     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+            //     continue;
+            // }
         }
     };
 
