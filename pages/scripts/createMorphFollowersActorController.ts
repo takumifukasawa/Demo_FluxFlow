@@ -84,8 +84,7 @@ export type MorphFollowersActorController = {
     setInstanceAttractTargetPosition: (
         index: number,
         mode: FollowerAttractMode,
-        p: Vector3,
-        attractAmplitude: number
+        { p, attractAmplitude }: { p?: Vector3; attractAmplitude?: number }
     ) => void;
     setInstanceNum: (instanceNum: number) => void;
     getCurrentTransformFeedbackState: (index: number) => number[];
@@ -510,8 +509,13 @@ export const createMorphFollowersActor = ({
     const setInstanceAttractTargetPosition = (
         index: number,
         mode: FollowerAttractMode,
-        p: Vector3,
-        attractAmplitude: number = 0
+        {
+            p,
+            attractAmplitude = 0,
+        }: {
+            p?: Vector3;
+            attractAmplitude?: number;
+        }
     ) => {
         if (mode === FollowerAttractMode.None) {
             console.error('mode is None');
@@ -522,15 +526,24 @@ export const createMorphFollowersActor = ({
         // transform feedback: 追従先の位置を更新
         //
 
-        instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM] = p.x;
-        instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 1] = p.y;
-        instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 2] = p.z;
-        instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 3] = attractAmplitude;
+        if (p) {
+            instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM] = p.x;
+            instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 1] = p.y;
+            instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 2] = p.z;
+        }
+        if (attractAmplitude !== undefined) {
+            instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 3] =
+                attractAmplitude;
+        }
+        const px = instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM];
+        const py = instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 1];
+        const pz = instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 2];
+        const amp = instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 3];
         if (updateBufferSubDataEnabled) {
             transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
                 TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
                 index,
-                new Float32Array([...p.elements, attractAmplitude])
+                new Float32Array([px, py, pz, amp])
             );
         }
 
@@ -574,12 +587,10 @@ export const createMorphFollowersActor = ({
             switch (_currentFollowMode) {
                 case FollowerAttractMode.Attractor:
                     // attractTypeならTargetは必ずあるはず
-                    setInstanceAttractTargetPosition(
-                        i,
-                        FollowerAttractMode.Attractor,
-                        attractTarget!.transform.position,
-                        .2
-                    );
+                    setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
+                        p: attractTarget!.transform.position,
+                        attractAmplitude: 0.2,
+                    });
                     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     break;
 
@@ -591,7 +602,10 @@ export const createMorphFollowersActor = ({
                             generateRandomValue(0, i + 1)
                         );
                         const wp = _attractorTargetBox.transform.localPointToWorld(lp);
-                        setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, wp, .2);
+                        setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
+                            p: wp,
+                            attractAmplitude: 0.2,
+                        });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
                     break;
@@ -603,14 +617,20 @@ export const createMorphFollowersActor = ({
                         const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
                         // for debug
                         // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
-                        setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, wp, .2);
+                        setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
+                            p: wp,
+                            attractAmplitude: 0.2,
+                        });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
                     break;
 
                 case FollowerAttractMode.Ground:
                     const wp = randomOnUnitPlane(i);
-                    setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, wp, 0);
+                    setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
+                        p: wp,
+                        attractAmplitude: 0,
+                    });
                     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     break;
             }
