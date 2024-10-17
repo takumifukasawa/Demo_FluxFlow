@@ -626,7 +626,7 @@ export const createMorphFollowersActor = ({
                     break;
 
                 case FollowerAttractMode.Ground:
-                    const wp = randomOnUnitPlane(i);
+                    const wp = randomOnUnitPlane(i, 5);
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: 0,

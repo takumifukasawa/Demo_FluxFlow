@@ -118,5 +118,5 @@ export function randomOnUnitSphere(seed: number) {
 export function randomOnUnitPlane(seed: number, scale: number = 1) {
     const x = generateRandomValue(seed, 0) * 2 - 1;
     const z = generateRandomValue(seed, 1) * 2 - 1;
-    return new Vector3(x * scale, 0, z * seed);
+    return new Vector3(x * scale, 0, z * scale);
 }
