@@ -602,15 +602,15 @@ const load = async () => {
             morphFollowersActorController: elem.morphFollowersActorController,
             orbitFollowTargetActor: orbitActor,
         });
-        elem.morphFollowersActorController.initialize(attractorTargetBoxMeshes, attractorTargetSphereActor);
-        if(i > 0) {
-            elem.morphFollowersActorController.getActor().enabled = false;
-        }
+        elem.morphFollowersActorController.initialize(
+            i,
+            i * 1000,
+            attractorTargetBoxMeshes,
+            attractorTargetSphereActor
+        );
     });
 
     originForgeActorController.initialize(morphFollowersActorControllerEntities);
-    
-    console.log("hogehoge", morphFollowersActorControllerEntities)
 
     //
     // events

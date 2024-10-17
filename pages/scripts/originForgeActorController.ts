@@ -21,45 +21,60 @@ const METABALL_NUM = 16;
 const UNIFORM_NAME_METABALL_CENTER_POSITION = 'uCP';
 const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
 
-// [startTime[sec], endTime[sec], targetFollowerName, instanceNum]
-type TimeStampedOccurrenceSequence = [number, number, string?, number?];
+const FollowerIndex = {
+    None: -1,
+    A: 0,
+    B: 1,
+    C: 2,
+} as const;
+
+type FollowerIndex = typeof FollowerIndex[keyof typeof FollowerIndex];
+
+// [startTime[sec], endTime[sec], followerIndex, totalInstanceNum]
+type TimeStampedOccurrenceSequence = [number, number, FollowerIndex, number];
 
 // 16回やりたいが・・・
 // [startTime[sec], endTime[sec]]
+// TODO: targetとなるfollowerを指定できるようにする
 const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
-    [0, 8], // なにもしない時間
-    [8, 16],
-    [16, 24],
+    [0, 8, FollowerIndex.None, 0], // なにもしない時間
+    [8, 16, FollowerIndex.A, 16],
+    [16, 24, FollowerIndex.B, 16],
+    [24, 32, FollowerIndex.C, 16],
+    [32, 40, FollowerIndex.A, 32],
 ];
 
 type OccurrenceSequenceData = {
-    index: number;
+    sequenceIndex: number;
     startTime: number;
     duration: number;
     rate: number;
     instanceNumStartIndex: number;
     instanceNumEndIndex: number;
     instanceNum: number;
+    followerIndex: FollowerIndex,
 };
+
+const INSTANCE_PER_OCCURENCE = 16;
 
 function findOccurrenceSequenceData(time: number): OccurrenceSequenceData | null {
     for (let index = 0; index < occurrenceSequenceTimestamps.length; index++) {
-        const startTime = occurrenceSequenceTimestamps[index][0];
-        const endTime = occurrenceSequenceTimestamps[index][1];
+        const [startTime,endTime, followerIndex,instanceNum] = occurrenceSequenceTimestamps[index];
         const duration = endTime - startTime;
         if (startTime <= time && time < startTime + duration) {
             const rate = (time - startTime) / duration;
-            const instanceNum = 16 * index;
-            const startIndex = instanceNum - 16;
-            const endIndex = startIndex + 16 - 1;
+            // const instanceNum = INSTANCE_PER_OCCURENCE * index;
+            const startIndex = instanceNum - INSTANCE_PER_OCCURENCE;
+            const endIndex = startIndex + INSTANCE_PER_OCCURENCE - 1;
             return {
-                index,
+                sequenceIndex: index,
                 startTime,
                 duration,
                 rate,
                 instanceNumStartIndex: startIndex,
                 instanceNumEndIndex: endIndex,
                 instanceNum,
+                followerIndex
             };
         }
     }
@@ -168,7 +183,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         // 発生前の段階では、metaballの位置と同期
         // TODO: フレームが飛びまくるとおかしくなる可能性大なので、対象のinstance16子以外は常にmetaballと同期でもいい気がする
         const hiddenInstancePositions = calcEmitInstancePositions(1, true);
-        morphFollowersActorControllerEntities.forEach((entity) => {
+        const entity = morphFollowersActorControllerEntities[data.followerIndex];
+        // morphFollowersActorControllerEntities.forEach((entity) => {
             const { morphFollowersActorController } = entity;
             if (!morphFollowersActorController.getActor().enabled) {
                 return;
@@ -185,7 +201,6 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                         morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                         morphFollowersActorController.setInstanceMorphRate(i, 0);
                     } else {
-                        console.log('hogehoge');
                         // morphFollowersActorController.setFollowAttractMode(FollowerAttractMode.Attractor);
                         morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
                         morphFollowersActorController.setInstanceMorphRate(i, rate);
@@ -206,7 +221,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                 morphFollowersActorController.setInstanceNum(data.instanceNum);
                 hideMetaballChildren();
             }
-        });
+        // });
     };
 
     const hideMetaballChildren = () => {
@@ -219,7 +234,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     mesh.onPostProcessTimeline = (time: number) => {
         const sequenceData = findOccurrenceSequenceData(time);
         if (sequenceData) {
-            if (sequenceData.index === 0) {
+            // 一番最初のシーケンスは空とみなす
+            if (sequenceData.sequenceIndex === 0) {
                 morphFollowersActorControllerEntities.forEach((entity) => {
                     const { morphFollowersActorController } = entity;
                     morphFollowersActorController.setInstanceNum(0);

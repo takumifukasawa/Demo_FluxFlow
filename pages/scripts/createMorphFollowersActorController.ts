@@ -81,7 +81,12 @@ export type MorphFollowerActorControllerEntity = {
 export type MorphFollowersActorController = {
     getActor: () => Mesh;
     maxInstanceNum: number;
-    initialize: (attractorTargetBoxMeshes: Mesh[], attractorTargetSphereActor: Actor) => void;
+    initialize: (
+        followerIndex: number,
+        followerSeed: number,
+        attractorTargetBoxMeshes: Mesh[],
+        attractorTargetSphereActor: Actor
+    ) => void;
     updateStatesAndBuffers: () => void;
     addInstance: () => void;
     activateInstance: () => void;
@@ -234,12 +239,21 @@ export const createMorphFollowersActor = ({
     // instanceNum: number;
     // attractorActor: Actor;
 }): MorphFollowersActorController => {
+    let _followerIndex: number;
+    let _followerSeed: number;
     let _currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
     let _isControlled = false;
     let _attractorTargetBoxMeshes: Mesh[] = [];
     let _attractorTargetSphereActor: Actor | null = null;
 
-    const initialize = (attractorTargetBoxMeshes: Mesh[], attractorTargetSphereActor: Actor) => {
+    const initialize = (
+        followerIndex: number,
+        followerSeed: number,
+        attractorTargetBoxMeshes: Mesh[],
+        attractorTargetSphereActor: Actor
+    ) => {
+        _followerIndex = followerIndex;
+        _followerSeed = followerSeed;
         _attractorTargetBoxMeshes = attractorTargetBoxMeshes;
         _attractorTargetSphereActor = attractorTargetSphereActor;
     };
@@ -467,9 +481,6 @@ export const createMorphFollowersActor = ({
     const setInstanceAttractorTarget = (index: number, actor: Actor | null) => {
         instancingInfo.attractType[index] = FollowerAttractMode.Attractor;
         instancingInfo.attractorTarget[index] = actor;
-        if (mesh.enabled) {
-            console.log(index, instancingInfo.attractType[index], actor);
-        }
     };
 
     const getCurrentTransformFeedbackState = (index: number) => {
@@ -599,12 +610,12 @@ export const createMorphFollowersActor = ({
 
             switch (_currentFollowMode) {
                 case FollowerAttractMode.FollowCubeEdge:
-                    const attractorTargetBox = _attractorTargetBoxMeshes[0];
+                    const attractorTargetBox = _attractorTargetBoxMeshes[i % _attractorTargetBoxMeshes.length];
                     if (attractorTargetBox) {
                         // set edge
                         const lp = attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
-                            generateRandomValue(0, i),
-                            generateRandomValue(0, i + 1)
+                            generateRandomValue(_followerSeed, i + _followerIndex),
+                            generateRandomValue(_followerSeed, i + 1)
                         );
                         const wp = attractorTargetBox.transform.localPointToWorld(lp);
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
@@ -618,7 +629,7 @@ export const createMorphFollowersActor = ({
                 case FollowerAttractMode.FollowSphereSurface:
                     if (_attractorTargetSphereActor) {
                         // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
-                        const lp = randomOnUnitSphere(i).scale(0.5);
+                        const lp = randomOnUnitSphere(_followerSeed + i).scale(0.5);
                         const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
                         // for debug
                         // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
@@ -631,7 +642,7 @@ export const createMorphFollowersActor = ({
                     continue;
 
                 case FollowerAttractMode.Ground:
-                    const wp = randomOnUnitPlane(i, 5);
+                    const wp = randomOnUnitPlane(_followerSeed + i, 5); // TODO: scaleをactorから引っ張ってきたい
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: 0,
