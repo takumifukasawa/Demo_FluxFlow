@@ -211,8 +211,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-} // attractorActor,
-: {
+    // attractorActor,
+}: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -559,13 +559,6 @@ export const createMorphFollowersActor = ({
             const attractType = instancingInfo.attractType[i];
             const attractTarget = instancingInfo.attractorTarget[i];
 
-            if (attractType === FollowerAttractMode.Attractor) {
-                // attractTypeならTargetは必ずあるはず
-                setInstanceAttractTargetPosition(i, attractTarget!.transform.position, FollowerAttractMode.Attractor);
-                setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-                continue;
-            }
-
             // TODO: follow cube edge から違うmodeに戻った時の処理
             if (_currentFollowMode === FollowerAttractMode.FollowCubeEdge && !!_attractorTargetBox) {
                 // set edge
@@ -580,10 +573,23 @@ export const createMorphFollowersActor = ({
             }
 
             if (_currentFollowMode === FollowerAttractMode.FollowSphereSurface && !!_attractorTargetSphereActor) {
-                const size = _attractorTargetSphereActor.transform.scale.x;
-                const lp = randomOnUnitSphere(i).scale(size);
+                // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
+                const lp = randomOnUnitSphere(i).scale(0.5);
                 const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
+                // for debug
+                // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
                 setInstanceAttractTargetPosition(i, wp, FollowerAttractMode.FollowSphereSurface);
+                setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
+                continue;
+            }
+
+            //
+            // 先にuniformなfollowModeを確認してからinstanceごとのattractTypeを確認する
+            //
+
+            if (attractType === FollowerAttractMode.Attractor) {
+                // attractTypeならTargetは必ずあるはず
+                setInstanceAttractTargetPosition(i, attractTarget!.transform.position, FollowerAttractMode.Attractor);
                 setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                 continue;
             }

@@ -106,13 +106,15 @@ export function generateRandomValue(seed: number, id: number): number {
 
 export function randomOnUnitSphere(seed: number) {
     const theta = lerp(
-        -Math.PI,
-        Math.PI,
+        0,
+        Math.PI * 2,
         generateRandomValue(seed, 0)
     );
     const phi = Math.asin(generateRandomValue(seed, 1) * 2 - 1);
-    const x = Math.cos(theta) * Math.sin(phi);
-    const y = Math.cos(phi);
-    const z = Math.sin(theta) * Math.sin(phi);
+
+    const x = Math.cos(phi) * Math.cos(theta);
+    const y = Math.cos(phi) * Math.sin(theta);
+    const z = Math.sin(phi);
+    
     return new Vector3(x, y, z);
 }

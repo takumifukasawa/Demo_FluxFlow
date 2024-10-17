@@ -102,7 +102,7 @@ void main() {
         );
         
         // attract: 簡易版
-        // velocity = diffP * uDeltaTime  *10.;
+        velocity = diffP * uDeltaTime * 10.;
         // attract: 簡易版_等速
         // velocity = diffDir * uDeltaTime;
 
