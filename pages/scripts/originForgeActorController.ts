@@ -38,10 +38,10 @@ type TimeStampedOccurrenceSequence = [number, number, FollowerIndex, number];
 // TODO: targetとなるfollowerを指定できるようにする
 const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
     [0, 8, FollowerIndex.None, 0], // なにもしない時間
-    [8, 16, FollowerIndex.A, 16],
-    [16, 24, FollowerIndex.B, 16],
-    [24, 32, FollowerIndex.C, 16],
-    [32, 40, FollowerIndex.A, 32],
+    [8, 12, FollowerIndex.A, 16],
+    [12, 16, FollowerIndex.B, 16],
+    [16, 20, FollowerIndex.C, 16],
+    [20, 24, FollowerIndex.A, 32],
 ];
 
 type OccurrenceSequenceData = {
