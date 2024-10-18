@@ -17,8 +17,8 @@ import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { generateRandomValue, randomOnUnitPlane, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
-import {createObjectSpaceRaymarchMaterial} from "@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts";
-import {Material} from "@/PaleGL/materials/Material.ts";
+import { createObjectSpaceRaymarchMaterial } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
+import { Material } from '@/PaleGL/materials/Material.ts';
 
 const updateBufferSubDataEnabled = false;
 
@@ -280,15 +280,17 @@ export const createMorphFollowersActor = ({
         useVertexColor: false,
         faceSide: FaceSide.Double,
     };
-    
+
     const materials: Material[] = [];
-    
-    shaderContentPairs.forEach(shaderContent => {
-        materials.push(createObjectSpaceRaymarchMaterial({
-            fragmentShaderContent: shaderContent.fragment,
-            depthFragmentShaderContent: shaderContent.depth,
-            materialArgs
-        }));
+
+    shaderContentPairs.forEach((shaderContent) => {
+        materials.push(
+            createObjectSpaceRaymarchMaterial({
+                fragmentShaderContent: shaderContent.fragment,
+                depthFragmentShaderContent: shaderContent.depth,
+                materialArgs,
+            })
+        );
     });
 
     // test
@@ -308,7 +310,7 @@ export const createMorphFollowersActor = ({
         materials,
         castShadow: true,
     });
-   
+
     // mesh.transform.scale = new Vector3(.5, .5, .5);
     // mesh.transform.position = new Vector3(1.5, 1.5, 0);
     // const rot = new Rotator(Quaternion.identity());

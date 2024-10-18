@@ -19,7 +19,7 @@ type ObjectSpaceRaymarchMeshArgs = {
     // fragmentShader: string;
     // depthFragmentShader: string;
     // uniforms?: UniformsData;
-   
+
     // 1: materialを渡す場合
     materials?: ObjectSpaceRaymarchMaterial[];
 
@@ -49,11 +49,13 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
 
         const materials = args.materials
             ? args.materials
-            : [createObjectSpaceRaymarchMaterial({
-                  fragmentShaderContent: args.fragmentShaderContent!,
-                  depthFragmentShaderContent: args.depthFragmentShaderContent!,
-                  materialArgs: materialArgs!,
-              })]
+            : [
+                  createObjectSpaceRaymarchMaterial({
+                      fragmentShaderContent: args.fragmentShaderContent!,
+                      depthFragmentShaderContent: args.depthFragmentShaderContent!,
+                      materialArgs: materialArgs!,
+                  }),
+              ];
 
         // const material = createObjectSpaceRaymarchMaterial({
         //     fragmentShader,
@@ -103,13 +105,17 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
     update(args: ActorUpdateArgs) {
         super.update(args);
 
-        this.material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+        this.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+        });
         this.depthMaterial!.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
     }
 
     updateMaterial({ camera }: { camera: Camera }) {
         super.updateMaterial({ camera });
-        this.mainMaterial.uniforms.setValue('uIsPerspective', camera.isPerspective() ? 1 : 0);
+        this.materials.forEach((material) => {
+            material.uniforms.setValue('uIsPerspective', camera.isPerspective() ? 1 : 0);
+        });
     }
 
     updateDepthMaterial({ camera }: { camera: Camera }) {
