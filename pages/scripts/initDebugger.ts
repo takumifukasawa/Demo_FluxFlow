@@ -4,6 +4,7 @@ import { Color } from '@/PaleGL/math/Color.ts';
 import { GLSLSound } from '@/PaleGL/core/GLSLSound.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
+import {PointLight} from "@/PaleGL/actors/PointLight.ts";
 
 export function initDebugger({
     bufferVisualizerPass,
@@ -21,7 +22,7 @@ export function initDebugger({
     renderer: Renderer;
     wrapperElement: HTMLElement;
     orbitCameraController: OrbitCameraController;
-}) {
+}): DebuggerGUI {
     const debuggerGUI = new DebuggerGUI();
 
     //
@@ -755,4 +756,87 @@ export function initDebugger({
     //
 
     wrapperElement.appendChild(debuggerGUI.domElement);
+    
+    return debuggerGUI;
+}
+
+
+export function createPointLightDebugger (debuggerGUI: DebuggerGUI, pointLight: PointLight, label: string) {
+    debuggerGUI.addBorderSpacer();
+
+    const pointLightDebuggerGroup = debuggerGUI.addGroup(label, false);
+
+    pointLightDebuggerGroup.addColorDebugger({
+        label: 'color',
+        initialValue: pointLight.color.getHexCoord(),
+        onChange: (value) => {
+            pointLight.color = Color.fromHex(value);
+        },
+    });
+
+    pointLightDebuggerGroup.addSliderDebugger({
+        label: 'intensity',
+        minValue: 0,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: pointLight.intensity,
+        onChange: (value) => {
+            pointLight.intensity = value;
+        },
+    });
+
+    pointLightDebuggerGroup.addSliderDebugger({
+        label: 'distance',
+        minValue: 0,
+        maxValue: 100,
+        stepValue: 0.01,
+        initialValue: pointLight.distance,
+        onChange: (value) => {
+            pointLight.distance = value;
+        },
+    });
+
+    pointLightDebuggerGroup.addSliderDebugger({
+        label: 'attenuation',
+        minValue: 0,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: pointLight.attenuation,
+        onChange: (value) => {
+            pointLight.attenuation = value;
+        },
+    });
+
+    pointLightDebuggerGroup.addSliderDebugger({
+        label: 'pos x',
+        minValue: -10,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: pointLight.transform.position.x,
+        onChange: (value) => {
+            pointLight.transform.position.x = value;
+        },
+    });
+
+    pointLightDebuggerGroup.addSliderDebugger({
+        label: 'pos y',
+        minValue: 0,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: pointLight.transform.position.y,
+        onChange: (value) => {
+            pointLight.transform.position.y = value;
+        },
+    });
+
+    pointLightDebuggerGroup.addSliderDebugger({
+        label: 'pos z',
+        minValue: -10,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: pointLight.transform.position.z,
+        onChange: (value) => {
+            pointLight.transform.position.z = value;
+        },
+    });
 }

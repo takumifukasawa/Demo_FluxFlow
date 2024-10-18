@@ -249,7 +249,8 @@ float opDb(float x, float A, float B, float C, float D, float E) {
 //
 
 #define BN 16
-#define CS .25
+#define FS 1.
+#define CS .35
 uniform vec3 uCP;
 uniform vec3 uBPs[BN];
 float dfMB(vec3 p, float d) {
@@ -257,6 +258,14 @@ float dfMB(vec3 p, float d) {
         float cd = dfSp(opTranslate(p, uBPs[i].xyz), CS);
         d = opSm(d, cd, .25);
     }
+    float ads = 1. - smoothstep(1., 1.8, length(p - uCP));
+    
+    float di =
+        sin(p.x * 4. + uTime * 3.4) * .1 +
+        sin(p.y * 3. + uTime * 3.2) * .1 +
+        sin(p.z * 3.5 + uTime * 3.0) * .1;
+    
+    d += di * ads;
     return d;
 }
 

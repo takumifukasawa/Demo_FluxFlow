@@ -6,7 +6,7 @@ precision highp float;
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec4 aVelocity; // [nx, ny, nz, length]
 layout(location = 2) in vec4 aAttractTargetPosition; // [x,y,z, attractAmplitude]
-layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, 0]
+layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, attractPower]
 
 #include ../../partial/uniform-block-common.glsl
 
@@ -46,6 +46,7 @@ void main() {
     // 2: attract
     float attractType = aState.y;
     float morphRate = aState.z;
+    float attractPower = aState.w;
     
     vec3 attractTargetPosition = aAttractTargetPosition.xyz;
     float attractAmplitude = aAttractTargetPosition.w;
@@ -110,9 +111,12 @@ void main() {
         //     diffDir * 2.,
         //     uDeltaTime
         // );
-        // velocity = diffP * uDeltaTime * 2.;
+        float baseAttractPower = 2.;
+        velocity = diffP * uDeltaTime * attractPower * baseAttractPower;
         // attract: 簡易版_等速
-        velocity = diffDir * uDeltaTime * pow(length(diffP), .1);
+        // velocity = diffDir * uDeltaTime;
+        // velocity = diffDir * uDeltaTime * pow(length(diffP), .1);
+        // velocity = diffDir * uDeltaTime * attractPower;
 
         // pack
         vVelocity = packVelocity(velocity.xyz);

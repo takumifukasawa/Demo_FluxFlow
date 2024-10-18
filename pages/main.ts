@@ -42,7 +42,7 @@ import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import { Marionetter, MarionetterScene, MarionetterSceneStructure } from '@/Marionetter/types';
 import { buildMarionetterScene, buildMarionetterTimelineFromScene } from '@/Marionetter/buildMarionetterScene.ts';
 // import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
-import { initDebugger } from './scripts/initDebugger.ts';
+import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
 import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
 // import {loadImgArraybuffer} from '@/PaleGL/loaders/loadImg.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
@@ -726,7 +726,7 @@ const playDemo = () => {
 
     requestAnimationFrame(tick);
 
-    initDebugger({
+    const debuggerGUI = initDebugger({
         bufferVisualizerPass,
         glslSound: glslSoundWrapper.glslSound!, // 存在しているとみなしちゃう
         playSound: glslSoundWrapper.play,
@@ -735,6 +735,7 @@ const playDemo = () => {
         wrapperElement,
         orbitCameraController,
     });
+    createPointLightDebugger(debuggerGUI, originForgeActorController.getPointLight(), 'point light');
 };
 
 const main = async () => {

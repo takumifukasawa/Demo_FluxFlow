@@ -106,6 +106,7 @@ export type MorphFollowersActorController = {
     setInstanceScale: (index: number, s: Vector3) => void;
     setInstanceColor: (index: number, c: Color) => void;
     setInstanceMorphRate: (index: number, morphRate: number) => void;
+    setInstanceAttractPower: (index: number, attractRate: number) => void;
     setInstanceAttractorTarget: (index: number, actor: Actor | null) => void;
     setInstanceAttractTargetPosition: (
         index: number,
@@ -244,8 +245,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-    // attractorActor,
-}: {
+} // attractorActor,
+: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -331,7 +332,7 @@ export const createMorphFollowersActor = ({
         velocity: number[][];
         color: number[][];
         instanceStates: number[][]; // [morphRate, 0, 0, 0]
-        transformFeedbackStates: number[][]; // [seed, attractType, morphRate, 0]
+        transformFeedbackStates: number[][]; // [seed, attractType, morphRate, attractPower]
     } = {
         position: [],
         scale: [],
@@ -537,6 +538,12 @@ export const createMorphFollowersActor = ({
         setTransformFeedBackState(index, { morphRate });
     };
 
+    const setInstanceAttractPower = (index: number, attractPower: number) => {
+        // js側のデータとbufferのデータを更新
+        instancingInfo.instanceStates[index * 4 + 3] = attractPower;
+        setTransformFeedBackState(index, { attractPower });
+    };
+
     const setInstanceAttractorTarget = (index: number, actor: Actor | null) => {
         instancingInfo.attractType[index] = FollowerAttractMode.Attractor;
         instancingInfo.attractorTarget[index] = actor;
@@ -558,6 +565,7 @@ export const createMorphFollowersActor = ({
             seed?: number;
             attractType?: TransformFeedbackAttractMode;
             morphRate?: number;
+            attractPower?: number;
         }
     ) => {
         if (values.seed !== undefined) {
@@ -569,12 +577,15 @@ export const createMorphFollowersActor = ({
         if (values.morphRate !== undefined) {
             instancingInfo.transformFeedbackStates[index * 4 + 2] = values.morphRate;
         }
+        if (values.attractPower !== undefined) {
+            instancingInfo.transformFeedbackStates[index * 4 + 3] = values.attractPower;
+        }
 
         const data = [
             instancingInfo.transformFeedbackStates[index * 4 + 0],
             instancingInfo.transformFeedbackStates[index * 4 + 1],
             instancingInfo.transformFeedbackStates[index * 4 + 2],
-            0,
+            instancingInfo.transformFeedbackStates[index * 4 + 3],
         ];
 
         if (updateBufferSubDataEnabled) {
@@ -872,6 +883,7 @@ export const createMorphFollowersActor = ({
         setInstanceScale,
         setInstanceColor,
         setInstanceMorphRate,
+        setInstanceAttractPower,
         setInstanceAttractorTarget,
         setInstanceAttractTargetPosition,
         setInstanceNum,

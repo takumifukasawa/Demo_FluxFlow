@@ -4,6 +4,7 @@ export const viteGlslShaderMinifierCustomNoRenamingList = [
     'dfTo',
     'opTr',
     'opSm',
+    'opDi',
     'opMo',
     'opButterfly',
     'opFlower',

@@ -10,9 +10,11 @@ import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { MorphFollowerActorControllerEntity } from './createMorphFollowersActorController.ts';
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
 import { easeInOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
+import {PointLight} from "@/PaleGL/actors/PointLight.ts";
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
+    getPointLight: () => PointLight;
     initialize: (arr: MorphFollowerActorControllerEntity[]) => void;
 };
 
@@ -107,7 +109,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         materialArgs: {
             metallic: 0,
             roughness: 0,
-            emissiveColor: new Color(2, 1, 1, 1),
+            diffuseColor: new Color(1, 1, 1, 1),
+            emissiveColor: new Color(.1, .1, .1, 1),
             receiveShadow: true,
             faceSide: FaceSide.Double,
             uniforms: [
@@ -128,6 +131,14 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
 
     let morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
 
+    const pointLight = new PointLight({
+        intensity: 6,
+        color: new Color(1, 1, 1),
+        distance: 15,
+        attenuation: 1,
+    });
+    mesh.addChild(pointLight);
+
     const initialize = (arr: MorphFollowerActorControllerEntity[]) => {
         morphFollowersActorControllerEntities = arr;
     };
@@ -137,24 +148,24 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     //     followTargetA?.addComponent(createOrbitMoverBinder());
     // });
 
-    mesh.onProcessPropertyBinder = (key: string, value: number) => {
-        if (key === 'cpr') {
-            metaballPositions = maton.range(METABALL_NUM, true).map((i) => {
-                const pd = 360 / METABALL_NUM;
-                const rad = i * pd * DEG_TO_RAD;
-                const x = Math.cos(rad) * value;
-                const y = Math.sin(rad) * value;
-                const v = new Vector3(x, y, 0);
-                return v;
-            });
-            mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
-            return;
-        }
-        // if(key === "or") {
-        //     occuranceRadius = value;
-        //     return;
-        // }
-    };
+    // mesh.onProcessPropertyBinder = (key: string, value: number) => {
+    //     if (key === 'cpr') {
+    //         metaballPositions = maton.range(METABALL_NUM, true).map((i) => {
+    //             const pd = 360 / METABALL_NUM;
+    //             const rad = i * pd * DEG_TO_RAD;
+    //             const x = Math.cos(rad) * value;
+    //             const y = Math.sin(rad) * value;
+    //             const v = new Vector3(x, y, 0);
+    //             return v;
+    //         });
+    //         mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+    //         return;
+    //     }
+    //     // if(key === "or") {
+    //     //     occuranceRadius = value;
+    //     //     return;
+    //     // }
+    // };
 
     const calcEmitInstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
         const range = lerp(0, 2, r);
@@ -194,14 +205,15 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
                 } else if (i <= data.instanceNumEndIndex) {
                     if (rawRate < 0.5) {
-                        // data.instanceNumStartIndex <= i && i < data.instanceNumEndIndex
+                        // 発生前
                         const positionIndex = i - data.instanceNumStartIndex;
                         const p = hiddenInstancePositions[positionIndex];
                         morphFollowersActorController.setInstancePosition(i, p);
                         morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                         morphFollowersActorController.setInstanceMorphRate(i, 0);
                     } else {
-                        // morphFollowersActorController.setFollowAttractMode(FollowerAttractMode.Attractor);
+                        // インスタンスに切り替わった後
+                        morphFollowersActorController.setInstanceAttractPower(i, easeInOutQuad(rate));
                         morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
                         morphFollowersActorController.setInstanceMorphRate(i, rate);
                     }
@@ -214,7 +226,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
 
             if (rawRate < 0.5) {
                 morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
-                const instancePositions = calcEmitInstancePositions(rate, false);
+                const instancePositions = calcEmitInstancePositions(easeInOutQuad(rate), false);
                 metaballPositions = instancePositions;
                 mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
             } else {
@@ -257,6 +269,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
 
     return {
         getActor: () => mesh,
+        getPointLight: () => pointLight,
         initialize,
     };
 }

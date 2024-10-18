@@ -9,7 +9,7 @@ vec2 dfScene(vec3 p) {
 
     p = opTranslate(p, vec3(0., 0., 0.));
     
-    float s = dfSp(opTranslate(p, uCP), 1.);
+    float s = dfSp(opTranslate(p, uCP), FS);
     s = dfMB(p, s);
     
     d = mix(s, butterflyR.x, 0.);
