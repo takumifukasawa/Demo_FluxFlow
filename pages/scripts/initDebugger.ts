@@ -236,7 +236,7 @@ export function initDebugger({
 
     debuggerGUI.addBorderSpacer();
 
-    const lightShaftDebuggerGroup = debuggerGUI.addGroup('light shaft');
+    const lightShaftDebuggerGroup = debuggerGUI.addGroup('light shaft', false);
 
     lightShaftDebuggerGroup.addToggleDebugger({
         label: 'light shaft pass enabled',
@@ -338,7 +338,7 @@ export function initDebugger({
 
     debuggerGUI.addBorderSpacer();
 
-    const fogDebuggerGroup = debuggerGUI.addGroup('fog');
+    const fogDebuggerGroup = debuggerGUI.addGroup('fog', false);
 
     // fogDebuggerGroup.addToggleDebugger({
     //     label: 'fog pass enabled',
@@ -750,12 +750,41 @@ export function initDebugger({
             renderer.ssrPass.parameters.reflectionAdditionalRate = value;
         },
     });
+    
+    //
+    // glitch
+    //
+    
+    debuggerGUI.addBorderSpacer();
+    
+    const glitchDebuggerGroup = debuggerGUI.addGroup('glitch', false);
+    
+    glitchDebuggerGroup.addToggleDebugger({
+        label: 'glitch pass enabled',
+        initialValue: renderer.glitchPass.parameters.enabled,
+        onChange: (value) => (renderer.glitchPass.parameters.enabled = value),
+    });
+    
+    glitchDebuggerGroup.addSliderDebugger({
+        label: 'glitch blend rate',
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        initialValue: renderer.glitchPass.parameters.blendRate,
+        onChange: (value) => {
+            renderer.glitchPass.parameters.blendRate = value;
+        },
+    });
 
     //
     // add debugger ui
     //
 
     wrapperElement.appendChild(debuggerGUI.domElement);
+   
+    //
+    // result
+    //
     
     return debuggerGUI;
 }

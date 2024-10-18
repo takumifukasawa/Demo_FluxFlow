@@ -64,6 +64,7 @@ import { ScreenSpaceShadowPass } from '@/PaleGL/postprocess/ScreenSpaceShadowPas
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
 import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
+import {GlitchPass} from "@/PaleGL/postprocess/GlitchPass.ts";
 
 type RenderMeshInfo = { actor: Mesh; materialIndex: number; queue: RenderQueueType };
 
@@ -214,6 +215,9 @@ export class Renderer {
 
         this._chromaticAberrationPass = new ChromaticAberrationPass({ gpu });
         this._scenePostProcess.addPass(this._chromaticAberrationPass);
+        
+        this._glitchPass = new GlitchPass({ gpu });
+        this._scenePostProcess.addPass(this._glitchPass);
 
         this._vignettePass = new VignettePass({ gpu });
         this._scenePostProcess.addPass(this._vignettePass);
@@ -634,6 +638,10 @@ export class Renderer {
     get chromaticAberrationPass() {
         return this._chromaticAberrationPass;
     }
+    
+    get glitchPass() {
+        return this._glitchPass;
+    }
 
     get vignettePass() {
         return this._vignettePass;
@@ -683,6 +691,7 @@ export class Renderer {
         this._streakPass.setSize(realWidth, realHeight);
         this._toneMappingPass.setSize(realWidth, realHeight);
         this._chromaticAberrationPass.setSize(realWidth, realHeight);
+        this._glitchPass.setSize(realWidth, realHeight);
         this._vignettePass.setSize(realWidth, realHeight);
         this._fxaaPass.setSize(realWidth, realHeight);
     }
@@ -1307,6 +1316,7 @@ export class Renderer {
 
     private _toneMappingPass: ToneMappingPass;
     private _chromaticAberrationPass: ChromaticAberrationPass;
+    private _glitchPass: GlitchPass;
     private _vignettePass: VignettePass;
     private _fxaaPass: FXAAPass;
 
