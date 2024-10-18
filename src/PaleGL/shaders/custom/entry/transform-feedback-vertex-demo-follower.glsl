@@ -92,20 +92,25 @@ void main() {
         // vec3 newP = target + diffP * .1;
         // vec3 vVelocity = newP - vPosition;
 
-        // なにかをattractする場合
-        velocity = mix(
-            velocity,
-            mix(
-                velocity,
-                diffDir * (.1 + morphRate * .1),
-                .03 + sin(uTime * .2 + rand * 100.) * .02
-            ),
-            morphRate
-            // step(.5, attractEnabled)
-        );
+        // // なにかをattractする場合
+        // velocity = mix(
+        //     velocity,
+        //     mix(
+        //         velocity,
+        //         diffDir * (.1 + morphRate * .1),
+        //         .03 + sin(uTime * .2 + rand * 100.) * .02
+        //     ),
+        //     morphRate
+        //     // step(.5, attractEnabled)
+        // );
         
         // attract: 簡易版
-        velocity = diffP * uDeltaTime * 10.;
+        // velocity = mix(
+        //     velocity,
+        //     diffDir * 2.,
+        //     uDeltaTime
+        // );
+        velocity = diffP * uDeltaTime * 2.;
         // attract: 簡易版_等速
         // velocity = diffDir * uDeltaTime;
 

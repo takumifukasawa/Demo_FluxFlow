@@ -807,6 +807,9 @@ export class Renderer {
                         return;
                     }
                     (actor as Mesh).materials.forEach((material, i) => {
+                        if (!material.canRender) {
+                            return;
+                        }
                         if (material.alphaTest) {
                             renderMeshInfoEachQueue[RenderQueueType.AlphaTest].push(
                                 this.buildRenderMeshInfo(actor as Mesh, RenderQueueType.AlphaTest, i)

@@ -9,12 +9,16 @@ import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh
 // import gBufferObjectSpaceRaymarchFragMetaMorphDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
 import litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-butterly-with-flower.glsl';
 import gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly-with-flower.glsl';
+import litObjectSpaceRaymarchFragMorphButterflyWithPrimContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-butterly-with-prim.glsl';
+import gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithPrimContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly-with-prim.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { generateRandomValue, randomOnUnitPlane, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
+import {createObjectSpaceRaymarchMaterial} from "@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts";
+import {Material} from "@/PaleGL/materials/Material.ts";
 
 const updateBufferSubDataEnabled = false;
 
@@ -32,14 +36,18 @@ const TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME = 'aState';
 const TRANSFORM_FEEDBACK_VARYINGS_POSITION = 'vPosition';
 const TRANSFORM_FEEDBACK_VARYINGS_VELOCITY = 'vVelocity';
 
-const shadersPair = [
+const shaderContentPairs = [
     // sp -> butterfly -> sp -> flower -> sp
     {
         fragment: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
         depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent,
     },
+    {
+        fragment: litObjectSpaceRaymarchFragMorphButterflyWithPrimContent,
+        depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithPrimContent,
+    },
 ];
-console.log(shadersPair);
+console.log(shaderContentPairs);
 
 // const attractTargetType = {
 //     Attractor: 0,
@@ -231,8 +239,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-    // attractorActor,
-}: {
+} // attractorActor,
+: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -260,26 +268,47 @@ export const createMorphFollowersActor = ({
 
     const instanceNum = INITIAL_INSTANCE_NUM;
 
+    const materialArgs = {
+        // fragmentShader: litObjectSpaceRaymarchMetaMorphFrag,
+        // depthFragmentShader: gBufferObjectSpaceRaymarchMetaMorphDepthFrag,
+        metallic: 0,
+        roughness: 0,
+        emissiveColor: new Color(2, 1, 1, 1),
+        receiveShadow: true,
+        isInstancing: true,
+        useInstanceLookDirection: true,
+        useVertexColor: false,
+        faceSide: FaceSide.Double,
+    };
+    
+    const materials: Material[] = [];
+    
+    shaderContentPairs.forEach(shaderContent => {
+        materials.push(createObjectSpaceRaymarchMaterial({
+            fragmentShaderContent: shaderContent.fragment,
+            depthFragmentShaderContent: shaderContent.depth,
+            materialArgs
+        }));
+    });
+
+    // test
+    // materials[0].canRender = false;
+    materials[1].canRender = false;
+
+    // const material = createObjectSpaceRaymarchMaterial({
+    //     fragmentShaderContent: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
+    //     depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent,
+    //     materialArgs
+    // });
+
     const mesh = new ObjectSpaceRaymarchMesh({
         name,
         gpu,
         size: 1,
-        fragmentShaderContent: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
-        depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent,
-        materialArgs: {
-            // fragmentShader: litObjectSpaceRaymarchMetaMorphFrag,
-            // depthFragmentShader: gBufferObjectSpaceRaymarchMetaMorphDepthFrag,
-            metallic: 0,
-            roughness: 0,
-            emissiveColor: new Color(2, 1, 1, 1),
-            receiveShadow: true,
-            isInstancing: true,
-            useInstanceLookDirection: true,
-            useVertexColor: false,
-            faceSide: FaceSide.Double,
-        },
+        materials,
         castShadow: true,
     });
+   
     // mesh.transform.scale = new Vector3(.5, .5, .5);
     // mesh.transform.position = new Vector3(1.5, 1.5, 0);
     // const rot = new Rotator(Quaternion.identity());

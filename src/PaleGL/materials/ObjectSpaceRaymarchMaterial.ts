@@ -1,9 +1,20 @@
 import { MaterialArgs, Material, MaterialTypes } from '@/PaleGL/materials/Material';
-import { DepthFuncTypes, ShadingModelIds, UniformBlockNames, UniformNames, UniformTypes } from '@/PaleGL/constants';
+import {
+    DepthFuncTypes,
+    FaceSide,
+    PRAGMA_RAYMARCH_SCENE,
+    PrimitiveTypes,
+    ShadingModelIds,
+    UniformBlockNames,
+    UniformNames,
+    UniformTypes,
+} from '@/PaleGL/constants';
 import raymarchVert from '@/PaleGL/shaders/gbuffer-vertex.glsl';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
-import {Color} from "@/PaleGL/math/Color.ts";
+import { Color } from '@/PaleGL/math/Color.ts';
+import { litObjectSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-object-space-raymarch-fragment-template.ts';
+import { gbufferObjectSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-object-space-raymarch-depth-fragment-template.ts';
 
 // TODO: uniformsは一旦まっさらにしている。metallic,smoothnessの各種パラメーター、必要になりそうだったら適宜追加する
 export type ObjectSpaceRaymarchMaterialArgs = {
@@ -15,6 +26,38 @@ export type ObjectSpaceRaymarchMaterialArgs = {
     depthFragmentShader?: string;
     // rawFragmentShader?: string;
 } & MaterialArgs;
+
+export function createObjectSpaceRaymarchMaterial({
+    fragmentShaderTemplate,
+    fragmentShaderContent,
+    depthFragmentShaderTemplate,
+    depthFragmentShaderContent,
+    materialArgs,
+}: {
+    fragmentShaderTemplate?: string;
+    fragmentShaderContent: string;
+    depthFragmentShaderTemplate?: string;
+    depthFragmentShaderContent: string;
+    materialArgs: ObjectSpaceRaymarchMaterialArgs;
+}) {
+    const fragmentShader = (fragmentShaderTemplate || litObjectSpaceRaymarchFragmentTemplate).replace(
+        PRAGMA_RAYMARCH_SCENE,
+        fragmentShaderContent
+    );
+    const depthFragmentShader = (
+        depthFragmentShaderTemplate || gbufferObjectSpaceRaymarchDepthFragmentTemplate
+    ).replace(PRAGMA_RAYMARCH_SCENE, depthFragmentShaderContent);
+
+    const material = new ObjectSpaceRaymarchMaterial({
+        fragmentShader,
+        depthFragmentShader,
+        ...materialArgs,
+        primitiveType: PrimitiveTypes.Triangles,
+        faceSide: FaceSide.Double,
+    });
+
+    return material;
+}
 
 export class ObjectSpaceRaymarchMaterial extends Material {
     constructor({
@@ -80,7 +123,7 @@ export class ObjectSpaceRaymarchMaterial extends Material {
         ];
 
         const mergedUniforms: UniformsData = [...commonUniforms, ...shadingUniforms, ...(uniforms ? uniforms : [])];
-        
+
         // TODO: できるだけconstructorの直後に持っていきたい
         super({
             ...options,
@@ -102,7 +145,7 @@ export class ObjectSpaceRaymarchMaterial extends Material {
             depthWrite: true,
             depthFuncType: DepthFuncTypes.Lequal,
             skipDepthPrePass: true,
-            
+
             // TODO: 追加のものを渡せるようにしたい
             uniformBlockNames: [UniformBlockNames.Common, UniformBlockNames.Transformations, UniformBlockNames.Camera],
         });

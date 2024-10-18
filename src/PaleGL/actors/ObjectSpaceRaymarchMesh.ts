@@ -1,8 +1,9 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
-import {FaceSide, PRAGMA_RAYMARCH_SCENE, PrimitiveTypes, UniformNames} from '@/PaleGL/constants.ts';
+import { UniformNames } from '@/PaleGL/constants.ts';
 import { Mesh, MeshOptionsArgs } from '@/PaleGL/actors/Mesh.ts';
 // import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import {
+    createObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterialArgs,
 } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
@@ -10,8 +11,6 @@ import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
 import { Camera } from '@/PaleGL/actors/Camera.ts';
 import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
 // import {GBufferMaterial} from "@/PaleGL/materials/GBufferMaterial.ts";
-import { litObjectSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-object-space-raymarch-fragment-template.ts';
-import { gbufferObjectSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-object-space-raymarch-depth-fragment-template.ts';
 
 type ObjectSpaceRaymarchMeshArgs = {
     name?: string;
@@ -20,15 +19,16 @@ type ObjectSpaceRaymarchMeshArgs = {
     // fragmentShader: string;
     // depthFragmentShader: string;
     // uniforms?: UniformsData;
-    fragmentShaderTemplate?: string;
-    fragmentShaderContent: string;
-    depthFragmentShaderTemplate?: string;
-    depthFragmentShaderContent: string
+   
+    // 1: materialを渡す場合
+    materials?: ObjectSpaceRaymarchMaterial[];
 
-    materialArgs: ObjectSpaceRaymarchMaterialArgs;
-    // receiveShadow?: boolean;
-    // metallic?: number;
-    // roughness?: number;
+    // 2: templateとcontentを渡す場合
+    fragmentShaderTemplate?: string;
+    fragmentShaderContent?: string;
+    depthFragmentShaderTemplate?: string;
+    depthFragmentShaderContent?: string;
+    materialArgs?: ObjectSpaceRaymarchMaterialArgs;
 } & MeshOptionsArgs;
 
 // NOTE: 今はbox限定. sphereも対応したい
@@ -38,31 +38,50 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
         const { gpu, name, materialArgs, castShadow, size } = args;
         // const {gpu, castShadow } = args;
         const geometry = new BoxGeometry({ gpu, size });
-        
-        const fragmentShader = (args.fragmentShaderTemplate || litObjectSpaceRaymarchFragmentTemplate).replace(PRAGMA_RAYMARCH_SCENE, args.fragmentShaderContent);
-        const depthFragmentShader = (args.depthFragmentShaderTemplate || gbufferObjectSpaceRaymarchDepthFragmentTemplate).replace(PRAGMA_RAYMARCH_SCENE, args.depthFragmentShaderContent);
 
-        // const { fragmentShader, depthFragmentShader, uniforms = [] } = materialArgs;
-        const material = new ObjectSpaceRaymarchMaterial({
-            // tmp
-            // uniforms,
-            // // metallic,
-            // // roughness,
-            // // receiveShadow,
-            // // receiveShadow: !!receiveShadow,
-            // primitiveType: PrimitiveTypes.Triangles,
-            // uniformBlockNames: [
-            //     UniformBlockNames.Common
-            // ]
+        // const fragmentShader = (args.fragmentShaderTemplate || litObjectSpaceRaymarchFragmentTemplate).replace(
+        //     PRAGMA_RAYMARCH_SCENE,
+        //     args.fragmentShaderContent
+        // );
+        // const depthFragmentShader = (
+        //     args.depthFragmentShaderTemplate || gbufferObjectSpaceRaymarchDepthFragmentTemplate
+        // ).replace(PRAGMA_RAYMARCH_SCENE, args.depthFragmentShaderContent);
 
-            // new
-            ...materialArgs,
-            // override
-            fragmentShader,
-            depthFragmentShader,
-            primitiveType: PrimitiveTypes.Triangles,
-            faceSide: FaceSide.Double,
-        });
+        const materials = args.materials
+            ? args.materials
+            : [createObjectSpaceRaymarchMaterial({
+                  fragmentShaderContent: args.fragmentShaderContent!,
+                  depthFragmentShaderContent: args.depthFragmentShaderContent!,
+                  materialArgs: materialArgs!,
+              })]
+
+        // const material = createObjectSpaceRaymarchMaterial({
+        //     fragmentShader,
+        //     depthFragmentShader,
+        //     materialArgs
+        // });
+
+        // // const { fragmentShader, depthFragmentShader, uniforms = [] } = materialArgs;
+        // const material = new ObjectSpaceRaymarchMaterial({
+        //     // tmp
+        //     // uniforms,
+        //     // // metallic,
+        //     // // roughness,
+        //     // // receiveShadow,
+        //     // // receiveShadow: !!receiveShadow,
+        //     // primitiveType: PrimitiveTypes.Triangles,
+        //     // uniformBlockNames: [
+        //     //     UniformBlockNames.Common
+        //     // ]
+
+        //     // new
+        //     ...materialArgs,
+        //     // override
+        //     fragmentShader,
+        //     depthFragmentShader,
+        //     primitiveType: PrimitiveTypes.Triangles,
+        //     faceSide: FaceSide.Double,
+        // });
 
         // NOTE
         // const material = new GBufferMaterial({
@@ -78,7 +97,7 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
         //     primitiveType: PrimitiveTypes.Triangles,
         // });
 
-        super({ name, geometry, material, castShadow });
+        super({ name, geometry, materials, castShadow });
     }
 
     update(args: ActorUpdateArgs) {

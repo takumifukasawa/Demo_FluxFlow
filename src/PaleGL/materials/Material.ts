@@ -32,7 +32,7 @@ import { Uniforms, UniformsData } from '@/PaleGL/core/Uniforms.ts';
 
 export type MaterialArgs = {
     type?: MaterialTypes;
-
+    
     // gpu: GPU,
     // TODO: required じゃなくて大丈夫??
     vertexShader?: string;
@@ -125,6 +125,8 @@ export type MaterialTypes = typeof MaterialTypes[keyof typeof MaterialTypes];
 
 export class Material {
     name: string = '';
+    
+    canRender: boolean = true;
     
     type: MaterialTypes = MaterialTypes.Misc
 
