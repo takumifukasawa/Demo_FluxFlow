@@ -15,11 +15,14 @@ import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { litObjectSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-object-space-raymarch-fragment-template.ts';
 import { gbufferObjectSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-object-space-raymarch-depth-fragment-template.ts';
+import {Texture} from "@/PaleGL/core/Texture.ts";
 
 // TODO: uniformsは一旦まっさらにしている。metallic,smoothnessの各種パラメーター、必要になりそうだったら適宜追加する
 export type ObjectSpaceRaymarchMaterialArgs = {
     shadingModelId?: ShadingModelIds;
+    diffuseColor?: Color;
     metallic?: number;
+    diffuseMap?: Texture;
     roughness?: number;
     emissiveColor?: Color;
     fragmentShader?: string;
@@ -66,6 +69,8 @@ export class ObjectSpaceRaymarchMaterial extends Material {
         depthFragmentShader,
         // rawFragmentShader,
         shadingModelId = ShadingModelIds.Lit,
+        diffuseMap,
+        diffuseColor,
         metallic,
         roughness,
         emissiveColor,
@@ -102,6 +107,16 @@ export class ObjectSpaceRaymarchMaterial extends Material {
                 name: UniformNames.Roughness,
                 type: UniformTypes.Float,
                 value: roughness || 0,
+            },
+            {
+                name: UniformNames.DiffuseMap,
+                type: UniformTypes.Texture,
+                value: diffuseMap || null,
+            },
+            {
+                name: UniformNames.DiffuseColor,
+                type: UniformTypes.Color,
+                value: diffuseColor || Color.white,
             },
             {
                 name: UniformNames.EmissiveColor,

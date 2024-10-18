@@ -11,6 +11,7 @@ precision highp float;
 #ifdef USE_INSTANCING
 in float vInstanceId;
 in vec4 vInstanceState;
+in vec4 vInstanceColor;
 #endif
 
 #pragma BLOCK_BEFORE_RAYMARCH_CONTENT
@@ -126,7 +127,7 @@ void main() {
     diffuseColor *= vVertexColor;
     #endif
     
-    diffuseColor = vec4(1.);
+    // diffuseColor = vec4(1.);
 
     // surface.specularAmount = uSpecularAmount;
 

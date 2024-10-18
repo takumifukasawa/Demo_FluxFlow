@@ -110,9 +110,9 @@ void main() {
         //     diffDir * 2.,
         //     uDeltaTime
         // );
-        velocity = diffP * uDeltaTime * 2.;
+        // velocity = diffP * uDeltaTime * 2.;
         // attract: 簡易版_等速
-        // velocity = diffDir * uDeltaTime;
+        velocity = diffDir * uDeltaTime * pow(length(diffP), .1);
 
         // pack
         vVelocity = packVelocity(velocity.xyz);

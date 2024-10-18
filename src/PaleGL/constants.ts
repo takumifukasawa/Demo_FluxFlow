@@ -312,9 +312,16 @@ export const UniformNames = {
     // depth
     DepthTexture: 'uDepthTexture',
     // surface
+    DiffuseMap: 'uDiffuseMap',
+    DiffuseColor: 'uDiffuseColor',
+    DiffuseMapUvScale: 'uDiffuseMapUvScale',
+    DiffuseMapUvOffset: 'uDiffuseMapUvOffset',
     Metallic: 'uMetallic',
     Roughness: 'uRoughness',
     EmissiveColor: 'uEmissiveColor',
+    NormalMap: 'uNormalMap',
+    NormalMapUvScale: 'uNormalMapUvScale',
+    NormalMapUvOffset: 'uNormalMapUvOffset',
     // ao
     // AmbientOcclusionTexture: "uAmbientOcclusionTexture",
     // skinning

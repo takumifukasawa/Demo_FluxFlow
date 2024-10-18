@@ -10,7 +10,7 @@ vec2 dfScene(vec3 p) {
     vec2 flowerR = opFlower(p);
     
     float d = opDb(morphRate, ds, butterflyR.x, ds, flowerR.x, ds);
-    return vec2(butterflyR.x, 0.);
+    return vec2(d, 0.);
 
     // // 全体のスケール調整
     // 

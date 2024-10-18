@@ -17,7 +17,10 @@ import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { generateRandomValue, randomOnUnitPlane, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
-import { createObjectSpaceRaymarchMaterial } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
+import {
+    createObjectSpaceRaymarchMaterial,
+    ObjectSpaceRaymarchMaterialArgs,
+} from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
 import { Material } from '@/PaleGL/materials/Material.ts';
 
 const updateBufferSubDataEnabled = false;
@@ -100,6 +103,8 @@ export type MorphFollowersActorController = {
     activateInstance: () => void;
     setInstancePosition: (index: number, p: Vector3) => void;
     setInstanceVelocity: (index: number, v: Vector3) => void;
+    setInstanceScale: (index: number, s: Vector3) => void;
+    setInstanceColor: (index: number, c: Color) => void;
     setInstanceMorphRate: (index: number, morphRate: number) => void;
     setInstanceAttractorTarget: (index: number, actor: Actor | null) => void;
     setInstanceAttractTargetPosition: (
@@ -239,8 +244,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-} // attractorActor,
-: {
+    // attractorActor,
+}: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -268,16 +273,17 @@ export const createMorphFollowersActor = ({
 
     const instanceNum = INITIAL_INSTANCE_NUM;
 
-    const materialArgs = {
+    const materialArgs: ObjectSpaceRaymarchMaterialArgs = {
         // fragmentShader: litObjectSpaceRaymarchMetaMorphFrag,
         // depthFragmentShader: gBufferObjectSpaceRaymarchMetaMorphDepthFrag,
         metallic: 0,
         roughness: 0,
-        emissiveColor: new Color(2, 1, 1, 1),
+        diffuseColor: new Color(1, 1, 1, 1),
+        emissiveColor: new Color(0, 0, 0, 1),
         receiveShadow: true,
         isInstancing: true,
         useInstanceLookDirection: true,
-        useVertexColor: false,
+        useVertexColor: true,
         faceSide: FaceSide.Double,
     };
 
@@ -292,6 +298,7 @@ export const createMorphFollowersActor = ({
             })
         );
     });
+    console.log('hogehoge', materials);
 
     // test
     // materials[0].canRender = false;
@@ -493,6 +500,27 @@ export const createMorphFollowersActor = ({
             new Float32Array([nv.x, nv.y, nv.z, mag])
         );
         // }
+    };
+
+    const setInstanceScale = (index: number, s: Vector3) => {
+        // js側のデータとbufferのデータを更新
+        instancingInfo.scale[index * 3] = s.x;
+        instancingInfo.scale[index * 3 + 1] = s.y;
+        instancingInfo.scale[index * 3 + 2] = s.z;
+        if (updateBufferSubDataEnabled) {
+            mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceScale, index, s.elements);
+        }
+    };
+
+    const setInstanceColor = (index: number, c: Color) => {
+        // js側のデータとbufferのデータを更新
+        instancingInfo.color[index * 4 + 0] = c.r;
+        instancingInfo.color[index * 4 + 1] = c.g;
+        instancingInfo.color[index * 4 + 2] = c.b;
+        instancingInfo.color[index * 4 + 3] = c.a;
+        if (updateBufferSubDataEnabled) {
+            mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceVertexColor, index, c.elements);
+        }
     };
 
     const setInstanceMorphRate = (index: number, morphRate: number) => {
@@ -770,11 +798,13 @@ export const createMorphFollowersActor = ({
         // mesh.geometry.vertexArrayObject.updateBufferData(AttributeNames.InstancePosition, instancingInfo.position);
         // transformFeedbackDoubleBuffer.uniforms.setValue('uTime', gpu.time);
 
+        // buffer sub data が有効じゃない場合はバッファを一括で入れ替える
         if (!updateBufferSubDataEnabled) {
             mesh.geometry.vertexArrayObject.updateBufferData(
                 AttributeNames.InstanceState,
                 instancingInfo.instanceStates
             );
+            mesh.geometry.vertexArrayObject.updateBufferData(AttributeNames.InstanceVertexColor, instancingInfo.color);
 
             // transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferData(
             //     TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME,
@@ -807,9 +837,10 @@ export const createMorphFollowersActor = ({
         });
         transformFeedbackDoubleBuffer.swap();
 
-        // attractorActor.transform.position = new Vector3(0, 4, 0);
+        //
+        // インスタンスのメッシュのバッファを更新
+        //
 
-        // インスタンスのメッシュを更新
         mesh.geometry.vertexArrayObject.replaceBuffer(
             AttributeNames.InstancePosition,
             transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME)
@@ -838,6 +869,8 @@ export const createMorphFollowersActor = ({
         activateInstance: () => {},
         setInstancePosition,
         setInstanceVelocity,
+        setInstanceScale,
+        setInstanceColor,
         setInstanceMorphRate,
         setInstanceAttractorTarget,
         setInstanceAttractTargetPosition,

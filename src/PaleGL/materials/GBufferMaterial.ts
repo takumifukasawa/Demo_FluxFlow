@@ -67,23 +67,23 @@ export class GBufferMaterial extends Material {
 
         const baseUniforms: UniformsData = [
             {
-                name: 'uDiffuseColor',
+                name: UniformNames.DiffuseColor,
                 type: UniformTypes.Color,
                 value: diffuseColor || Color.white,
             },
             {
-                name: 'uDiffuseMap',
+                name: UniformNames.DiffuseMap,
                 type: UniformTypes.Texture,
                 value: diffuseMap || null,
             },
             {
-                name: 'uDiffuseMapUvScale',
+                name: UniformNames.DiffuseMapUvScale,
                 type: UniformTypes.Vector2,
                 // value: Vector2.one,
                 value: diffuseMapUvScale || Vector2.one,
             },
             {
-                name: 'uDiffuseMapUvOffset',
+                name: UniformNames.DiffuseMapUvOffset,
                 type: UniformTypes.Vector2,
                 // value: Vector2.one,
                 value: diffuseMapUvOffset || Vector2.one,
@@ -103,18 +103,18 @@ export class GBufferMaterial extends Material {
                 value: roughness || 0,
             },
             {
-                name: 'uNormalMap',
+                name: UniformNames.NormalMap,
                 type: UniformTypes.Texture,
                 value: normalMap || null,
             },
             {
-                name: 'uNormalMapUvScale',
+                name: UniformNames.NormalMapUvScale,
                 type: UniformTypes.Vector2,
                 // value: Vector2.one,
                 value: normalMapUvScale || Vector2.one,
             },
             {
-                name: 'uNormalMapUvOffset',
+                name: UniformNames.NormalMapUvOffset,
                 type: UniformTypes.Vector2,
                 // value: Vector2.one,
                 value: normalMapUvOffset || Vector2.one,
