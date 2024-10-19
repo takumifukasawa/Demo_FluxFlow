@@ -15,7 +15,7 @@ import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { litObjectSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-object-space-raymarch-fragment-template.ts';
 import { gbufferObjectSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-object-space-raymarch-depth-fragment-template.ts';
-import {Texture} from "@/PaleGL/core/Texture.ts";
+import { Texture } from '@/PaleGL/core/Texture.ts';
 
 // TODO: uniformsは一旦まっさらにしている。metallic,smoothnessの各種パラメーター、必要になりそうだったら適宜追加する
 export type ObjectSpaceRaymarchMaterialArgs = {
@@ -57,8 +57,9 @@ export function createObjectSpaceRaymarchMaterial({
         ...materialArgs,
         primitiveType: PrimitiveTypes.Triangles,
         faceSide: FaceSide.Double,
+        uniforms: materialArgs.uniforms
     });
-
+    
     return material;
 }
 

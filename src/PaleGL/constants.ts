@@ -223,6 +223,7 @@ export const AttributeNames = {
     InstanceAnimationOffset: 'aInstanceAnimationOffset',
     InstanceVertexColor: 'aInstanceVertexColor',
     InstanceVelocity: 'aInstanceVelocity',
+    InstanceLookDirection: 'aLookDirection',
     InstanceState: 'aInstanceState'
 } as const;
 

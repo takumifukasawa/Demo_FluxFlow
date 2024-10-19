@@ -88,6 +88,11 @@ void main() {
 
         vec3 diffP = target - vPosition;
         vec3 diffDir = normalize(diffP);
+        
+        if(length(diffP) < .001) {
+            vVelocity = vec4(0., 0., 1., 0.);
+            return;
+        }
 
         // vec3 acc = diffDir * .01;
         // vec3 newP = target + diffP * .1;
@@ -113,6 +118,7 @@ void main() {
         // );
         float baseAttractPower = 2.;
         velocity = diffP * uDeltaTime * attractPower * baseAttractPower;
+
         // attract: 簡易版_等速
         // velocity = diffDir * uDeltaTime;
         // velocity = diffDir * uDeltaTime * pow(length(diffP), .1);

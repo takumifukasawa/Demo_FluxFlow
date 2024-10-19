@@ -7,10 +7,10 @@ vec2 dfScene(vec3 p) {
     float delayRate = vInstanceState.y;
 
     p *= 1.; // adjust scale
-    vec2 butterflyR = opButterfly(p, vInstanceId);
     vec2 flowerR = opFlower(p);
     
-    float d = opDb(morphRate, ds, butterflyR.x, ds, flowerR.x, ds);
+    // float d = smoothstep(ds, flowerR.x, morphRate);
+    float d = mix(ds, flowerR.x, 1.);
     return vec2(d, 0.);
 
     // // 全体のスケール調整

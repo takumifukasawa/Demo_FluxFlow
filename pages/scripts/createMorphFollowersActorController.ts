@@ -1,7 +1,7 @@
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { TransformFeedbackDoubleBuffer } from '@/PaleGL/core/TransformFeedbackDoubleBuffer.ts';
 import { Attribute } from '@/PaleGL/core/Attribute.ts';
-import { AttributeNames, AttributeUsageType, FaceSide, UniformBlockNames } from '@/PaleGL/constants.ts';
+import { AttributeNames, AttributeUsageType, FaceSide, UniformBlockNames, UniformTypes } from '@/PaleGL/constants.ts';
 import transformFeedbackVertexFollower from '@/PaleGL/shaders/custom/entry/transform-feedback-vertex-demo-follower.glsl';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
@@ -11,6 +11,8 @@ import litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent from '@/PaleGL/
 import gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly-with-flower.glsl';
 import litObjectSpaceRaymarchFragMorphButterflyWithPrimContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-butterly-with-prim.glsl';
 import gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithPrimContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly-with-prim.glsl';
+import litObjectSpaceRaymarchFragMorphFlowerContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-flower.glsl';
+import gBufferObjectSpaceRaymarchFragMetaMorphFlowerContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-flower.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
@@ -22,6 +24,7 @@ import {
     ObjectSpaceRaymarchMaterialArgs,
 } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
 import { Material } from '@/PaleGL/materials/Material.ts';
+import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 
 const updateBufferSubDataEnabled = false;
 
@@ -32,6 +35,9 @@ const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;
 const TRANSFORM_FEEDBACK_VELOCITY_ELEMENTS_NUM = 4;
 const TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM = 4;
 
+const ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM = 3;
+const ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM = 4;
+
 const TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME = 'aPosition';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION = 'aAttractTargetPosition';
@@ -39,18 +45,34 @@ const TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME = 'aState';
 const TRANSFORM_FEEDBACK_VARYINGS_POSITION = 'vPosition';
 const TRANSFORM_FEEDBACK_VARYINGS_VELOCITY = 'vVelocity';
 
-const shaderContentPairs = [
+const rotRateForLookDirectionValue = 1;
+
+const shaderContentPairs: { fragment: string; depth: string; uniforms: UniformsData }[] = [
     // sp -> butterfly -> sp -> flower -> sp
     {
         fragment: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
         depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent,
+        uniforms: [],
     },
+    // sp -> butterfly -> sp -> primitive -> flower
     {
         fragment: litObjectSpaceRaymarchFragMorphButterflyWithPrimContent,
         depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithPrimContent,
+        uniforms: [],
+    },
+    // sp -> flower
+    {
+        fragment: litObjectSpaceRaymarchFragMorphFlowerContent,
+        depth: gBufferObjectSpaceRaymarchFragMetaMorphFlowerContent,
+        uniforms: [
+            {
+                name: 'uRotMode',
+                type: UniformTypes.Float,
+                value: rotRateForLookDirectionValue,
+            },
+        ],
     },
 ];
-console.log(shaderContentPairs);
 
 // const attractTargetType = {
 //     Attractor: 0,
@@ -105,7 +127,8 @@ export type MorphFollowersActorController = {
     setInstanceVelocity: (index: number, v: Vector3) => void;
     setInstanceScale: (index: number, s: Vector3) => void;
     setInstanceColor: (index: number, c: Color) => void;
-    setInstanceMorphRate: (index: number, morphRate: number) => void;
+    setInstanceLookDirection: (index: number, lookDirection: Vector3) => void;
+    setInstanceState: (index: number, { morphRate, delayRate }: { morphRate?: number; delayRate?: number }) => void;
     setInstanceAttractPower: (index: number, attractRate: number) => void;
     setInstanceAttractorTarget: (index: number, actor: Actor | null) => void;
     setInstanceAttractTargetPosition: (
@@ -245,8 +268,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-} // attractorActor,
-: {
+    // attractorActor,
+}: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -295,15 +318,19 @@ export const createMorphFollowersActor = ({
             createObjectSpaceRaymarchMaterial({
                 fragmentShaderContent: shaderContent.fragment,
                 depthFragmentShaderContent: shaderContent.depth,
-                materialArgs,
+                materialArgs: {
+                    ...materialArgs,
+                    uniforms: shaderContent.uniforms
+                }
             })
         );
     });
-    console.log('hogehoge', materials);
+    console.log(materials)
 
-    // test
-    // materials[0].canRender = false;
+    // TODO: for debug
+    materials[0].canRender = false;
     materials[1].canRender = false;
+    materials[2].canRender = true;
 
     // const material = createObjectSpaceRaymarchMaterial({
     //     fragmentShaderContent: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
@@ -331,7 +358,8 @@ export const createMorphFollowersActor = ({
         rotation: number[][];
         velocity: number[][];
         color: number[][];
-        instanceStates: number[][]; // [morphRate, 0, 0, 0]
+        lookDirection: number[][];
+        instanceStates: number[][]; // [morphRate, delayRate, 0, 0]
         transformFeedbackStates: number[][]; // [seed, attractType, morphRate, attractPower]
     } = {
         position: [],
@@ -339,6 +367,7 @@ export const createMorphFollowersActor = ({
         rotation: [],
         velocity: [],
         color: [],
+        lookDirection: [],
         instanceStates: [],
         transformFeedbackStates: [],
     };
@@ -369,9 +398,13 @@ export const createMorphFollowersActor = ({
         );
         tmpInstanceInfo.color.push([...c.elements]);
 
+        // look direction
+        tmpInstanceInfo.lookDirection.push([0, 0, 1]);
+
         // states
         tmpInstanceInfo.instanceStates.push([1, 0, 0, 0]);
 
+        // transform feedback states
         tmpInstanceInfo.transformFeedbackStates.push([i, 0, 0, 0]);
     });
 
@@ -381,6 +414,7 @@ export const createMorphFollowersActor = ({
         rotation: Float32Array;
         velocity: Float32Array;
         color: Float32Array;
+        lookDirection: Float32Array;
         instanceStates: Float32Array;
         transformFeedbackStates: Float32Array;
         attractType: FollowerAttractMode[];
@@ -392,6 +426,7 @@ export const createMorphFollowersActor = ({
         scale: new Float32Array(tmpInstanceInfo.scale.flat()),
         rotation: new Float32Array(tmpInstanceInfo.rotation.flat()),
         velocity: new Float32Array(tmpInstanceInfo.velocity.flat()),
+        lookDirection: new Float32Array(tmpInstanceInfo.lookDirection.flat()),
         color: new Float32Array(tmpInstanceInfo.color.flat()),
         instanceStates: new Float32Array(tmpInstanceInfo.instanceStates.flat()),
         transformFeedbackStates: new Float32Array(tmpInstanceInfo.transformFeedbackStates.flat()),
@@ -452,9 +487,17 @@ export const createMorphFollowersActor = ({
     );
     mesh.geometry.setAttribute(
         new Attribute({
+            name: AttributeNames.InstanceLookDirection,
+            data: instancingInfo.lookDirection,
+            size: ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM,
+            divisor: 1,
+        })
+    );
+    mesh.geometry.setAttribute(
+        new Attribute({
             name: AttributeNames.InstanceState,
             data: instancingInfo.instanceStates,
-            size: 4,
+            size: ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM,
             divisor: 1,
         })
     );
@@ -524,14 +567,38 @@ export const createMorphFollowersActor = ({
         }
     };
 
-    const setInstanceMorphRate = (index: number, morphRate: number) => {
+    const setInstanceLookDirection = (index: number, lookDirection: Vector3) => {
         // js側のデータとbufferのデータを更新
-        instancingInfo.instanceStates[index * 4 + 0] = morphRate;
+        instancingInfo.lookDirection[index * ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM + 0] = lookDirection.x;
+        instancingInfo.lookDirection[index * ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM + 1] = lookDirection.y;
+        instancingInfo.lookDirection[index * ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM + 2] = lookDirection.z;
         if (updateBufferSubDataEnabled) {
             mesh.geometry.vertexArrayObject.updateBufferSubData(
                 AttributeNames.InstanceState,
                 index,
-                new Float32Array([morphRate, 0, 0, 0])
+                lookDirection.elements
+            );
+        }
+    };
+
+    const setInstanceState = (index: number, { morphRate, delayRate }: { morphRate?: number; delayRate?: number }) => {
+        // js側のデータとbufferのデータを更新
+        if (morphRate !== undefined) {
+            instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 0] = morphRate;
+        }
+        if (delayRate !== undefined) {
+            instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 1] = delayRate;
+        }
+        if (updateBufferSubDataEnabled) {
+            mesh.geometry.vertexArrayObject.updateBufferSubData(
+                AttributeNames.InstanceState,
+                index,
+                new Float32Array([
+                    instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 0],
+                    instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 1],
+                    0,
+                    0,
+                ])
             );
         }
 
@@ -713,6 +780,7 @@ export const createMorphFollowersActor = ({
 
                 case FollowerAttractMode.Ground:
                     const wp = randomOnUnitPlane(_followerSeed + i, 5); // TODO: scaleをactorから引っ張ってきたい
+                    wp.addVector(new Vector3(0, 1, 0));
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: 0,
@@ -812,6 +880,10 @@ export const createMorphFollowersActor = ({
         // buffer sub data が有効じゃない場合はバッファを一括で入れ替える
         if (!updateBufferSubDataEnabled) {
             mesh.geometry.vertexArrayObject.updateBufferData(
+                AttributeNames.InstanceLookDirection,
+                instancingInfo.lookDirection
+            );
+            mesh.geometry.vertexArrayObject.updateBufferData(
                 AttributeNames.InstanceState,
                 instancingInfo.instanceStates
             );
@@ -882,7 +954,8 @@ export const createMorphFollowersActor = ({
         setInstanceVelocity,
         setInstanceScale,
         setInstanceColor,
-        setInstanceMorphRate,
+        setInstanceLookDirection,
+        setInstanceState,
         setInstanceAttractPower,
         setInstanceAttractorTarget,
         setInstanceAttractTargetPosition,

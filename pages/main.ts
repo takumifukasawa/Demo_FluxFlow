@@ -66,7 +66,6 @@ import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128
 // import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 // import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
-import { createLeaderActor, LeaderActor } from './scripts/createLeaderActor.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
 // import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
@@ -428,8 +427,6 @@ const hideStartupWrapper = () => {
     startupWrapperElement.style.display = 'none';
 };
 
-let leaderActor: LeaderActor;
-// let subLeaderActor: LeaderActor;
 const morphFollowersActorControllerBinders: MorphFollowerActorControllerBinder[] = [];
 const attractorTargetBoxMeshes: Mesh[] = [];
 // let metaMorphActor: ObjectSpaceRaymarchMesh;
@@ -450,17 +447,6 @@ const load = async () => {
     console.log('====== main ======');
     console.log(import.meta.env);
     console.log(sceneJsonUrl);
-
-    //
-    // meta morph actor object
-    //
-
-    leaderActor = createLeaderActor(gpu);
-    console.log(leaderActor);
-    // captureScene.add(leaderActor.getActor());
-
-    //subLeaderActor = createLeaderActor(gpu);
-    //captureScene.add(subLeaderActor.getActor());
 
     //
     // morph follower actor controller

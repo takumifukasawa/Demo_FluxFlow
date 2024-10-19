@@ -210,17 +210,17 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                         const p = hiddenInstancePositions[positionIndex];
                         morphFollowersActorController.setInstancePosition(i, p);
                         morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
-                        morphFollowersActorController.setInstanceMorphRate(i, 0);
+                        morphFollowersActorController.setInstanceState(i, { morphRate: 0 });
                     } else {
                         // インスタンスに切り替わった後
                         morphFollowersActorController.setInstanceAttractPower(i, easeInOutQuad(rate));
                         morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
-                        morphFollowersActorController.setInstanceMorphRate(i, rate);
+                        morphFollowersActorController.setInstanceState(i, { morphRate: rate });
                     }
                 } else {
                     morphFollowersActorController.setInstancePosition(i, Vector3.zero);
                     morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
-                    morphFollowersActorController.setInstanceMorphRate(i, 0);
+                    morphFollowersActorController.setInstanceState(i, { morphRate: rate });
                 }
             }
 

@@ -24,6 +24,7 @@ out mat4 vInverseWorldMatrix;
 #ifdef USE_INSTANCING
 out float vInstanceId;
 out vec4 vInstanceState;
+uniform float uRotMode; // 0: velocity, 1: look direction
 #endif
 
 #include ./partial/normal-map-vertex-varyings.glsl
@@ -166,9 +167,13 @@ void main() {
         // pattern_1: 速度ベクトルを使って回転
         // instanceRotation = getLookAtMat(aInstancePosition + aInstanceVelocity * 1000., aInstancePosition);
         // pattern_2: 速度ベクトルをnormalizeして使って回転
-        instanceRotation = getLookAtMat(aInstancePosition + normalize(aInstanceVelocity.xyz) * 1000., aInstancePosition);
-        // pattern_3
-        // for debug: 回転させない
+        // instanceRotation = getLookAtMat(aInstancePosition + normalize(aInstanceVelocity.xyz) * 1000., aInstancePosition);
+        // pattern_3: look direction
+        // instanceRotation = getLookAtMat(aInstancePosition + aLookDirection, aInstancePosition);
+        // pattern_4: blend
+        vec3 lookDir = mix(normalize(aInstanceVelocity.xyz), normalize(aLookDirection), uRotMode);
+        instanceRotation = getLookAtMat(aInstancePosition + normalize(lookDir) * 1000., aInstancePosition);
+        // // for debug: 回転させない
         // instanceRotation = mat4(
         //     1., 0., 0., 0.,
         //     0., 1., 0., 0.,
