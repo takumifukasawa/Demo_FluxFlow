@@ -57,9 +57,9 @@ export function createObjectSpaceRaymarchMaterial({
         ...materialArgs,
         primitiveType: PrimitiveTypes.Triangles,
         faceSide: FaceSide.Double,
-        uniforms: materialArgs.uniforms
+        uniforms: materialArgs.uniforms,
     });
-    
+
     return material;
 }
 
@@ -76,6 +76,7 @@ export class ObjectSpaceRaymarchMaterial extends Material {
         roughness,
         emissiveColor,
         uniforms = [],
+        uniformBlockNames,
         ...options
     }: ObjectSpaceRaymarchMaterialArgs) {
         const commonUniforms: UniformsData = [
@@ -162,8 +163,12 @@ export class ObjectSpaceRaymarchMaterial extends Material {
             depthFuncType: DepthFuncTypes.Lequal,
             skipDepthPrePass: true,
 
-            // TODO: 追加のものを渡せるようにしたい
-            uniformBlockNames: [UniformBlockNames.Common, UniformBlockNames.Transformations, UniformBlockNames.Camera],
+            uniformBlockNames: [
+                UniformBlockNames.Common,
+                UniformBlockNames.Transformations,
+                UniformBlockNames.Camera,
+                ...(uniformBlockNames ? uniformBlockNames : []),
+            ],
         });
     }
 }

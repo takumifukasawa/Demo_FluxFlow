@@ -139,7 +139,8 @@ vec2 opButterfly(vec3 p, float seed) {
 
     // パタパタさせる
     q.x = abs(q.x);
-    q.xz = opRot(q.xz, PI * sin(sin(uTime * 10. + seed) * cos(uTime * 6. + seed)) * .3);
+    // q.xz = opRot(q.xz, PI * sin(sin(uTime * 10. + seed) * cos(uTime * 6. + seed)) * .3);
+    q.xz = opRot(q.xz, PI * sin(sin(uTimelineTime * 10. + seed) * cos(uTimelineTime * 6. + seed)) * .3);
 
     // 全体調整用
     float s = .2;
@@ -161,9 +162,11 @@ vec2 opFlower(vec3 p) {
     float aOffsetY = aHeight;
 
     float swayPeriodX = .1;
-    swayPeriodX = sin(uTime * 2.4 + .2) * .5;
+    // swayPeriodX = sin(uTime * 2.4 + .2) * .5;
+    swayPeriodX = sin(uTimelineTime * 2.4 + .2) * .5;
     float swayPeriodZ = -.1;
-    swayPeriodZ = cos(uTime * 2.6 + .1) * -.5;
+    // swayPeriodZ = cos(uTime * 2.6 + .1) * -.5;
+    swayPeriodZ = cos(uTimelineTime * 2.6 + .1) * -.5;
 
     float aSwayX = p.y * sin(p.y * swayPeriodX);
     float aSwayZ = p.y * sin(p.y * swayPeriodZ);
@@ -261,9 +264,12 @@ float dfMB(vec3 p, float d) {
     float ads = 1. - smoothstep(1., 1.8, length(p - uCP));
     
     float di =
-        sin(p.x * 4. + uTime * 3.4) * .07 +
-        cos(p.y * 3. + uTime * 3.2) * .07 +
-        sin(p.z * 3.5 + uTime * 3.0) * .07;
+        // sin(p.x * 4. + uTime * 3.4) * .07 +
+        // cos(p.y * 3. + uTime * 3.2) * .07 +
+        // sin(p.z * 3.5 + uTime * 3.0) * .07;
+        sin(p.x * 4. + uTimelineTime * 3.4) * .07 +
+        cos(p.y * 3. + uTimelineTime * 3.2) * .07 +
+        sin(p.z * 3.5 + uTimelineTime * 3.0) * .07;
     
     d += di * ads;
     return d;

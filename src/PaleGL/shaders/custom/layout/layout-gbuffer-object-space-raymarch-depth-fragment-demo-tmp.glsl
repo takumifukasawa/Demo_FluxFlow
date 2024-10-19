@@ -4,10 +4,12 @@ precision highp float;
 
 #pragma DEFINES
 
-#include ../partial/uniform-block-common.glsl
-#include ../partial/uniform-block-transformations.glsl
-#include ../partial/uniform-block-camera.glsl
-#include ../partial/uniform-block-timeline.glsl
+#include ../../partial/uniform-block-common.glsl
+#include ../../partial/uniform-block-transformations.glsl
+#include ../../partial/uniform-block-camera.glsl
+// CUSTOM_BEGIN
+#include ../../partial/uniform-block-timeline.glsl
+// CUSTOM_END
 
 #ifdef USE_INSTANCING
 in float vInstanceId;
@@ -17,15 +19,15 @@ in vec4 vInstanceState;
 #pragma BLOCK_BEFORE_RAYMARCH_CONTENT
 
 // raymarch
-#include ../partial/raymarch-distance-functions.glsl
+#include ../../partial/raymarch-distance-functions.glsl
 
 #pragma BLOCK_RAYMARCH_SCENE
 
-#include ../partial/raymarch-utility-functions.glsl
+#include ../../partial/raymarch-utility-functions.glsl
 
-#include ../partial/depth-functions.glsl
+#include ../../partial/depth-functions.glsl
 
-#include ../partial/alpha-test-functions.glsl
+#include ../../partial/alpha-test-functions.glsl
 
 uniform vec4 uColor;
 uniform sampler2D uDiffuseMap;

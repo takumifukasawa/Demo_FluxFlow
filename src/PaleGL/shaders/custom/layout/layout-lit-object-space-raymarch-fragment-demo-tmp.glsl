@@ -4,10 +4,12 @@ precision highp float;
 
 #pragma DEFINES
 
-#include ../partial/uniform-block-common.glsl
-#include ../partial/uniform-block-transformations.glsl
-#include ../partial/uniform-block-camera.glsl
-#include ../partial/uniform-block-timeline.glsl
+#include ../../partial/uniform-block-common.glsl
+#include ../../partial/uniform-block-transformations.glsl
+#include ../../partial/uniform-block-camera.glsl
+// CUSTOM_BEGIN
+#include ../../partial/uniform-block-timeline.glsl
+// CUSTOM_END
 
 #ifdef USE_INSTANCING
 in float vInstanceId;
@@ -18,15 +20,15 @@ in vec4 vInstanceColor;
 #pragma BLOCK_BEFORE_RAYMARCH_CONTENT
 
 // raymarch
-#include ../partial/raymarch-distance-functions.glsl
+#include ../../partial/raymarch-distance-functions.glsl
 
 #pragma BLOCK_RAYMARCH_SCENE
 
-#include ../partial/raymarch-utility-functions.glsl
+#include ../../partial/raymarch-utility-functions.glsl
 
-#include ../partial/depth-functions.glsl
+#include ../../partial/depth-functions.glsl
 
-#include ../partial/alpha-test-functions.glsl
+#include ../../partial/alpha-test-functions.glsl
 
 uniform vec4 uDiffuseColor;
 uniform sampler2D uDiffuseMap;
@@ -41,9 +43,9 @@ uniform int uShadingModelId;
 
 #pragma APPEND_UNIFORMS
 
-#include ../partial/tone-mapping.glsl
+#include ../../partial/tone-mapping.glsl
 
-#include ../partial/normal-map-fragment-uniforms.glsl
+#include ../../partial/normal-map-fragment-uniforms.glsl
 
 // uniform mat4 uWorldMatrix;
 // uniform mat4 uViewMatrix;
@@ -56,10 +58,10 @@ uniform sampler2D uDepthTexture;
 // uniform float uNearClip;
 // uniform float uFarClip;
 
-#include ../partial/alpha-test-fragment-uniforms.glsl
+#include ../../partial/alpha-test-fragment-uniforms.glsl
 
-#include ../partial/directional-light-struct.glsl
-#include ../partial/directional-light-uniforms.glsl
+#include ../../partial/directional-light-struct.glsl
+#include ../../partial/directional-light-uniforms.glsl
 
 struct Surface {
     vec3 worldNormal;
@@ -68,24 +70,24 @@ struct Surface {
 // float specularAmount;
 };
 
-#include ../partial/camera-struct.glsl
+#include ../../partial/camera-struct.glsl
 
 in vec2 vUv;
 in vec3 vNormal;
 
-#include ../partial/normal-map-fragment-varyings.glsl
+#include ../../partial/normal-map-fragment-varyings.glsl
 
 in vec3 vWorldPosition;
 in mat4 vInverseWorldMatrix;
 
-#include ../partial/vertex-color-fragment-varyings.glsl
+#include ../../partial/vertex-color-fragment-varyings.glsl
 
 // layout (location = 0) out vec4 outGBufferA;
 // layout (location = 1) out vec4 outGBufferB;
 // layout (location = 2) out vec4 outGBufferC;
 // layout (location = 3) out vec4 outGBufferD;
 
-#include ../partial/gbuffer-functions.glsl
+#include ../../partial/gbuffer-functions.glsl
 
 #ifdef USE_NORMAL_MAP
 vec3 calcNormal(vec3 normal, vec3 tangent, vec3 binormal, sampler2D normalMap, vec2 uv) {
@@ -106,7 +108,7 @@ vec3 calcNormal(vec3 normal, vec3 tangent, vec3 binormal, sampler2D normalMap, v
 }
 #endif
 
-#include ../partial/gbuffer-layout.glsl
+#include ../../partial/gbuffer-layout.glsl
 
 void main() {
     vec4 resultColor = vec4(0, 0, 0, 1);
