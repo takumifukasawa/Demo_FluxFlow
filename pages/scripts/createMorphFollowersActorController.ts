@@ -779,8 +779,7 @@ export const createMorphFollowersActor = ({
                     continue;
 
                 case FollowerAttractMode.Ground:
-                    const wp = randomOnUnitPlane(_followerSeed + i, 5); // TODO: scaleをactorから引っ張ってきたい
-                    wp.addVector(new Vector3(0, 1, 0));
+                    const wp = randomOnUnitPlane(_followerSeed + i, 5); // TODO: scaleをfloor_actorから引っ張ってきたい
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: 0,

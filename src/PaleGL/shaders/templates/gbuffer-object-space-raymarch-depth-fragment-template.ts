@@ -22,13 +22,13 @@ in vec2 vUv;in vec3 vLocalPosition,vWorldPosition;in mat4 vInverseWorldMatrix;
 #ifdef USE_VERTEX_COLOR
 in vec4 vVertexColor;
 #endif
-out vec4 outColor;void main(){vec4 u=texture(uDiffuseMap,vUv*uDiffuseMapUvScale),f=vec4(0);
+out vec4 outColor;void main(){vec4 u=texture(uDiffuseMap,vUv*uDiffuseMapUvScale),v=vec4(0);
 #ifdef USE_VERTEX_COLOR
-f=vVertexColor*uColor*u;
+v=vVertexColor*uColor*u;
 #else
-f=uColor*u;
+v=uColor*u;
 #endif
-vec3 v=vWorldPosition,z=uIsPerspective>.5?normalize(vWorldPosition-uViewPosition):normalize(-uViewPosition);float m=0.,r=0.;vec3 B=v;for(int i=0;i<64;i++){B=v+z*r;m=dfScene(o(B,vInverseWorldMatrix,uBoundsScale)).x;r+=m;if(!p(o(B,vInverseWorldMatrix,uBoundsScale),uBoundsScale)||m<=1e-4)break;}if(m>1e-4)discard;vec4 s=uProjectionMatrix*uViewMatrix*vec4(B,1);gl_FragDepth=s.z/s.w*.5+.5;float i=f.w;
+vec3 f=vWorldPosition,z=uIsPerspective>.5?normalize(vWorldPosition-uViewPosition):normalize(-uViewPosition);float m=0.,r=0.;vec3 B=f;for(int i=0;i<64;i++){B=f+z*r;m=dfScene(o(B,vInverseWorldMatrix,uBoundsScale)).x;r+=m;if(!p(o(B,vInverseWorldMatrix,uBoundsScale),uBoundsScale)||m<=1e-4)break;}if(m>1e-4)discard;vec4 s=uProjectionMatrix*uViewMatrix*vec4(B,1);gl_FragDepth=s.z/s.w*.5+.5;float i=v.w;
 #ifdef USE_ALPHA_TEST
 x(i,uAlphaTestThreshold);
 #endif

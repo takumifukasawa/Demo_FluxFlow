@@ -10,7 +10,7 @@ vec2 dfScene(vec3 p) {
     vec2 flowerR = opFlower(p);
     
     // float d = smoothstep(ds, flowerR.x, morphRate);
-    float d = mix(ds, flowerR.x, 1.);
+    float d = mix(ds, flowerR.x, morphRate);
     return vec2(d, 0.);
 
     // // 全体のスケール調整
