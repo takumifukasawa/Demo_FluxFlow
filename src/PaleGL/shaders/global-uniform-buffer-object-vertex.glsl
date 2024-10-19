@@ -8,6 +8,7 @@
 #include ./partial/uniform-block-directional-light.glsl
 #include ./partial/uniform-block-spot-light.glsl
 #include ./partial/uniform-block-point-light.glsl
+#include ./partial/uniform-block-timeline.glsl
 
 void main() {
 }

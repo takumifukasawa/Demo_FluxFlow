@@ -342,6 +342,9 @@ export const UniformNames = {
     // time
     Time: 'uTime',
     DeltaTime: 'uDeltaTime',
+    // timeline time
+    TimelineTime: 'uTimelineTime',
+    TimelineDeltaTime: 'uTimelineDeltaTime',
     // viewport
     Viewport: 'uViewport',
     // usualy post process
@@ -396,6 +399,7 @@ export const UniformBlockNames = {
     DirectionalLight: 'ubDirectionalLight',
     SpotLight: 'ubSpotLight',
     PointLight: 'ubPointLight',
+    Timeline: 'ubTimeline',
 } as const;
 
 export type UniformBlockName = (typeof UniformBlockNames)[keyof typeof UniformBlockNames];

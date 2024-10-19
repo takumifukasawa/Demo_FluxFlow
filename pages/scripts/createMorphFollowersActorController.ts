@@ -228,7 +228,7 @@ const createInstanceUpdater = ({
         ],
         vertexShader: transformFeedbackVertexFollower,
         uniforms: [],
-        uniformBlockNames: [UniformBlockNames.Common],
+        uniformBlockNames: [UniformBlockNames.Common, UniformBlockNames.Timeline],
         drawCount: instanceNum,
     });
 
@@ -844,7 +844,7 @@ export const createMorphFollowersActor = ({
 
     // transform feedback の更新とかをするだけ
     // states準拠な更新をする
-    mesh.onUpdate = () => {
+    mesh.beforeRender = () => {
         // tmp
         // for (let i = 0; i < instanceNum; i++) {
         //     switch (i % 4) {

@@ -64,7 +64,7 @@ import { ScreenSpaceShadowPass } from '@/PaleGL/postprocess/ScreenSpaceShadowPas
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
 import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
-import {GlitchPass} from "@/PaleGL/postprocess/GlitchPass.ts";
+import { GlitchPass } from '@/PaleGL/postprocess/GlitchPass.ts';
 
 type RenderMeshInfo = { actor: Mesh; materialIndex: number; queue: RenderQueueType };
 
@@ -215,7 +215,7 @@ export class Renderer {
 
         this._chromaticAberrationPass = new ChromaticAberrationPass({ gpu });
         this._scenePostProcess.addPass(this._chromaticAberrationPass);
-        
+
         this._glitchPass = new GlitchPass({ gpu });
         this._scenePostProcess.addPass(this._glitchPass);
 
@@ -478,6 +478,27 @@ export class Renderer {
             data: pointLightUniformBufferData,
         });
 
+        const timelineUniformBufferData = [
+            {
+                name: UniformNames.TimelineTime,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+            {
+                name: UniformNames.TimelineDeltaTime,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+        ];
+        this.globalUniformBufferObjects.push({
+            uniformBufferObject: this.gpu.createUniformBufferObject(
+                uniformBufferObjectShader,
+                UniformBlockNames.Timeline,
+                timelineUniformBufferData
+            ),
+            data: timelineUniformBufferData,
+        });
+
         const commonUniformBlockData = [
             {
                 name: UniformNames.Time,
@@ -638,7 +659,7 @@ export class Renderer {
     get chromaticAberrationPass() {
         return this._chromaticAberrationPass;
     }
-    
+
     get glitchPass() {
         return this._glitchPass;
     }
@@ -750,6 +771,10 @@ export class Renderer {
         this.gpu.clearDepth(r, g, b, a);
     }
 
+    beforeRender(time: number, deltaTime: number) {
+        this.updateCommonUniforms({ time, deltaTime});
+    }
+
     /**
      *
      * @param scene
@@ -764,11 +789,11 @@ export class Renderer {
         camera: Camera,
         {
             time,
-            deltaTime,
             onBeforePostProcess,
         }: {
             time: number;
-            deltaTime: number;
+            timelineTime: number;
+            timelineDeltaTime: number;
             onBeforePostProcess?: () => void;
         }
     ) {
@@ -777,7 +802,7 @@ export class Renderer {
         // ------------------------------------------------------------------------------
 
         // ------------------------------------------------------------------------------
-        // uniform block object
+        // common uniform block object
         // ------------------------------------------------------------------------------
 
         // ------------------------------------------------------------------------------
@@ -912,7 +937,7 @@ export class Renderer {
         // update common uniforms
         // ------------------------------------------------------------------------------
 
-        this.updateCommonUniforms({ time, deltaTime });
+        // this.updateCommonUniforms({ time, deltaTime });
         // TODO: このままだと directional-light がなくなったときも directional-light が残ることになる
         if (lightActors.directionalLight) {
             this.updateDirectionalLightUniforms(lightActors.directionalLight);
@@ -1906,7 +1931,13 @@ export class Renderer {
      *
      * @param time
      */
-    updateCommonUniforms({ time, deltaTime }: { time: number; deltaTime: number }) {
+    updateCommonUniforms({
+        time,
+        deltaTime,
+    }: {
+        time: number;
+        deltaTime: number;
+    }) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
         this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.Time, time);
         this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.DeltaTime, deltaTime);
@@ -1915,6 +1946,15 @@ export class Renderer {
             UniformNames.Viewport,
             new Vector4(this.realWidth, this.realHeight, this.realWidth / this.realHeight, 0)
         );
+    }
+
+    updateTimelineUniforms(
+        timelineTime: number,
+        timelineDeltaTime: number,
+    ) {
+        // passMaterial.uniforms.setValue(UniformNames.Time, time);
+        this.updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineTime, timelineTime);
+        this.updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineDeltaTime, timelineDeltaTime);
     }
 
     /**

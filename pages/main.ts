@@ -615,6 +615,10 @@ const load = async () => {
         window.addEventListener('resize', onWindowResize);
     };
 
+    let timelineTime: number = 0;
+    let timelinePrevTime: number = 0;
+    let timelineDeltaTime: number = 0;
+
     engine.onBeforeUpdate = () => {
         inputController.update();
 
@@ -640,19 +644,22 @@ const load = async () => {
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
             }
             const snapToStep = (v: number, s: number) => Math.floor(v / s) * s;
-            const s = snapToStep(currentTimeForTimeline, 1 / 60);
+            timelineTime = snapToStep(currentTimeForTimeline, 1 / 60);
+            timelineDeltaTime = timelineTime - timelinePrevTime;
+            timelinePrevTime = timelineTime;
             // console.log('hogehoge', s);
             marionetterSceneStructure.marionetterTimeline.execute({
-                time: s,
+                time: timelineTime,
                 scene: captureScene,
             });
             // originForgeActorController.updateSequence(currentTimeForTimeline);
         }
     };
 
-    engine.onRender = (time, deltaTime) => {
+    engine.onRender = (time) => {
         if (captureSceneCamera) {
-            renderer.render(captureScene, captureSceneCamera, { time, deltaTime });
+            renderer.updateTimelineUniforms(timelineTime, timelineDeltaTime);
+            renderer.render(captureScene, captureSceneCamera, { time, timelineTime, timelineDeltaTime });
         }
     };
 

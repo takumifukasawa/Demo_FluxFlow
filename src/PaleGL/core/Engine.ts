@@ -208,7 +208,7 @@ export class Engine {
      */
     update(time: number, deltaTime: number) {
         //
-        // before render
+        // before update
         //
 
         if (this.#onBeforeUpdate) {
@@ -285,6 +285,8 @@ export class Engine {
         // console.log(`[Engine.render]`);
 
         this.#stats.clear();
+
+        this.renderer.beforeRender(time, deltaTime);
 
         // update and render shared textures
         Object.values(this._sharedTextures).forEach((obj) => {

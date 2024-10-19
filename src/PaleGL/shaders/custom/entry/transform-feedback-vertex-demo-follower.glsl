@@ -9,6 +9,7 @@ layout(location = 2) in vec4 aAttractTargetPosition; // [x,y,z, attractAmplitude
 layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, attractPower]
 
 #include ../../partial/uniform-block-common.glsl
+#include ../../partial/uniform-block-timeline.glsl
 
 out vec3 vPosition;
 // out mat4 vTransform;
@@ -117,7 +118,8 @@ void main() {
         //     uDeltaTime
         // );
         float baseAttractPower = 2.;
-        velocity = diffP * uDeltaTime * attractPower * baseAttractPower;
+        // velocity = diffP * uDeltaTime * attractPower * baseAttractPower;
+        velocity = diffP * uTimelineDeltaTime * attractPower * baseAttractPower;
 
         // attract: 簡易版_等速
         // velocity = diffDir * uDeltaTime;
