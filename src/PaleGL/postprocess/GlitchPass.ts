@@ -20,7 +20,7 @@ export function generateGlitchPassParameters(params: GlitchPassParametersArgs = 
     };
 }
 
-const UNIFORM_NAME_BLEND_RATE = 'uBlendRate';
+const UNIFORM_NAME_BLEND_RATE = UniformNames.BlendRate;
 
 export class GlitchPass extends PostProcessPassBase {
     parameters: GlitchPassParameters;

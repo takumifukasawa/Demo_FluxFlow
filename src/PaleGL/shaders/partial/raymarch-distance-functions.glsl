@@ -261,9 +261,9 @@ float dfMB(vec3 p, float d) {
     float ads = 1. - smoothstep(1., 1.8, length(p - uCP));
     
     float di =
-        sin(p.x * 4. + uTime * 3.4) * .1 +
-        sin(p.y * 3. + uTime * 3.2) * .1 +
-        sin(p.z * 3.5 + uTime * 3.0) * .1;
+        sin(p.x * 4. + uTime * 3.4) * .07 +
+        cos(p.y * 3. + uTime * 3.2) * .07 +
+        sin(p.z * 3.5 + uTime * 3.0) * .07;
     
     d += di * ads;
     return d;
