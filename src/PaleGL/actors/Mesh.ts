@@ -144,8 +144,11 @@ export class Mesh extends Actor {
     //     // this.depthMaterial.updateUniforms({ gpu });
     // }
 
+    // TODO: render前の方がよい気がする
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    updateMaterial(_args: { camera: Camera }) {}
+    updateMaterial(_args: { camera: Camera }) {
+        this.materials.forEach(material => material.updateUniforms());
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     updateDepthMaterial(_args: { camera: Camera }) {}

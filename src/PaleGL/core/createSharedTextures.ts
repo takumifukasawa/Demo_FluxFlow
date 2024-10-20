@@ -21,6 +21,8 @@ import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 
 const gridUniformName = 'uGridSize';
 
+const TEXTURE_SIZE = 1024;
+
 export const SharedTexturesTypes = {
     RANDOM_NOISE: 0,
     PERLIN_NOISE: 1,
@@ -55,8 +57,8 @@ type SharedTextureInfo = {
 const sharedTextureInfos: SharedTextureInfo[] = [
     {
         key: SharedTexturesTypes.RANDOM_NOISE,
-        width: 512,
-        height: 512,
+        width: TEXTURE_SIZE,
+        height: TEXTURE_SIZE,
         effectFragmentShader: randomNoiseFragment,
         effectUniforms: [
             {
@@ -67,7 +69,7 @@ const sharedTextureInfos: SharedTextureInfo[] = [
             {
                 name: gridUniformName,
                 type: UniformTypes.Vector2,
-                value: new Vector2(512, 512),
+                value: new Vector2(TEXTURE_SIZE, TEXTURE_SIZE),
             },
         ],
         tilingEnabled: true,
@@ -77,8 +79,8 @@ const sharedTextureInfos: SharedTextureInfo[] = [
     },
     {
         key: SharedTexturesTypes.PERLIN_NOISE,
-        width: 512,
-        height: 512,
+        width: TEXTURE_SIZE,
+        height: TEXTURE_SIZE,
         effectFragmentShader: perlinNoiseFragment,
         effectUniforms: [
             {
@@ -104,8 +106,8 @@ const sharedTextureInfos: SharedTextureInfo[] = [
     },
     {
         key: SharedTexturesTypes.IMPROVE_NOISE,
-        width: 512,
-        height: 512,
+        width: TEXTURE_SIZE,
+        height: TEXTURE_SIZE,
         effectFragmentShader: perlinNoiseFragment,
         effectUniforms: [
             {
@@ -131,8 +133,8 @@ const sharedTextureInfos: SharedTextureInfo[] = [
     },
     {
         key: SharedTexturesTypes.SIMPLEX_NOISE,
-        width: 512,
-        height: 512,
+        width: TEXTURE_SIZE,
+        height: TEXTURE_SIZE,
         effectFragmentShader: simplexNoiseFragment,
         effectUniforms: [
             {

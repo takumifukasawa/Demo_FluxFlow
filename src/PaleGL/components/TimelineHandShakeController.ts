@@ -23,6 +23,8 @@ export function createTimelineHandShakeController(args: {
         // setSpeed: (args) => {
         //     speed = new Vector3(args.x ?? speed.x, args.y ?? speed.y, args.z ?? speed.z);
         // },
+        
+        // TODO: カメラの場合、forwardを考慮させるとよりよい気がする
         ...createComponent({
             onPostProcessTimeline: (actor, timelineTime) => {
                 const time = timelineTime;

@@ -29,7 +29,7 @@ import { OrbitMoverBinder } from './orbitMoverBinder.ts';
 
 const updateBufferSubDataEnabled = false;
 
-const MAX_INSTANCE_NUM = 1024;
+const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 0;
 
 const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;

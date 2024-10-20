@@ -3,8 +3,8 @@ import { DebuggerGUI } from '@/DebuggerGUI.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { GLSLSound } from '@/PaleGL/core/GLSLSound.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
-import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
-import {PointLight} from "@/PaleGL/actors/PointLight.ts";
+import { PointLight } from '@/PaleGL/actors/PointLight.ts';
+import { DirectionalLight } from '@/PaleGL/actors/DirectionalLight.ts';
 
 export function initDebugger({
     bufferVisualizerPass,
@@ -13,7 +13,7 @@ export function initDebugger({
     stopSound,
     renderer,
     wrapperElement,
-    orbitCameraController,
+    directionalLight,
 }: {
     bufferVisualizerPass: BufferVisualizerPass;
     glslSound: GLSLSound;
@@ -21,7 +21,7 @@ export function initDebugger({
     stopSound: () => void;
     renderer: Renderer;
     wrapperElement: HTMLElement;
-    orbitCameraController: OrbitCameraController;
+    directionalLight: DirectionalLight;
 }): DebuggerGUI {
     const debuggerGUI = new DebuggerGUI();
 
@@ -92,21 +92,54 @@ export function initDebugger({
     });
 
     //
-    // orbit controls
+    // directional light
     //
 
     debuggerGUI.addBorderSpacer();
 
-    debuggerGUI.addToggleDebugger({
-        label: 'sync orbit controls',
-        initialValue: orbitCameraController.enabledUpdateCamera,
+    const directionalLightDebuggerGroup = debuggerGUI.addGroup('directional light', false);
+
+    directionalLightDebuggerGroup.addSliderDebugger({
+        label: 'intensity',
+        minValue: 0,
+        maxValue: 4,
+        stepValue: 0.001,
+        initialValue: directionalLight.intensity,
         onChange: (value) => {
-            // TODO: enabledになったときはその位置でorbit controlsしたいよね
-            if (value) {
-                orbitCameraController.enabledUpdateCamera = true;
-            } else {
-                orbitCameraController.enabledUpdateCamera = false;
-            }
+            directionalLight.intensity = value;
+        },
+    });
+
+    directionalLightDebuggerGroup.addSliderDebugger({
+        label: 'pos x',
+        minValue: -10,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: directionalLight.transform.position.x,
+        onChange: (value) => {
+            directionalLight.transform.position.x = value;
+        },
+    });
+
+    directionalLightDebuggerGroup.addSliderDebugger({
+        label: 'pos y',
+        minValue: 0,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: directionalLight.transform.position.y,
+        onChange: (value) => {
+            directionalLight.transform.position.y = value;
+        },
+    });
+
+    directionalLightDebuggerGroup.addSliderDebugger({
+        label: 'pos z',
+        minValue: -10,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: directionalLight.transform.position.z,
+        onChange: (value) => {
+            directionalLight.transform.position.z = value;
         },
     });
 
@@ -129,6 +162,91 @@ export function initDebugger({
     //     );
     //     bufferVisualizerPass.material.uniforms.setValue('uFogTexture', renderer.fogPass.renderTarget.read.texture);
     // };
+
+    //
+    // sss
+    //
+
+    debuggerGUI.addBorderSpacer();
+
+    const sssDebuggerGroup = debuggerGUI.addGroup('sss', false);
+
+    sssDebuggerGroup.addSliderDebugger({
+        label: 'sss bias',
+        minValue: 0,
+        maxValue: 0.01,
+        stepValue: 0.0001,
+        initialValue: renderer.screenSpaceShadowPass.parameters.bias,
+        onChange: (value) => {
+            renderer.screenSpaceShadowPass.parameters.bias = value;
+        },
+    });
+
+    sssDebuggerGroup.addSliderDebugger({
+        label: 'sss jitter size x',
+        minValue: 0,
+        maxValue: 0.5,
+        stepValue: 0.001,
+        initialValue: renderer.screenSpaceShadowPass.parameters.jitterSize.x,
+        onChange: (value) => {
+            renderer.screenSpaceShadowPass.parameters.jitterSize.x = value;
+        },
+    });
+
+    sssDebuggerGroup.addSliderDebugger({
+        label: 'sss jitter size y',
+        minValue: 0,
+        maxValue: 0.5,
+        stepValue: 0.001,
+        initialValue: renderer.screenSpaceShadowPass.parameters.jitterSize.y,
+        onChange: (value) => {
+            renderer.screenSpaceShadowPass.parameters.jitterSize.y = value;
+        },
+    });
+
+    sssDebuggerGroup.addSliderDebugger({
+        label: 'sss jitter size z',
+        minValue: 0,
+        maxValue: 0.5,
+        stepValue: 0.001,
+        initialValue: renderer.screenSpaceShadowPass.parameters.jitterSize.z,
+        onChange: (value) => {
+            renderer.screenSpaceShadowPass.parameters.jitterSize.z = value;
+        },
+    });
+
+    sssDebuggerGroup.addSliderDebugger({
+        label: 'sss sharpness',
+        minValue: 0,
+        maxValue: 4,
+        stepValue: 0.001,
+        initialValue: renderer.screenSpaceShadowPass.parameters.sharpness,
+        onChange: (value) => {
+            renderer.screenSpaceShadowPass.parameters.sharpness = value;
+        },
+    });
+
+    sssDebuggerGroup.addSliderDebugger({
+        label: 'sss strength',
+        minValue: 0,
+        maxValue: 4,
+        stepValue: 0.001,
+        initialValue: renderer.screenSpaceShadowPass.parameters.strength,
+        onChange: (value) => {
+            renderer.screenSpaceShadowPass.parameters.strength = value;
+        },
+    });
+    
+    sssDebuggerGroup.addSliderDebugger({
+        label: 'ray step multiplier',
+        minValue: 0.001,
+        maxValue: 1,
+        stepValue: 0.001,
+        initialValue: renderer.screenSpaceShadowPass.parameters.rayStepMultiplier,
+        onChange: (value) => {
+            renderer.screenSpaceShadowPass.parameters.rayStepMultiplier = value;
+        },
+    });
 
     //
     // ssao
@@ -408,7 +526,7 @@ export function initDebugger({
             renderer.fogPass.parameters.distanceFogStart = value;
         },
     });
-    
+
     fogDebuggerGroup.addSliderDebugger({
         label: 'distance fog power',
         minValue: 0,
@@ -419,7 +537,7 @@ export function initDebugger({
             renderer.fogPass.parameters.distanceFogPower = value;
         },
     });
-    
+
     fogDebuggerGroup.addSliderDebugger({
         label: 'blend rate',
         minValue: 0,
@@ -430,8 +548,6 @@ export function initDebugger({
             renderer.fogPass.parameters.blendRate = value;
         },
     });
-
-
 
     //
     // depth of field
@@ -754,11 +870,11 @@ export function initDebugger({
     //
     // vignette
     //
-    
+
     debuggerGUI.addBorderSpacer();
-    
+
     const vignetteDebuggerGroup = debuggerGUI.addGroup('vignette', false);
-    
+
     vignetteDebuggerGroup.addSliderDebugger({
         label: 'vignette strength',
         minValue: 0,
@@ -769,7 +885,7 @@ export function initDebugger({
             renderer.vignettePass.parameters.vignetteRadius = value;
         },
     });
-    
+
     vignetteDebuggerGroup.addSliderDebugger({
         label: 'vignette power',
         minValue: 0,
@@ -780,7 +896,7 @@ export function initDebugger({
             renderer.vignettePass.parameters.vignettePower = value;
         },
     });
-    
+
     vignetteDebuggerGroup.addSliderDebugger({
         label: 'blend rate',
         minValue: 0,
@@ -791,22 +907,21 @@ export function initDebugger({
             renderer.vignettePass.parameters.blendRate = value;
         },
     });
-    
-    
+
     //
     // glitch
     //
-    
+
     debuggerGUI.addBorderSpacer();
-    
+
     const glitchDebuggerGroup = debuggerGUI.addGroup('glitch', false);
-    
+
     glitchDebuggerGroup.addToggleDebugger({
         label: 'glitch pass enabled',
         initialValue: renderer.glitchPass.parameters.enabled,
         onChange: (value) => (renderer.glitchPass.parameters.enabled = value),
     });
-    
+
     glitchDebuggerGroup.addSliderDebugger({
         label: 'glitch blend rate',
         minValue: 0,
@@ -823,16 +938,15 @@ export function initDebugger({
     //
 
     wrapperElement.appendChild(debuggerGUI.domElement);
-   
+
     //
     // result
     //
-    
+
     return debuggerGUI;
 }
 
-
-export function createPointLightDebugger (debuggerGUI: DebuggerGUI, pointLight: PointLight, label: string) {
+export function createPointLightDebugger(debuggerGUI: DebuggerGUI, pointLight: PointLight, label: string) {
     debuggerGUI.addBorderSpacer();
 
     const pointLightDebuggerGroup = debuggerGUI.addGroup(label, false);

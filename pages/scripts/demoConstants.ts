@@ -1,4 +1,9 @@
 
+export const MAIN_CAMERA_ACTOR_NAME = 'MC';
+
+export const DIRECT_LIGHT_ACTOR_NAME = 'DL';
+
+export const ORIGIN_FORGE_ACTOR_NAME = 'OF';
 
 export const FOLLOWERS_ACTOR_NAME_A = 'F_A';
 export const FOLLOWERS_ACTOR_NAME_B = 'F_B';
@@ -16,3 +21,5 @@ export const ATTRACTOR_ORBIT_MOVER_B = 'O_B';
 export const ATTRACTOR_ORBIT_MOVER_C = 'O_C';
 
 export const DEPTH_OF_FIELD_TARGET_ACTOR_NAME = 'FT';
+
+export const FLOOR_ACTOR_NAME = 'FL';

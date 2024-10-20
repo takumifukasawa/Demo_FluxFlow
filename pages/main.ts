@@ -8,8 +8,6 @@ import { Renderer } from '@/PaleGL/core/Renderer';
 import { GPU } from '@/PaleGL/core/GPU';
 import { RenderTarget } from '@/PaleGL/core/RenderTarget';
 import { Scene } from '@/PaleGL/core/Scene';
-// import { Texture } from '@/PaleGL/core/Texture';
-import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController';
 
 // loaders
 // materials
@@ -19,10 +17,6 @@ import { Vector4 } from '@/PaleGL/math/Vector4';
 
 // postprocess
 import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass';
-
-// inputs
-import { TouchInputController } from '@/PaleGL/inputs/TouchInputController';
-import { MouseInputController } from '@/PaleGL/inputs/MouseInputController';
 
 // others
 import { RenderTargetTypes, TextureDepthPrecisionType, TextureFilterTypes } from '@/PaleGL/constants';
@@ -37,14 +31,11 @@ import { PostProcess } from '@/PaleGL/postprocess/PostProcess.ts';
 import soundVertexShader from '@/PaleGL/shaders/sound-vertex-demo.glsl';
 import { wait } from '@/utilities/wait.ts';
 import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
-// import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import { Marionetter, MarionetterScene, MarionetterSceneStructure } from '@/Marionetter/types';
 import { buildMarionetterScene, buildMarionetterTimelineFromScene } from '@/Marionetter/buildMarionetterScene.ts';
-// import { OrbitCameraController } from '@/PaleGL/core/OrbitCameraController.ts';
 import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
 import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
-// import {loadImgArraybuffer} from '@/PaleGL/loaders/loadImg.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
 import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
 
@@ -85,16 +76,19 @@ import {
     ATTRACTOR_TARGET_SPHERE_ACTOR_A_NAME,
     ATTRACTOR_TARGET_SPHERE_ACTOR_B_NAME,
     DEPTH_OF_FIELD_TARGET_ACTOR_NAME,
+    DIRECT_LIGHT_ACTOR_NAME,
+    FLOOR_ACTOR_NAME,
     FOLLOWERS_ACTOR_NAME_A,
     FOLLOWERS_ACTOR_NAME_B,
     FOLLOWERS_ACTOR_NAME_C,
+    MAIN_CAMERA_ACTOR_NAME,
 } from './scripts/demoConstants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { createOrbitMoverBinder } from './scripts/orbitMoverBinder.ts';
 import { createDofFocusTargetController } from './scripts/dofFocusTargetController.ts';
-import {
-    createTimelineHandShakeController,
-} from '@/PaleGL/components/TimelineHandShakeController.ts';
+import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineHandShakeController.ts';
+import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
+import { createFloorActorController } from './scripts/createFloorActorController.ts';
 
 const stylesText = `
 :root {
@@ -191,10 +185,6 @@ document.head.appendChild(styleElement);
 let width: number, height: number;
 let bufferVisualizerPass: BufferVisualizerPass;
 
-const isSP = !!window.navigator.userAgent.match(/(iPhone|iPad|iPod|Android)/i);
-const inputController = isSP ? new TouchInputController() : new MouseInputController();
-inputController.start();
-
 // const wrapperElement = document.getElementById("wrapper")!;
 const wrapperElement = document.createElement('div');
 document.body.appendChild(wrapperElement);
@@ -251,7 +241,6 @@ engine.setScene(captureScene);
 // captureSceneCamera.name = "Main Camera";
 
 let captureSceneCamera: PerspectiveCamera | null;
-const orbitCameraController: OrbitCameraController = new OrbitCameraController();
 
 const initMarionetter = () => {
     marionetter.connect();
@@ -271,46 +260,12 @@ const buildScene = (sceneJson: MarionetterScene) => {
         captureScene.add(actors[i]);
     }
 
-    captureSceneCamera = captureScene.find('MainCamera') as PerspectiveCamera;
-    const directionalLight = captureScene.find('DirectionalLight') as DirectionalLight;
-
-    // captureScene.find('CUBE_SCALE')!.onProcessClipFrame = (key, value) => {};
-
-    orbitCameraController.setCamera(captureSceneCamera);
-    orbitCameraController.distance = isSP ? 15 : 15;
-    orbitCameraController.attenuation = 0.01;
-    orbitCameraController.dampingFactor = 0.2;
-    orbitCameraController.azimuthSpeed = 100;
-    orbitCameraController.altitudeSpeed = 100;
-    orbitCameraController.deltaAzimuthPower = 2;
-    orbitCameraController.deltaAltitudePower = 2;
-    orbitCameraController.maxAltitude = 5;
-    orbitCameraController.minAltitude = -45;
-    orbitCameraController.maxAzimuth = 55;
-    orbitCameraController.minAzimuth = -55;
-    orbitCameraController.defaultAzimuth = 10;
-    orbitCameraController.defaultAltitude = -10;
-    orbitCameraController.lookAtTarget = new Vector3(0, 3, 0);
-    orbitCameraController.enabled = false;
-    orbitCameraController.enabledUpdateCamera = false;
-    orbitCameraController.start();
+    captureSceneCamera = captureScene.find(MAIN_CAMERA_ACTOR_NAME) as PerspectiveCamera;
+    const directionalLight = captureScene.find(DIRECT_LIGHT_ACTOR_NAME) as DirectionalLight;
 
     captureSceneCamera.subscribeOnStart(({ actor }) => {
         (actor as Camera).setClearColor(new Vector4(0, 0, 0, 1));
     });
-    captureSceneCamera.onFixedUpdate = () => {
-        // 1: fixed position
-        // actor.transform.position = new Vector3(-7 * 1.1, 4.5 * 1.4, 11 * 1.2);
-        // 2: orbit controls
-        // if (inputController.isDown && debuggerStates.orbitControlsEnabled) {
-        if (inputController.isDown && orbitCameraController.enabled) {
-            orbitCameraController.setDelta(inputController.deltaNormalizedInputPosition);
-        }
-        if (inputController.isDown && orbitCameraController.enabled) {
-            orbitCameraController.setDelta(inputController.deltaNormalizedInputPosition);
-        }
-        orbitCameraController.fixedUpdate();
-    };
 
     const createSpotLightShadowMap = (spotLight: SpotLight) => {
         if (spotLight.shadowCamera) {
@@ -614,7 +569,7 @@ const load = async () => {
     //
 
     const focusTargetActor = captureScene.find(DEPTH_OF_FIELD_TARGET_ACTOR_NAME)!;
-    
+
     focusTargetActor.addComponent(
         createTimelineHandShakeController({
             amplitude: new Vector3(0.1, 0.1, 0.1),
@@ -622,50 +577,36 @@ const load = async () => {
             offset: new Vector3(4, 5, 6),
         })
     );
-    
+
     captureSceneCamera?.addComponent(
-        createDofFocusTargetController(
-            focusTargetActor,
-            captureSceneCamera,
-            renderer.depthOfFieldPass
-        )
+        createDofFocusTargetController(focusTargetActor, captureSceneCamera, renderer.depthOfFieldPass)
     );
     // TODO: timelineから制御したい
     captureSceneCamera?.addComponent(
         createTimelineHandShakeController({
-            amplitude: new Vector3(0.15, 0.15, 0.15),
-            speed: new Vector3(1.8, 1.4, 1.6),
+            amplitude: new Vector3(0.1, 0.1, 0.1),
+            speed: new Vector3(1.4, 1.2, 1.0),
             offset: new Vector3(1, 2, 3),
         })
     );
-    // captureSceneCamera!.onProcessPropertyBinder = (key, value) => {
-    //     const c = captureSceneCamera?.getComponent<TimelineHandShakeController>();
-    //     if (key === 'a.x') {
-    //         c?.setAmplitude({ x: value });
-    //         return;
-    //     }
-    //     if (key === 'a.y') {
-    //         c?.setAmplitude({ y: value });
-    //         return;
-    //     }
-    //     if (key === 'a.z') {
-    //         c?.setAmplitude({ z: value });
-    //         return;
-    //     }
-    //     if (key === 's.x') {
-    //         c?.setSpeed({ x: value });
-    //         return;
-    //     }
-    //     if (key === 's.y') {
-    //         c?.setSpeed({ y: value });
-    //         return;
-    //     }
-    //     if (key === 's.z') {
-    //         c?.setSpeed({ z: value });
-    //         return;
-    //     }
-    //     console.log(key, value);
-    // };
+
+    //
+    // floor
+    //
+
+    createFloorActorController(
+        captureScene.find(FLOOR_ACTOR_NAME)! as Mesh,
+        engine.sharedTextures[SharedTexturesTypes.SIMPLEX_NOISE].texture
+    );
+
+    //
+    // override pp
+    // TODO: ある程度はtimelineからいじりたい
+    //
+
+    renderer.fogPass.parameters.distanceFogStart = 10;
+    renderer.fogPass.parameters.distanceFogPower = 0.02;
+    renderer.fogPass.parameters.fogColor = Color.fromRGB(0, 0, 0);
 
     //
     // events
@@ -675,7 +616,6 @@ const load = async () => {
     const onWindowResize = () => {
         width = Math.floor(wrapperElement.offsetWidth);
         height = Math.floor(wrapperElement.offsetHeight);
-        inputController.setSize(width, height);
         engine.setSize(width, height);
     };
 
@@ -689,39 +629,18 @@ const load = async () => {
     let timelineDeltaTime: number = 0;
 
     engine.onBeforeUpdate = () => {
-        inputController.update();
-
-        // pattern_1: timeがRAFからわたってくる場合
-        // if (marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
-        //     // TODO: prodの時はこっちを使いたい
-        //     // const soundTime = glslSound.getCurrentTime();
-        //     // marionetterTimeline.execute(soundTime);
-        //     marionetterSceneStructure.marionetterTimeline.execute({
-        //         time: marionetter.getCurrentTime(),
-        //         scene: captureScene,
-        //     });
-        //     // marionetterTimeline.execute(0);
-        // }
-        // if (captureSceneCamera) {
-        //     renderer.render(captureScene, captureSceneCamera, { time, deltaTime });
-        // }
-
-        // pattern_2: timeがtimelineな場合
         if (glslSoundWrapper && marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
             if (glslSoundWrapper.isPlaying()) {
-                // console.log(`[main] time: ${currentTimeForTimeline}`);
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
             }
             const snapToStep = (v: number, s: number) => Math.floor(v / s) * s;
             timelineTime = snapToStep(currentTimeForTimeline, 1 / 60);
             timelineDeltaTime = timelineTime - timelinePrevTime;
             timelinePrevTime = timelineTime;
-            // console.log('hogehoge', s);
             marionetterSceneStructure.marionetterTimeline.execute({
                 time: timelineTime,
                 scene: captureScene,
             });
-            // originForgeActorController.updateSequence(currentTimeForTimeline);
         }
     };
 
@@ -795,7 +714,7 @@ const playDemo = () => {
         stopSound: glslSoundWrapper.stop,
         renderer,
         wrapperElement,
-        orbitCameraController,
+        directionalLight: captureScene.find(DIRECT_LIGHT_ACTOR_NAME)! as DirectionalLight,
     });
     createPointLightDebugger(debuggerGUI, originForgeActorController.getPointLight(), 'point light');
 };

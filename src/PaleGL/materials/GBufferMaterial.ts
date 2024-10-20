@@ -5,7 +5,7 @@ import {
     UniformBlockNames,
     UniformNames,
     UniformTypes,
-    VertexShaderModifier
+    VertexShaderModifier,
 } from '@/PaleGL/constants';
 import { Vector2 } from '@/PaleGL/math/Vector2';
 import { Color } from '@/PaleGL/math/Color';
@@ -17,6 +17,7 @@ import gBufferVert from '@/PaleGL/shaders/gbuffer-vertex.glsl';
 import litFrag from '@/PaleGL/shaders/lit-fragment.glsl';
 import gBufferDepthFrag from '@/PaleGL/shaders/gbuffer-depth-fragment.glsl';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
+import { Vector4 } from '@/PaleGL/math/Vector4.ts';
 
 export type GBufferMaterialArgs = {
     diffuseColor?: Color;
@@ -25,7 +26,11 @@ export type GBufferMaterialArgs = {
     diffuseMapUvOffset?: Vector2;
     // specularAmount?: number;
     metallic?: number;
+    metallicMap?: Texture | null;
+    metallicMapTiling?: Vector4;
     roughness?: number;
+    roughnessMap?: Texture | null;
+    roughnessMapTiling?: Vector4;
     emissiveColor?: Color;
     normalMap?: Texture | null;
     normalMapUvScale?: Vector2;
@@ -40,6 +45,12 @@ export class GBufferMaterial extends Material {
     // // params
     // diffuseColor;
     // specularAmount;
+    roughness: number;
+    roughnessMap: Texture | null;
+    roughnessMapTiling: Vector4;
+    metallic: number;
+    metallicMap: Texture | null;
+    metallicMapTiling: Vector4;
 
     constructor({
         // diffuse
@@ -54,7 +65,11 @@ export class GBufferMaterial extends Material {
         // params
         // specularAmount,
         metallic,
+        metallicMap,
+        metallicMapTiling,
         roughness,
+        roughnessMap,
+        roughnessMapTiling,
         // emissive
         emissiveColor,
         // TODO: 外部化
@@ -64,6 +79,13 @@ export class GBufferMaterial extends Material {
         ...options
     }: GBufferMaterialArgs = {}) {
         // this.specularAmount =
+
+        const roughnessMapValue = roughnessMap || null;
+        const roughnessMapTilingValue = roughnessMapTiling || new Vector4(1, 1, 0, 0);
+        const roughnessValue = roughness || 0;
+        const metallicMapTilingValue = metallicMapTiling || new Vector4(1, 1, 0, 0);
+        const metallicValue = metallic || 0;
+        const metallicMapValue = metallicMap || null;
 
         const baseUniforms: UniformsData = [
             {
@@ -95,12 +117,42 @@ export class GBufferMaterial extends Material {
             {
                 name: UniformNames.Metallic,
                 type: UniformTypes.Float,
-                value: metallic || 0,
+                value: metallicValue,
+            },
+            {
+                name: UniformNames.MetallicMap,
+                type: UniformTypes.Texture,
+                value: metallicMapValue,
+            },
+            {
+                name: UniformNames.MetallicMapTiling,
+                type: UniformTypes.Vector4,
+                value: metallicMapTilingValue,
             },
             {
                 name: UniformNames.Roughness,
                 type: UniformTypes.Float,
-                value: roughness || 0,
+                value: roughnessValue,
+            },
+            {
+                name: UniformNames.RoughnessMap,
+                type: UniformTypes.Texture,
+                value: roughnessMapValue,
+            },
+            {
+                name: UniformNames.RoughnessMapTiling,
+                type: UniformTypes.Vector4,
+                value: roughnessMapTilingValue,
+            },
+            {
+                name: UniformNames.MetallicMap,
+                type: UniformTypes.Texture,
+                value: metallicMapValue,
+            },
+            {
+                name: UniformNames.MetallicMapTiling,
+                type: UniformTypes.Vector4,
+                value: metallicMapTilingValue,
             },
             {
                 name: UniformNames.NormalMap,
@@ -163,12 +215,15 @@ export class GBufferMaterial extends Material {
             depthTest: true,
             depthWrite: false,
             depthFuncType: DepthFuncTypes.Equal,
-            uniformBlockNames: [
-                UniformBlockNames.Common,
-                UniformBlockNames.Transformations,
-                UniformBlockNames.Camera
-            ]
+            uniformBlockNames: [UniformBlockNames.Common, UniformBlockNames.Transformations, UniformBlockNames.Camera],
         });
+
+        this.roughness = roughnessValue;
+        this.roughnessMap = roughnessMapValue;
+        this.roughnessMapTiling = roughnessMapTilingValue;
+        this.metallic = metallicValue;
+        this.metallicMap = metallicMapValue;
+        this.metallicMapTiling = metallicMapTilingValue;
     }
 
     start({ gpu, attributeDescriptors = [] }: { gpu: GPU; attributeDescriptors: AttributeDescriptor[] }) {
@@ -180,5 +235,15 @@ export class GBufferMaterial extends Material {
 
         // console.log(gBufferVert)
         // console.log(this.rawFragmentShader)
+    }
+
+    updateUniforms() {
+        super.updateUniforms();
+        this.uniforms.setValue(UniformNames.RoughnessMap, this.roughnessMap);
+        this.uniforms.setValue(UniformNames.Roughness, this.roughnessMap ? 1 : this.roughness);
+        this.uniforms.setValue(UniformNames.RoughnessMapTiling, this.roughnessMapTiling);
+        this.uniforms.setValue(UniformNames.MetallicMap, this.metallicMap);
+        this.uniforms.setValue(UniformNames.Metallic, this.metallicMap ? 1 : this.metallic);
+        this.uniforms.setValue(UniformNames.MetallicMapTiling, this.metallicMapTiling);
     }
 }

@@ -38,6 +38,7 @@ uniform float uBias;
 uniform vec3 uJitterSize;
 uniform float uSharpness;
 uniform float uStrength;
+uniform float uRayStepMultiplier;
 
 const int MARCH_COUNT = 24;
 
@@ -72,7 +73,7 @@ void calcOcclusion(PointLight pointLight, vec3 worldPosition, vec3 viewPosition,
     vec3 diffInView = viewPosition - rayOriginInView;
 
     vec3 rayDirInView = normalize(diffInView);
-    float stepLength = length(diffInView) / float(MARCH_COUNT);
+    float stepLength = (length(diffInView) / float(MARCH_COUNT)) * uRayStepMultiplier;
     float sharpness = uSharpness / float(MARCH_COUNT);
 
     // float occlusion = 0.;

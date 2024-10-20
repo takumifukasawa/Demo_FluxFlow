@@ -36,21 +36,21 @@ struct GBufferA{vec3 baseColor;};struct GBufferB{vec3 normal;float shadingModelI
 #ifdef USE_NORMAL_MAP
 vec3 e(vec3 u,vec3 v,vec3 f,sampler2D m,vec2 o){vec3 z=texture(m,o).xyz;z=z*2.-1.;return normalize(mat3(normalize(v),normalize(f),normalize(u))*z);}
 #endif
-layout(location=0) out vec4 outGBufferA;layout(location=1) out vec4 outGBufferB;layout(location=2) out vec4 outGBufferC;layout(location=3) out vec4 outGBufferD;void main(){vec4 m=vec4(0,0,0,1);vec2 z=vUv*uDiffuseMapUvScale;vec4 x=uDiffuseColor*texture(uDiffuseMap,z);vec3 l=vNormal;
+layout(location=0) out vec4 outGBufferA;layout(location=1) out vec4 outGBufferB;layout(location=2) out vec4 outGBufferC;layout(location=3) out vec4 outGBufferD;void main(){vec4 m=vec4(0,0,0,1);vec2 x=vUv*uDiffuseMapUvScale;vec4 z=uDiffuseColor*texture(uDiffuseMap,x);vec3 l=vNormal;
 #ifdef USE_NORMAL_MAP
-l=e(vNormal,vTangent,vBinormal,uNormalMap,z);
+l=e(vNormal,vTangent,vBinormal,uNormalMap,x);
 #else
 l=normalize(vNormal);
 #endif
 
 #ifdef USE_VERTEX_COLOR
-x*=vVertexColor;
+z*=vVertexColor;
 #endif
 vec3 U=uEmissiveColor.xyz;
 #ifdef USE_INSTANCING
 U+=vInstanceEmissiveColor.xyz;
 #endif
-vec3 d=vWorldPosition,y=uIsPerspective>.5?normalize(vWorldPosition-uViewPosition):normalize(-uViewPosition);vec2 r=vec2(0);float n=0.;vec3 i=d;for(int D=0;D<100;D++){i=d+y*n;r=s(i,vInverseWorldMatrix,uBoundsScale);n+=r.x;if(!e(o(i,vInverseWorldMatrix,uBoundsScale),uBoundsScale)||r.x<=1e-4)break;}if(r.x>1e-4)discard;float D=texelFetch(uDepthTexture,ivec2(gl_FragCoord.xy),0).x,P=v(D,uNearClip,uFarClip);vec4 G=uViewMatrix*vec4(i,1);float C=e(G.z,uNearClip,uFarClip);if(C>=P)discard;vec4 S=uProjectionMatrix*uViewMatrix*vec4(i,1);gl_FragDepth=S.z/S.w*.5+.5;if(r.x>0.)l=u(i,vInverseWorldMatrix,uBoundsScale);m=x;
+vec3 d=vWorldPosition,y=uIsPerspective>.5?normalize(vWorldPosition-uViewPosition):normalize(-uViewPosition);vec2 r=vec2(0);float n=0.;vec3 i=d;for(int D=0;D<100;D++){i=d+y*n;r=s(i,vInverseWorldMatrix,uBoundsScale);n+=r.x;if(!e(o(i,vInverseWorldMatrix,uBoundsScale),uBoundsScale)||r.x<=1e-4)break;}if(r.x>1e-4)discard;float D=texelFetch(uDepthTexture,ivec2(gl_FragCoord.xy),0).x,P=v(D,uNearClip,uFarClip);vec4 G=uViewMatrix*vec4(i,1);float C=e(G.z,uNearClip,uFarClip);if(C>=P)discard;vec4 S=uProjectionMatrix*uViewMatrix*vec4(i,1);gl_FragDepth=S.z/S.w*.5+.5;if(r.x>0.)l=u(i,vInverseWorldMatrix,uBoundsScale);m=z;
 #ifdef USE_ALPHA_TEST
 p(m.w,uAlphaTestThreshold);
 #endif

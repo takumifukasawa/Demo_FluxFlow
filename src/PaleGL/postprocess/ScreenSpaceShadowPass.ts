@@ -15,13 +15,22 @@ export type ScreenSpaceShadowPassParametersBase = {
     sharpness: number;
     strength: number;
     ratio: number;
+    rayStepMultiplier: number;
 };
 
 export type ScreenSpaceShadowPassParameters = PostProcessPassParametersBase & ScreenSpaceShadowPassParametersBase;
 
 export type ScreenSpaceShadowPassArgs = Partial<ScreenSpaceShadowPassParameters>;
 
-export function generateScreenSpaceShadowPassParameters(params: ScreenSpaceShadowPassArgs = {}): ScreenSpaceShadowPassParameters {
+const UNIFORM_BIAS_NAME = 'uBias';
+const UNIFORM_JITTER_SIZE_NAME = 'uJitterSize';
+const UNIFORM_SHARPNESS_NAME = 'uSharpness';
+const UNIFORM_STRENGTH_NAME = 'uStrength';
+const UNIFORM_RAY_STEP_MULTIPLIER_NAME = 'uRayStepMultiplier';
+
+export function generateScreenSpaceShadowPassParameters(
+    params: ScreenSpaceShadowPassArgs = {}
+): ScreenSpaceShadowPassParameters {
     return {
         enabled: params.enabled ?? true,
         bias: params.bias ?? 0,
@@ -29,6 +38,7 @@ export function generateScreenSpaceShadowPassParameters(params: ScreenSpaceShado
         sharpness: params.sharpness ?? 2,
         strength: params.strength ?? 1,
         ratio: params.ratio ?? 0.5,
+        rayStepMultiplier: params.rayStepMultiplier ?? 1,
     };
 }
 
@@ -71,22 +81,27 @@ export class ScreenSpaceShadowPass extends PostProcessPassBase {
                     value: null,
                 },
                 {
-                    name: 'uBias',
+                    name: UNIFORM_BIAS_NAME,
                     type: UniformTypes.Float,
                     value: 0,
                 },
                 {
-                    name: 'uJitterSize',
+                    name: UNIFORM_JITTER_SIZE_NAME,
                     type: UniformTypes.Vector3,
                     value: Vector3.zero,
                 },
                 {
-                    name: 'uSharpness',
+                    name: UNIFORM_SHARPNESS_NAME,
                     type: UniformTypes.Float,
                     value: 0,
                 },
                 {
-                    name: 'uStrength',
+                    name: UNIFORM_STRENGTH_NAME,
+                    type: UniformTypes.Float,
+                    value: 0,
+                },
+                {
+                    name: UNIFORM_RAY_STEP_MULTIPLIER_NAME,
                     type: UniformTypes.Float,
                     value: 0,
                 },
@@ -123,10 +138,11 @@ export class ScreenSpaceShadowPass extends PostProcessPassBase {
      * @param options
      */
     render(options: PostProcessPassRenderArgs) {
-        this.material.uniforms.setValue('uBias', this.parameters.bias);
-        this.material.uniforms.setValue('uJitterSize', this.parameters.jitterSize);
-        this.material.uniforms.setValue('uSharpness', this.parameters.sharpness);
-        this.material.uniforms.setValue('uStrength', this.parameters.strength);
+        this.material.uniforms.setValue(UNIFORM_BIAS_NAME, this.parameters.bias);
+        this.material.uniforms.setValue(UNIFORM_JITTER_SIZE_NAME, this.parameters.jitterSize);
+        this.material.uniforms.setValue(UNIFORM_SHARPNESS_NAME, this.parameters.sharpness);
+        this.material.uniforms.setValue(UNIFORM_STRENGTH_NAME, this.parameters.strength);
+        this.material.uniforms.setValue(UNIFORM_RAY_STEP_MULTIPLIER_NAME, this.parameters.rayStepMultiplier);
         super.render(options);
     }
 }

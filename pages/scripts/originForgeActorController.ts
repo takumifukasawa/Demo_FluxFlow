@@ -11,6 +11,7 @@ import { MorphFollowerActorControllerEntity } from './createMorphFollowersActorC
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
 import {easeInOutQuad, easeOutCube} from '@/PaleGL/utilities/easingUtilities.ts';
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
+import {ORIGIN_FORGE_ACTOR_NAME} from "./demoConstants.ts";
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
@@ -73,8 +74,6 @@ occurrenceSequenceBaseData.forEach((d) => {
     const result: TimeStampedOccurrenceSequence = [s, e, fi, instanceAccCount[fi]];
     occurrenceSequenceTimestamps.push(result);
 });
-
-console.log("hogehoge", occurrenceSequenceTimestamps)
 
 // // 16回やりたいが・・・
 // // TODO: targetとなるfollowerを指定できるようにする
@@ -141,7 +140,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     // .flat();
 
     const mesh = new ObjectSpaceRaymarchMesh({
-        name: 'OriginForge',
+        name: ORIGIN_FORGE_ACTOR_NAME,
         gpu,
         size: 0.5,
         fragmentShaderContent: litObjectSpaceRaymarchFragOriginForgeContent,
@@ -179,6 +178,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         attenuation: 1,
     });
     mesh.addChild(pointLight);
+    // TODO: 手動オフセットしないとなぜか中央にならない
+    pointLight.transform.position = new Vector3(0, 3, 0);
 
     const initialize = (arr: MorphFollowerActorControllerEntity[]) => {
         morphFollowersActorControllerEntities = arr;
