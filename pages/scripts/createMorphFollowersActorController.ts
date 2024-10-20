@@ -87,8 +87,9 @@ const FollowerAttractMode = {
     Attractor: 1,
     Position: 2,
     FollowCubeEdge: 3,
-    FollowSphereSurface: 4,
-    Ground: 10, // 追加するかもなので10に
+    Ray: 4,
+    FollowSphereSurface: 5,
+    Ground: 6,
 } as const;
 type FollowerAttractMode = (typeof FollowerAttractMode)[keyof typeof FollowerAttractMode];
 

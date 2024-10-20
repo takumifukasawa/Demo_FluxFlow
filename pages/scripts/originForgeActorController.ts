@@ -3,14 +3,14 @@ import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh
 import litObjectSpaceRaymarchFragOriginForgeContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge.glsl';
 import gBufferObjectSpaceRaymarchFragOriginForgeDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
-import {DEG_TO_RAD, FaceSide, UniformBlockNames, UniformTypes} from '@/PaleGL/constants.ts';
+import { DEG_TO_RAD, FaceSide, UniformBlockNames, UniformTypes } from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { MorphFollowerActorControllerEntity } from './createMorphFollowersActorController.ts';
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
 import { easeInOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
-import {PointLight} from "@/PaleGL/actors/PointLight.ts";
+import { PointLight } from '@/PaleGL/actors/PointLight.ts';
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
@@ -30,21 +30,45 @@ const FollowerIndex = {
     C: 2,
 } as const;
 
-type FollowerIndex = typeof FollowerIndex[keyof typeof FollowerIndex];
+type FollowerIndex = (typeof FollowerIndex)[keyof typeof FollowerIndex];
 
 // [startTime[sec], endTime[sec], followerIndex, totalInstanceNum]
 type TimeStampedOccurrenceSequence = [number, number, FollowerIndex, number];
 
-// 16回やりたいが・・・
-// [startTime[sec], endTime[sec]]
-// TODO: targetとなるfollowerを指定できるようにする
+const occurrenceSequenceBaseData: [number, number, FollowerIndex][] = [
+    [0, 8, FollowerIndex.None], // なにもしない時間
+    [8, 12, FollowerIndex.A],
+    [12, 16, FollowerIndex.B],
+    [16, 20, FollowerIndex.C],
+    [20, 24, FollowerIndex.A],
+];
+
+const instanceAccCount: Record<FollowerIndex, number> = {
+    [FollowerIndex.None]: 0,
+    [FollowerIndex.A]: 0,
+    [FollowerIndex.B]: 0,
+    [FollowerIndex.C]: 0,
+};
+
 const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
     [0, 8, FollowerIndex.None, 0], // なにもしない時間
-    [8, 12, FollowerIndex.A, 16],
-    [12, 16, FollowerIndex.B, 16],
-    [16, 20, FollowerIndex.C, 16],
-    [20, 24, FollowerIndex.A, 32],
 ];
+occurrenceSequenceBaseData.forEach((d) => {
+    const [s, e, fi] = d;
+    instanceAccCount[fi] += METABALL_NUM;
+    const result: TimeStampedOccurrenceSequence = [s, e, fi, instanceAccCount[fi]];
+    occurrenceSequenceTimestamps.push(result);
+});
+
+// // 16回やりたいが・・・
+// // TODO: targetとなるfollowerを指定できるようにする
+// const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
+//     [0, 8, FollowerIndex.None, 0], // なにもしない時間
+//     [8, 12, FollowerIndex.A, 16],
+//     [12, 16, FollowerIndex.B, 16],
+//     [16, 20, FollowerIndex.C, 16],
+//     [20, 24, FollowerIndex.A, 32],
+// ];
 
 type OccurrenceSequenceData = {
     sequenceIndex: number;
@@ -54,14 +78,14 @@ type OccurrenceSequenceData = {
     instanceNumStartIndex: number;
     instanceNumEndIndex: number;
     instanceNum: number;
-    followerIndex: FollowerIndex,
+    followerIndex: FollowerIndex;
 };
 
 const INSTANCE_PER_OCCURENCE = 16;
 
 function findOccurrenceSequenceData(time: number): OccurrenceSequenceData | null {
     for (let index = 0; index < occurrenceSequenceTimestamps.length; index++) {
-        const [startTime,endTime, followerIndex,instanceNum] = occurrenceSequenceTimestamps[index];
+        const [startTime, endTime, followerIndex, instanceNum] = occurrenceSequenceTimestamps[index];
         const duration = endTime - startTime;
         if (startTime <= time && time < startTime + duration) {
             const rate = (time - startTime) / duration;
@@ -76,7 +100,7 @@ function findOccurrenceSequenceData(time: number): OccurrenceSequenceData | null
                 instanceNumStartIndex: startIndex,
                 instanceNumEndIndex: endIndex,
                 instanceNum,
-                followerIndex
+                followerIndex,
             };
         }
     }
@@ -110,7 +134,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             metallic: 0,
             roughness: 0,
             diffuseColor: new Color(1, 1, 1, 1),
-            emissiveColor: new Color(.1, .1, .1, 1),
+            emissiveColor: new Color(0.1, 0.1, 0.1, 1),
             receiveShadow: true,
             faceSide: FaceSide.Double,
             uniforms: [
@@ -125,7 +149,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     value: metaballPositions,
                 },
             ],
-            uniformBlockNames: [UniformBlockNames.Timeline]
+            uniformBlockNames: [UniformBlockNames.Timeline],
         },
         castShadow: true,
     });
@@ -197,43 +221,43 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         const hiddenInstancePositions = calcEmitInstancePositions(1, true);
         const entity = morphFollowersActorControllerEntities[data.followerIndex];
         // morphFollowersActorControllerEntities.forEach((entity) => {
-            const { morphFollowersActorController } = entity;
-            if (!morphFollowersActorController.getActor().enabled) {
-                return;
-            }
-            for (let i = 0; i < morphFollowersActorController.maxInstanceNum; i++) {
-                if (i < data.instanceNumStartIndex) {
-                    // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
-                } else if (i <= data.instanceNumEndIndex) {
-                    if (rawRate < 0.5) {
-                        // 発生前
-                        const positionIndex = i - data.instanceNumStartIndex;
-                        const p = hiddenInstancePositions[positionIndex];
-                        morphFollowersActorController.setInstancePosition(i, p);
-                        morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
-                        morphFollowersActorController.setInstanceState(i, { morphRate: 0 });
-                    } else {
-                        // インスタンスに切り替わった後
-                        morphFollowersActorController.setInstanceAttractPower(i, easeInOutQuad(rate));
-                        morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
-                        morphFollowersActorController.setInstanceState(i, { morphRate: rate });
-                    }
-                } else {
-                    morphFollowersActorController.setInstancePosition(i, Vector3.zero);
+        const { morphFollowersActorController } = entity;
+        if (!morphFollowersActorController.getActor().enabled) {
+            return;
+        }
+        for (let i = 0; i < morphFollowersActorController.maxInstanceNum; i++) {
+            if (i < data.instanceNumStartIndex) {
+                // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
+            } else if (i <= data.instanceNumEndIndex) {
+                if (rawRate < 0.5) {
+                    // 発生前
+                    const positionIndex = i - data.instanceNumStartIndex;
+                    const p = hiddenInstancePositions[positionIndex];
+                    morphFollowersActorController.setInstancePosition(i, p);
                     morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
+                    morphFollowersActorController.setInstanceState(i, { morphRate: 0 });
+                } else {
+                    // インスタンスに切り替わった後
+                    morphFollowersActorController.setInstanceAttractPower(i, easeInOutQuad(rate));
+                    morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
                     morphFollowersActorController.setInstanceState(i, { morphRate: rate });
                 }
-            }
-
-            if (rawRate < 0.5) {
-                morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
-                const instancePositions = calcEmitInstancePositions(easeInOutQuad(rate), false);
-                metaballPositions = instancePositions;
-                mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
             } else {
-                morphFollowersActorController.setInstanceNum(data.instanceNum);
-                hideMetaballChildren();
+                morphFollowersActorController.setInstancePosition(i, Vector3.zero);
+                morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
+                morphFollowersActorController.setInstanceState(i, { morphRate: rate });
             }
+        }
+
+        if (rawRate < 0.5) {
+            morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
+            const instancePositions = calcEmitInstancePositions(easeInOutQuad(rate), false);
+            metaballPositions = instancePositions;
+            mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+        } else {
+            morphFollowersActorController.setInstanceNum(data.instanceNum);
+            hideMetaballChildren();
+        }
         // });
     };
 
