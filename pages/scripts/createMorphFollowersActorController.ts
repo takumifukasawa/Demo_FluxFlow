@@ -25,10 +25,11 @@ import {
 } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
 import { Material } from '@/PaleGL/materials/Material.ts';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
+import { OrbitMoverBinder } from './orbitMoverBinder.ts';
 
 const updateBufferSubDataEnabled = false;
 
-const MAX_INSTANCE_NUM = 32;
+const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 0;
 
 const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;
@@ -269,8 +270,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-    // attractorActor,
-}: {
+} // attractorActor,
+: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -321,12 +322,12 @@ export const createMorphFollowersActor = ({
                 depthFragmentShaderContent: shaderContent.depth,
                 materialArgs: {
                     ...materialArgs,
-                    uniforms: shaderContent.uniforms
-                }
+                    uniforms: shaderContent.uniforms,
+                },
             })
         );
     });
-    console.log(materials)
+    console.log(materials);
 
     // TODO: for debug
     materials[0].canRender = false;
@@ -790,9 +791,14 @@ export const createMorphFollowersActor = ({
             }
 
             if (attractType === FollowerAttractMode.Attractor) {
+                const orbitMoverBinderComponent = attractTarget?.getComponent<OrbitMoverBinder>();
+                const delayValue = i * .1;
+                const p = orbitMoverBinderComponent
+                    ? orbitMoverBinderComponent.calcPosition(delayValue) // 
+                    : attractTarget!.transform.position;
                 // attractTypeならTargetは必ずあるはず
                 setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
-                    p: attractTarget!.transform.position,
+                    p,
                     attractAmplitude: 0.2,
                 });
                 setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
@@ -937,10 +943,21 @@ export const createMorphFollowersActor = ({
     };
 
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
+        // forgeによる制御を受け付けている場合は無視
+        if(_isControlled) {
+            return;
+        }
+        // follower attract mode
         if (key === 'fm') {
             _currentFollowMode = Math.round(value) as FollowerAttractMode;
             //if (_currentFollowMode === FollowerAttractMode.FollowCubeEdge) {
             //}
+            return;
+        }
+        // attract power
+        if (key === 'ap') {
+            // setInstanceAttractPower(value, value);
+            return;
         }
     };
 

@@ -1240,20 +1240,20 @@ vec2 mainSound(float time) {
     // intro
     // 0 ~ 8
 
-    // melody A_1
+    // melody A_1 [16s-32s]
     if(8. <= measure && measure < 16.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
             ;
-    // melody A_2
-    } else if(8. <= measure && measure < 24.) {
+    // melody A_2 [32s-48s]
+    } else if(16. <= measure && measure < 24.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)
             + hihat1BaseLoopSeq(beat, time)
             ;
-    // melody A_3
+    // melody A_3 [48s-64s]
     } else if(24. <= measure && measure < 32.) {
         sound +=
             0.
@@ -1262,14 +1262,14 @@ vec2 mainSound(float time) {
             + snareFillIntroSeq(beat, time)
             + kickSeqBase(beat, time);
             ;
-    // melody B_1
+    // melody B_1 [64s-80s]
     } else if(32. <= measure && measure < 40.) {
         sound +=
             0.
             + bassLowSeqBase(beat, time)
             + arpBaseLoopSeqBase(beat, time)
             ;
-    // melody B_2
+    // melody B_2 [80s-96s]
     } else if(40. <= measure && measure < 48.) {
         sound +=
             0.
@@ -1277,7 +1277,7 @@ vec2 mainSound(float time) {
             + bassHighSeqBase(beat, time)
             + hihat1BaseLoopSeq(beat, time)
             ;
-    // melody hook_1
+    // melody hook_1 [96s-112s]
     } else if(48. <= measure && measure < 56.) {
         sound +=
             0.
@@ -1285,7 +1285,7 @@ vec2 mainSound(float time) {
             + bassHighSeqBase(beat, time)
             // + arpBaseLoopSeqBase(beat, time)
             ;
-    // melody hook_2
+    // melody hook_2 [112s-128s]
     } else if(56. <= measure && measure < 64.) {
         sound +=
             0.
@@ -1296,7 +1296,7 @@ vec2 mainSound(float time) {
             + kickSeqBase(beat, time)
             // + arpBaseLoopSeqBase(beat, time)
             ;
-    // melody outro
+    // melody outro [128s-144s]
     } else if(64. <= measure && measure < 72.) {
         sound *= (1. - smoothstep(71., 72., measure));
         sound +=

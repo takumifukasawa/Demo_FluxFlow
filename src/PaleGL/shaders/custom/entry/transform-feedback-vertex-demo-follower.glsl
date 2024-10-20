@@ -17,6 +17,8 @@ out vec4 vVelocity;
 
 // uniform vec3 aAttractTargetPosition;
 
+uniform float uAttractPower;
+
 // v minmag
 #define VMM .0001
 
@@ -41,7 +43,7 @@ vec4 packVelocity(vec3 v) {
 
 void main() {
     // stateを分割
-    float seed = aState.x;
+    float rawSeed = aState.x;
     // 0: none
     // 1: jump
     // 2: attract
@@ -58,7 +60,7 @@ void main() {
    
     vec3 velocity = unpackVelocity(aVelocity);
     float mag = length(velocity);
-
+    
     if(attractType < .5) {
         vPosition = aPosition;
         vVelocity = vec4(0., 0., 1., mag);
@@ -79,7 +81,7 @@ void main() {
         vec3 target = aAttractTargetPosition.xyz;
 
         // // fuwafuwa
-        vec2 seed = vec2(seed, seed);
+        vec2 seed = vec2(rawSeed, rawSeed);
         float rand = noise(seed);
         target += vec3(
             cos((uTime + rand * 100. + seed.x)) * (2. + rand * 1.),
@@ -117,9 +119,14 @@ void main() {
         //     diffDir * 2.,
         //     uDeltaTime
         // );
+        float attractDelayValue = noise(seed) * .5;
         float baseAttractPower = 2.;
+        float attractMinPower = .2;
         // velocity = diffP * uDeltaTime * attractPower * baseAttractPower;
-        velocity = diffP * uTimelineDeltaTime * attractPower * baseAttractPower;
+        velocity =
+            diffP
+                * uTimelineDeltaTime
+                * max(max(attractPower - attractDelayValue, 0.), attractMinPower) * baseAttractPower;
 
         // attract: 簡易版_等速
         // velocity = diffDir * uDeltaTime;

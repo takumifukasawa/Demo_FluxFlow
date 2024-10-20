@@ -9,7 +9,7 @@ import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { MorphFollowerActorControllerEntity } from './createMorphFollowersActorController.ts';
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
-import { easeInOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
+import {easeInOutQuad, easeOutCube} from '@/PaleGL/utilities/easingUtilities.ts';
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
 
 export type OriginForgeActorController = {
@@ -36,11 +36,24 @@ type FollowerIndex = (typeof FollowerIndex)[keyof typeof FollowerIndex];
 type TimeStampedOccurrenceSequence = [number, number, FollowerIndex, number];
 
 const occurrenceSequenceBaseData: [number, number, FollowerIndex][] = [
-    [0, 8, FollowerIndex.None], // なにもしない時間
-    [8, 12, FollowerIndex.A],
-    [12, 16, FollowerIndex.B],
-    [16, 20, FollowerIndex.C],
-    [20, 24, FollowerIndex.A],
+    // [0, 16, FollowerIndex.None], // なにもしない時間
+    [16, 20, FollowerIndex.A],
+    [20, 24, FollowerIndex.B],
+    [24, 28, FollowerIndex.C],
+    [28, 32, FollowerIndex.A],
+    [32, 36, FollowerIndex.B],
+    [36, 40, FollowerIndex.C],
+    [40, 44, FollowerIndex.A],
+    [44, 48, FollowerIndex.B],
+    [48, 50, FollowerIndex.C],
+    [50, 52, FollowerIndex.A],
+    [52, 54, FollowerIndex.B],
+    [54, 56, FollowerIndex.C],
+    [56, 58, FollowerIndex.A],
+    [58, 60, FollowerIndex.B],
+    [60, 62, FollowerIndex.C],
+    [62, 64, FollowerIndex.A], // 64までは操作させたいので、何かしら置いておく
+    // 64secまでは色々出したい
 ];
 
 const instanceAccCount: Record<FollowerIndex, number> = {
@@ -51,14 +64,17 @@ const instanceAccCount: Record<FollowerIndex, number> = {
 };
 
 const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
-    [0, 8, FollowerIndex.None, 0], // なにもしない時間
+    [0, 16, FollowerIndex.None, 0], // なにもしない時間
 ];
 occurrenceSequenceBaseData.forEach((d) => {
     const [s, e, fi] = d;
+    // instanceAccCount[fi] += METABALL_NUM;
     instanceAccCount[fi] += METABALL_NUM;
     const result: TimeStampedOccurrenceSequence = [s, e, fi, instanceAccCount[fi]];
     occurrenceSequenceTimestamps.push(result);
 });
+
+console.log("hogehoge", occurrenceSequenceTimestamps)
 
 // // 16回やりたいが・・・
 // // TODO: targetとなるfollowerを指定できるようにする
@@ -206,7 +222,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     };
 
     const childOccurrenceSequence = (data: OccurrenceSequenceData) => {
-        const rawRate = easeInOutQuad(data.rate);
+        // const rawRate = easeInOutQuad(data.rate);
+        const rawRate = easeOutCube(data.rate);
 
         // if rawRate < 0.5
         // 発生したインスタンスが移動場所を決めるフェーズ
@@ -270,7 +287,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
 
     mesh.onPostProcessTimeline = (time: number) => {
         const sequenceData = findOccurrenceSequenceData(time);
-        if (sequenceData) {
+        if (sequenceData !== null) {
             // 一番最初のシーケンスは空とみなす
             if (sequenceData.sequenceIndex === 0) {
                 morphFollowersActorControllerEntities.forEach((entity) => {
@@ -282,6 +299,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                 childOccurrenceSequence(sequenceData);
             }
         } else {
+            // 対象のシーケンスがない場合。つまり最後のシーケンスが終わった後 
             hideMetaballChildren();
         }
 

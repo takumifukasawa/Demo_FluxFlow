@@ -235,7 +235,7 @@ export class Renderer {
             fragmentShader: globalUniformBufferObjectFragmentShader,
         });
 
-        const tranformationsUniformBlockData = [
+        const transformationsUniformBlockData = [
             {
                 name: UniformNames.WorldMatrix,
                 type: UniformTypes.Matrix4,
@@ -291,9 +291,9 @@ export class Renderer {
             uniformBufferObject: this.gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Transformations,
-                tranformationsUniformBlockData
+                transformationsUniformBlockData
             ),
-            data: tranformationsUniformBlockData,
+            data: transformationsUniformBlockData,
         });
 
         const cameraUniformBufferData = [
