@@ -29,15 +29,16 @@ import { OrbitMoverBinder } from './orbitMoverBinder.ts';
 
 const updateBufferSubDataEnabled = false;
 
-const MAX_INSTANCE_NUM = 256;
+const MAX_INSTANCE_NUM = 16;
 const INITIAL_INSTANCE_NUM = 0;
 
 const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;
-const TRANSFORM_FEEDBACK_VELOCITY_ELEMENTS_NUM = 4;
-const TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM = 4;
-
+const ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM = 4;
 const ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM = 3;
 const ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM = 4;
+
+const TRANSFORM_FEEDBACK_VELOCITY_ELEMENTS_NUM = 4;
+const TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM = 4;
 
 const TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME = 'aPosition';
 const TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME = 'aVelocity';
@@ -120,7 +121,7 @@ export type MorphFollowersActorController = {
         followerIndex: number,
         followerSeed: number,
         attractorTargetBoxMeshes: Mesh[],
-        attractorTargetSphereActor: Actor
+        attractorTargetSphereActors: Actor[]
     ) => void;
     updateStatesAndBuffers: () => void;
     addInstance: () => void;
@@ -129,6 +130,7 @@ export type MorphFollowersActorController = {
     setInstanceVelocity: (index: number, v: Vector3) => void;
     setInstanceScale: (index: number, s: Vector3) => void;
     setInstanceColor: (index: number, c: Color) => void;
+    setInstanceEmissiveColor: (index: number, c: Color) => void;
     setInstanceLookDirection: (index: number, lookDirection: Vector3) => void;
     setInstanceState: (index: number, { morphRate, delayRate }: { morphRate?: number; delayRate?: number }) => void;
     setInstanceAttractPower: (index: number, attractRate: number) => void;
@@ -283,18 +285,18 @@ export const createMorphFollowersActor = ({
     let _currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
     let _isControlled = false;
     let _attractorTargetBoxMeshes: Mesh[] = [];
-    let _attractorTargetSphereActor: Actor | null = null;
+    let _attractorTargetSphereActors: Actor[] = [];
 
     const initialize = (
         followerIndex: number,
         followerSeed: number,
         attractorTargetBoxMeshes: Mesh[],
-        attractorTargetSphereActor: Actor
+        attractorTargetSphereActors: Actor[]
     ) => {
         _followerIndex = followerIndex;
         _followerSeed = followerSeed;
         _attractorTargetBoxMeshes = attractorTargetBoxMeshes;
-        _attractorTargetSphereActor = attractorTargetSphereActor;
+        _attractorTargetSphereActors = attractorTargetSphereActors;
     };
 
     const instanceNum = INITIAL_INSTANCE_NUM;
@@ -360,6 +362,7 @@ export const createMorphFollowersActor = ({
         rotation: number[][];
         velocity: number[][];
         color: number[][];
+        emissiveColor: number[][];
         lookDirection: number[][];
         instanceStates: number[][]; // [morphRate, delayRate, 0, 0]
         transformFeedbackStates: number[][]; // [seed, attractType, morphRate, attractPower]
@@ -369,6 +372,7 @@ export const createMorphFollowersActor = ({
         rotation: [],
         velocity: [],
         color: [],
+        emissiveColor: [],
         lookDirection: [],
         instanceStates: [],
         transformFeedbackStates: [],
@@ -400,6 +404,10 @@ export const createMorphFollowersActor = ({
         );
         tmpInstanceInfo.color.push([...c.elements]);
 
+        // emissive color
+        const ec = Color.fromRGB(255 * 4, 100, 100);
+        tmpInstanceInfo.emissiveColor.push([...ec.elements]);
+
         // look direction
         tmpInstanceInfo.lookDirection.push([0, 0, 1]);
 
@@ -416,6 +424,7 @@ export const createMorphFollowersActor = ({
         rotation: Float32Array;
         velocity: Float32Array;
         color: Float32Array;
+        emissiveColor: Float32Array;
         lookDirection: Float32Array;
         instanceStates: Float32Array;
         transformFeedbackStates: Float32Array;
@@ -430,6 +439,7 @@ export const createMorphFollowersActor = ({
         velocity: new Float32Array(tmpInstanceInfo.velocity.flat()),
         lookDirection: new Float32Array(tmpInstanceInfo.lookDirection.flat()),
         color: new Float32Array(tmpInstanceInfo.color.flat()),
+        emissiveColor: new Float32Array(tmpInstanceInfo.emissiveColor.flat()),
         instanceStates: new Float32Array(tmpInstanceInfo.instanceStates.flat()),
         transformFeedbackStates: new Float32Array(tmpInstanceInfo.transformFeedbackStates.flat()),
         attractType: maton.range(MAX_INSTANCE_NUM).map(() => FollowerAttractMode.None),
@@ -476,6 +486,14 @@ export const createMorphFollowersActor = ({
             name: AttributeNames.InstanceVertexColor,
             data: instancingInfo.color,
             size: 4,
+            divisor: 1,
+        })
+    );
+    mesh.geometry.setAttribute(
+        new Attribute({
+            name: AttributeNames.InstanceEmissiveColor,
+            data: instancingInfo.emissiveColor,
+            size: ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM,
             divisor: 1,
         })
     );
@@ -566,6 +584,21 @@ export const createMorphFollowersActor = ({
         instancingInfo.color[index * 4 + 3] = c.a;
         if (updateBufferSubDataEnabled) {
             mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceVertexColor, index, c.elements);
+        }
+    };
+
+    const setInstanceEmissiveColor = (index: number, c: Color) => {
+        // js側のデータとbufferのデータを更新
+        instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 0] = c.r;
+        instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 1] = c.g;
+        instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 2] = c.b;
+        instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 3] = c.a;
+        if (updateBufferSubDataEnabled) {
+            mesh.geometry.vertexArrayObject.updateBufferSubData(
+                AttributeNames.InstanceEmissiveColor,
+                index,
+                c.elements
+            );
         }
     };
 
@@ -766,10 +799,13 @@ export const createMorphFollowersActor = ({
                     continue;
 
                 case FollowerAttractMode.FollowSphereSurface:
-                    if (_attractorTargetSphereActor) {
+                    if (_attractorTargetSphereActors) {
                         // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
                         const lp = randomOnUnitSphere(_followerSeed + i).scale(0.5);
-                        const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
+                        const wp =
+                            _attractorTargetSphereActors[
+                                i % _attractorTargetSphereActors.length
+                            ].transform.localPointToWorld(lp);
                         // for debug
                         // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
@@ -792,9 +828,9 @@ export const createMorphFollowersActor = ({
 
             if (attractType === FollowerAttractMode.Attractor) {
                 const orbitMoverBinderComponent = attractTarget?.getComponent<OrbitMoverBinder>();
-                const delayValue = i * .1;
+                const delayValue = i * 0.1;
                 const p = orbitMoverBinderComponent
-                    ? orbitMoverBinderComponent.calcPosition(delayValue) // 
+                    ? orbitMoverBinderComponent.calcPosition(delayValue) //
                     : attractTarget!.transform.position;
                 // attractTypeならTargetは必ずあるはず
                 setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
@@ -894,6 +930,10 @@ export const createMorphFollowersActor = ({
                 instancingInfo.instanceStates
             );
             mesh.geometry.vertexArrayObject.updateBufferData(AttributeNames.InstanceVertexColor, instancingInfo.color);
+            mesh.geometry.vertexArrayObject.updateBufferData(
+                AttributeNames.InstanceEmissiveColor,
+                instancingInfo.emissiveColor
+            );
 
             // transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferData(
             //     TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME,
@@ -944,7 +984,7 @@ export const createMorphFollowersActor = ({
 
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
         // forgeによる制御を受け付けている場合は無視
-        if(_isControlled) {
+        if (_isControlled) {
             return;
         }
         // follower attract mode
@@ -971,6 +1011,7 @@ export const createMorphFollowersActor = ({
         setInstanceVelocity,
         setInstanceScale,
         setInstanceColor,
+        setInstanceEmissiveColor,
         setInstanceLookDirection,
         setInstanceState,
         setInstanceAttractPower,

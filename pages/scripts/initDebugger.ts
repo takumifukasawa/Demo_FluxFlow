@@ -750,6 +750,48 @@ export function initDebugger({
             renderer.ssrPass.parameters.reflectionAdditionalRate = value;
         },
     });
+
+    //
+    // vignette
+    //
+    
+    debuggerGUI.addBorderSpacer();
+    
+    const vignetteDebuggerGroup = debuggerGUI.addGroup('vignette', false);
+    
+    vignetteDebuggerGroup.addSliderDebugger({
+        label: 'vignette strength',
+        minValue: 0,
+        maxValue: 5,
+        stepValue: 0.001,
+        initialValue: renderer.vignettePass.parameters.vignetteRadius,
+        onChange: (value) => {
+            renderer.vignettePass.parameters.vignetteRadius = value;
+        },
+    });
+    
+    vignetteDebuggerGroup.addSliderDebugger({
+        label: 'vignette power',
+        minValue: 0,
+        maxValue: 4,
+        stepValue: 0.001,
+        initialValue: renderer.vignettePass.parameters.vignettePower,
+        onChange: (value) => {
+            renderer.vignettePass.parameters.vignettePower = value;
+        },
+    });
+    
+    vignetteDebuggerGroup.addSliderDebugger({
+        label: 'blend rate',
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        initialValue: renderer.vignettePass.parameters.blendRate,
+        onChange: (value) => {
+            renderer.vignettePass.parameters.blendRate = value;
+        },
+    });
+    
     
     //
     // glitch

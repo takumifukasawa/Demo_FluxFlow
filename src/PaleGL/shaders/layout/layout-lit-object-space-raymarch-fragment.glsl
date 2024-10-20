@@ -13,6 +13,7 @@ precision highp float;
 in float vInstanceId;
 in vec4 vInstanceState;
 in vec4 vInstanceColor;
+in vec4 vInstanceEmissiveColor;
 #endif
 
 #pragma BLOCK_BEFORE_RAYMARCH_CONTENT
@@ -133,6 +134,9 @@ void main() {
     // surface.specularAmount = uSpecularAmount;
 
     vec3 emissiveColor = uEmissiveColor.rgb;
+#ifdef USE_INSTANCING
+    emissiveColor += vInstanceEmissiveColor.xyz; // TODO: 加算でいい？
+#endif
 
     //
     // NOTE: raymarch block

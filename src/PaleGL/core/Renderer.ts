@@ -216,11 +216,11 @@ export class Renderer {
         this._chromaticAberrationPass = new ChromaticAberrationPass({ gpu });
         this._scenePostProcess.addPass(this._chromaticAberrationPass);
 
-        this._glitchPass = new GlitchPass({ gpu });
-        this._scenePostProcess.addPass(this._glitchPass);
-
         this._vignettePass = new VignettePass({ gpu });
         this._scenePostProcess.addPass(this._vignettePass);
+
+        this._glitchPass = new GlitchPass({ gpu });
+        this._scenePostProcess.addPass(this._glitchPass);
 
         this._fxaaPass = new FXAAPass({ gpu });
         this._scenePostProcess.addPass(this._fxaaPass);
@@ -772,7 +772,7 @@ export class Renderer {
     }
 
     beforeRender(time: number, deltaTime: number) {
-        this.updateCommonUniforms({ time, deltaTime});
+        this.updateCommonUniforms({ time, deltaTime });
     }
 
     /**
@@ -1931,13 +1931,7 @@ export class Renderer {
      *
      * @param time
      */
-    updateCommonUniforms({
-        time,
-        deltaTime,
-    }: {
-        time: number;
-        deltaTime: number;
-    }) {
+    updateCommonUniforms({ time, deltaTime }: { time: number; deltaTime: number }) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
         this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.Time, time);
         this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.DeltaTime, deltaTime);
@@ -1948,10 +1942,7 @@ export class Renderer {
         );
     }
 
-    updateTimelineUniforms(
-        timelineTime: number,
-        timelineDeltaTime: number,
-    ) {
+    updateTimelineUniforms(timelineTime: number, timelineDeltaTime: number) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
         this.updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineTime, timelineTime);
         this.updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineDeltaTime, timelineDeltaTime);

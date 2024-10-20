@@ -4,15 +4,35 @@
     BlendTypes,
     DepthFuncType,
     DepthFuncTypes,
-    FaceSide, GL_BACK, GL_BLEND, GL_CCW,
-    GL_COLOR_BUFFER_BIT, GL_CULL_FACE,
-    GL_DEPTH_BUFFER_BIT, GL_DEPTH_TEST, GL_DYNAMIC_COPY, GL_DYNAMIC_DRAW, GL_EQUAL,
-    GL_FRAMEBUFFER, GL_FRONT, GL_LEQUAL,
-    GL_LINES, GL_ONE, GL_ONE_MINUS_SRC_ALPHA,
-    GL_POINTS, GL_RASTERIZER_DISCARD, GL_SRC_ALPHA, GL_STATIC_DRAW,
+    FaceSide,
+    GL_BACK,
+    GL_BLEND,
+    GL_CCW,
+    GL_COLOR_BUFFER_BIT,
+    GL_CULL_FACE,
+    GL_DEPTH_BUFFER_BIT,
+    GL_DEPTH_TEST,
+    GL_DYNAMIC_COPY,
+    GL_DYNAMIC_DRAW,
+    GL_EQUAL,
+    GL_FRAMEBUFFER,
+    GL_FRONT,
+    GL_LEQUAL,
+    GL_LINES,
+    GL_ONE,
+    GL_ONE_MINUS_SRC_ALPHA,
+    GL_POINTS,
+    GL_RASTERIZER_DISCARD,
+    GL_SRC_ALPHA,
+    GL_STATIC_DRAW,
     GL_TEXTURE0,
-    GL_TEXTURE_2D, GL_TEXTURE_CUBE_MAP, GL_TRANSFORM_FEEDBACK,
-    GL_TRIANGLES, GL_UNIFORM_BLOCK_DATA_SIZE, GL_UNIFORM_OFFSET, GL_UNSIGNED_SHORT,
+    GL_TEXTURE_2D,
+    GL_TEXTURE_CUBE_MAP,
+    GL_TRANSFORM_FEEDBACK,
+    GL_TRIANGLES,
+    GL_UNIFORM_BLOCK_DATA_SIZE,
+    GL_UNIFORM_OFFSET,
+    GL_UNSIGNED_SHORT,
     PrimitiveType,
     PrimitiveTypes,
     TextureWrapTypes,
@@ -134,7 +154,7 @@ export class GPU {
     setUniforms(uniforms: Uniforms) {
         this.uniforms = uniforms;
     }
-    
+
     /**
      *
      * @param x
@@ -280,11 +300,11 @@ export class GPU {
      */
     setUniformValues() {
         const gl = this.gl;
-        
+
         let activeTextureIndex = 0;
         // let dummyTextureIndex = 0;
-        
-        if(!this.shader) {
+
+        if (!this.shader) {
             console.error('shader is not set');
             return;
         }
@@ -365,7 +385,7 @@ export class GPU {
                         gl.bindTexture(GL_TEXTURE_2D, texture ? texture.glObject : this.dummyTexture.glObject);
                         activeTextureIndex++;
                     });
-                    if(textureArrayIndices.length < 1) {
+                    if (textureArrayIndices.length < 1) {
                         console.error('[GPU.setUniformValues] invalid texture array');
                     }
                     gl.uniform1iv(location, textureArrayIndices);
@@ -504,14 +524,14 @@ export class GPU {
     ) {
         const glPrimitiveType = this.#getGLPrimitive(primitiveType);
         const gl = this.gl;
-        
-        if(!this.shader) {
+
+        if (!this.shader) {
             console.error('shader is not set');
             return;
         }
-        if(!this.vao) {
+        if (!this.vao) {
             console.error('vao is not set');
-            return
+            return;
         }
 
         // culling
@@ -581,7 +601,7 @@ export class GPU {
             default:
                 console.error('invalid blend type');
         }
-       
+
         gl.useProgram(this.shader.glObject);
 
         this.setUniformValues();
@@ -593,16 +613,20 @@ export class GPU {
         if (this.vao.hasIndices) {
             // draw by indices
             // drawCount ... use indices count
-            if (instanceCount) {
-                gl.drawElementsInstanced(glPrimitiveType, drawCount, GL_UNSIGNED_SHORT, startOffset, instanceCount);
+            if (instanceCount !== null) {
+                if (instanceCount > 0) {
+                    gl.drawElementsInstanced(glPrimitiveType, drawCount, GL_UNSIGNED_SHORT, startOffset, instanceCount);
+                }
             } else {
                 gl.drawElements(glPrimitiveType, drawCount, GL_UNSIGNED_SHORT, startOffset);
             }
         } else {
             // draw by array
             // draw count ... use vertex num
-            if (instanceCount) {
-                gl.drawArraysInstanced(glPrimitiveType, startOffset, drawCount, instanceCount);
+            if (instanceCount !== null) {
+                if (instanceCount > 0) {
+                    gl.drawArraysInstanced(glPrimitiveType, startOffset, drawCount, instanceCount);
+                }
             } else {
                 gl.drawArrays(glPrimitiveType, startOffset, drawCount);
             }
@@ -621,7 +645,7 @@ export class GPU {
         // const variableNames: string[] = uniformBufferObjectBlockData.map((data) => data.name);
         const variableNames: string[] = [];
         uniformBufferObjectBlockData.forEach((data) => {
-            switch(data.type){
+            switch (data.type) {
                 case UniformTypes.Struct:
                     (data.value as UniformStructValue).forEach((structElement) => {
                         variableNames.push(`${data.name}.${structElement.name}`);
@@ -639,7 +663,7 @@ export class GPU {
                     break;
             }
         });
-        
+
         const gl = this.gl;
         const blockIndex = gl.getUniformBlockIndex(shader.glObject, blockName);
         console.log('[GPU.createUniformBufferObject] blockName', blockName);

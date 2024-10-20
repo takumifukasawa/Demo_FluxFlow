@@ -303,9 +303,10 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             hideMetaballChildren();
         }
 
+        const followerControlled = !isOverOccurrenceSequence(time);
         // TODO: followerごとに分けたくない？
         morphFollowersActorControllerEntities.forEach((entity) => {
-            entity.morphFollowersActorController.setControlled(isOverOccurrenceSequence(time));
+            entity.morphFollowersActorController.setControlled(followerControlled);
             entity.morphFollowersActorController.updateStatesAndBuffers();
         });
     };

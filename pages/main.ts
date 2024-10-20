@@ -82,7 +82,9 @@ import {
     ATTRACTOR_ORBIT_MOVER_C,
     ATTRACTOR_TARGET_BOX_A_MESH,
     ATTRACTOR_TARGET_BOX_B_MESH,
-    ATTRACTOR_TARGET_SPHERE_ACTOR,
+    ATTRACTOR_TARGET_SPHERE_ACTOR_A_NAME,
+    ATTRACTOR_TARGET_SPHERE_ACTOR_B_NAME,
+    DEPTH_OF_FIELD_TARGET_ACTOR_NAME,
     FOLLOWERS_ACTOR_NAME_A,
     FOLLOWERS_ACTOR_NAME_B,
     FOLLOWERS_ACTOR_NAME_C,
@@ -430,6 +432,7 @@ const hideStartupWrapper = () => {
 
 const morphFollowersActorControllerBinders: MorphFollowerActorControllerBinder[] = [];
 const attractorTargetBoxMeshes: Mesh[] = [];
+const attractorTargetSphereActors: Actor[] = [];
 // let metaMorphActor: ObjectSpaceRaymarchMesh;
 let originForgeActorController: OriginForgeActorController;
 
@@ -574,13 +577,17 @@ const load = async () => {
     //
 
     const morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
-    const attractorTargetSphereActor = captureScene.find(ATTRACTOR_TARGET_SPHERE_ACTOR) as Actor;
 
     [ATTRACTOR_TARGET_BOX_A_MESH, ATTRACTOR_TARGET_BOX_B_MESH].forEach((name) => {
         const mesh = captureScene.find(name) as Mesh;
         attractorTargetBoxMeshes.push(mesh);
         mesh.renderEnabled = false;
     });
+    [ATTRACTOR_TARGET_SPHERE_ACTOR_A_NAME, ATTRACTOR_TARGET_SPHERE_ACTOR_B_NAME].forEach((name) => {
+        const actor = captureScene.find(name) as Actor;
+        attractorTargetSphereActors.push(actor);
+    });
+    
     morphFollowersActorControllerBinders.forEach((elem, i) => {
         const orbitActor = captureScene.find(elem.orbitFollowTargetActorName) as Actor;
         orbitActor.addComponent(createOrbitMoverBinder());
@@ -593,14 +600,14 @@ const load = async () => {
             i,
             i * 1000,
             attractorTargetBoxMeshes,
-            attractorTargetSphereActor
+            attractorTargetSphereActors,
         );
     });
 
     originForgeActorController.initialize(morphFollowersActorControllerEntities);
     
     captureSceneCamera?.addComponent(createDofFocusTargetController(
-        captureScene.find('FT')!, // focus target actor
+        captureScene.find(DEPTH_OF_FIELD_TARGET_ACTOR_NAME)!, // focus target actor
         captureSceneCamera,
         renderer.depthOfFieldPass
     ));

@@ -24,6 +24,7 @@ out mat4 vInverseWorldMatrix;
 #ifdef USE_INSTANCING
 out float vInstanceId;
 out vec4 vInstanceState;
+out vec4 vInstanceEmissiveColor;
 uniform float uRotMode; // 0: velocity, 1: look direction
 #endif
 
@@ -192,6 +193,7 @@ void main() {
     vInstanceId = float(gl_InstanceID);
 
     vInstanceState = aInstanceState;
+    vInstanceEmissiveColor = aInstanceEmissiveColor;
 #endif
 
     vec4 worldPosition = worldMatrix * localPosition;
