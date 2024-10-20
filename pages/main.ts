@@ -91,7 +91,10 @@ import {
 } from './scripts/demoConstants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { createOrbitMoverBinder } from './scripts/orbitMoverBinder.ts';
-import {createDofFocusTargetController} from "./scripts/dofFocusTargetController.ts";
+import { createDofFocusTargetController } from './scripts/dofFocusTargetController.ts';
+import {
+    createTimelineHandShakeController,
+} from '@/PaleGL/components/TimelineHandShakeController.ts';
 
 const stylesText = `
 :root {
@@ -587,7 +590,7 @@ const load = async () => {
         const actor = captureScene.find(name) as Actor;
         attractorTargetSphereActors.push(actor);
     });
-    
+
     morphFollowersActorControllerBinders.forEach((elem, i) => {
         const orbitActor = captureScene.find(elem.orbitFollowTargetActorName) as Actor;
         orbitActor.addComponent(createOrbitMoverBinder());
@@ -600,17 +603,69 @@ const load = async () => {
             i,
             i * 1000,
             attractorTargetBoxMeshes,
-            attractorTargetSphereActors,
+            attractorTargetSphereActors
         );
     });
 
     originForgeActorController.initialize(morphFollowersActorControllerEntities);
+
+    //
+    // camera, focus target
+    //
+
+    const focusTargetActor = captureScene.find(DEPTH_OF_FIELD_TARGET_ACTOR_NAME)!;
     
-    captureSceneCamera?.addComponent(createDofFocusTargetController(
-        captureScene.find(DEPTH_OF_FIELD_TARGET_ACTOR_NAME)!, // focus target actor
-        captureSceneCamera,
-        renderer.depthOfFieldPass
-    ));
+    focusTargetActor.addComponent(
+        createTimelineHandShakeController({
+            amplitude: new Vector3(0.1, 0.1, 0.1),
+            speed: new Vector3(1.6, 1.4, 1.2),
+            offset: new Vector3(4, 5, 6),
+        })
+    );
+    
+    captureSceneCamera?.addComponent(
+        createDofFocusTargetController(
+            focusTargetActor,
+            captureSceneCamera,
+            renderer.depthOfFieldPass
+        )
+    );
+    // TODO: timelineから制御したい
+    captureSceneCamera?.addComponent(
+        createTimelineHandShakeController({
+            amplitude: new Vector3(0.15, 0.15, 0.15),
+            speed: new Vector3(1.8, 1.4, 1.6),
+            offset: new Vector3(1, 2, 3),
+        })
+    );
+    // captureSceneCamera!.onProcessPropertyBinder = (key, value) => {
+    //     const c = captureSceneCamera?.getComponent<TimelineHandShakeController>();
+    //     if (key === 'a.x') {
+    //         c?.setAmplitude({ x: value });
+    //         return;
+    //     }
+    //     if (key === 'a.y') {
+    //         c?.setAmplitude({ y: value });
+    //         return;
+    //     }
+    //     if (key === 'a.z') {
+    //         c?.setAmplitude({ z: value });
+    //         return;
+    //     }
+    //     if (key === 's.x') {
+    //         c?.setSpeed({ x: value });
+    //         return;
+    //     }
+    //     if (key === 's.y') {
+    //         c?.setSpeed({ y: value });
+    //         return;
+    //     }
+    //     if (key === 's.z') {
+    //         c?.setSpeed({ z: value });
+    //         return;
+    //     }
+    //     console.log(key, value);
+    // };
 
     //
     // events
