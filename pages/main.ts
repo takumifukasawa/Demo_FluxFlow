@@ -89,6 +89,7 @@ import {
 } from './scripts/demoConstants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { createOrbitMoverBinder } from './scripts/orbitMoverBinder.ts';
+import {createDofFocusTargetController} from "./scripts/dofFocusTargetController.ts";
 
 const stylesText = `
 :root {
@@ -597,6 +598,12 @@ const load = async () => {
     });
 
     originForgeActorController.initialize(morphFollowersActorControllerEntities);
+    
+    captureSceneCamera?.addComponent(createDofFocusTargetController(
+        captureScene.find('FT')!, // focus target actor
+        captureSceneCamera,
+        renderer.depthOfFieldPass
+    ));
 
     //
     // events
