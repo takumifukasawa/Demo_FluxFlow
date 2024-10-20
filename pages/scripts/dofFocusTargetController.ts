@@ -19,7 +19,6 @@ export function createDofFocusTargetController(
                     mainCamera.transform.position
                 ).magnitude;
                 dofPass.parameters.focusDistance = distance;
-                console.log(distance)
             },
         }),
     };
