@@ -5,14 +5,14 @@ import { AttributeNames, AttributeUsageType, FaceSide, UniformBlockNames, Unifor
 import transformFeedbackVertexFollower from '@/PaleGL/shaders/custom/entry/transform-feedback-vertex-demo-follower.glsl';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
-// import litObjectSpaceRaymarchFragMetaMorphContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-meta-morph.glsl';
-// import gBufferObjectSpaceRaymarchFragMetaMorphDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
+// import litObjectSpaceRaymarchFragMorphContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-meta-morph.glsl';
+// import gBufferObjectSpaceRaymarchFragMorphDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
 import litObjectSpaceRaymarchFragMorphButterflyContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-buttery.glsl';
-import gBufferObjectSpaceRaymarchFragMetaMorphButterflyContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly.glsl';
-import litObjectSpaceRaymarchFragMorphButterflyWithPrimContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-butterly-with-prim.glsl';
-import gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithPrimContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly-with-prim.glsl';
+import gBufferObjectSpaceRaymarchFragMorphButterflyContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly.glsl';
+import litObjectSpaceRaymarchFragMorphPrimitiveContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-primitive.glsl';
+import gBufferObjectSpaceRaymarchFragMorphPrimitiveContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-primitive.glsl';
 import litObjectSpaceRaymarchFragMorphFlowerContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-flower.glsl';
-import gBufferObjectSpaceRaymarchFragMetaMorphFlowerContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-flower.glsl';
+import gBufferObjectSpaceRaymarchFragMorphFlowerContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-flower.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
@@ -75,11 +75,11 @@ const shaderContentPairs: {
     depth: string;
     uniforms: UniformsData;
 }[] = [
-    // sp -> butterfly -> sp -> flower -> sp
+    // 0: sp -> butterfly -> sp
     {
         morphType: FollowerMorphType.Butterfly,
         fragment: litObjectSpaceRaymarchFragMorphButterflyContent,
-        depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyContent,
+        depth: gBufferObjectSpaceRaymarchFragMorphButterflyContent,
         uniforms: [
             {
                 name: UNIFORM_ROT_MODE_NAME,
@@ -88,11 +88,11 @@ const shaderContentPairs: {
             },
         ],
     },
-    // sp -> butterfly -> sp -> primitive -> flower
+    // 1: sp -> primitive -> sp
     {
         morphType: FollowerMorphType.Primitive,
-        fragment: litObjectSpaceRaymarchFragMorphButterflyWithPrimContent,
-        depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithPrimContent,
+        fragment: litObjectSpaceRaymarchFragMorphPrimitiveContent,
+        depth: gBufferObjectSpaceRaymarchFragMorphPrimitiveContent,
         uniforms: [
             {
                 name: UNIFORM_ROT_MODE_NAME,
@@ -101,11 +101,11 @@ const shaderContentPairs: {
             },
         ],
     },
-    // sp -> flower
+    // 2: sp -> flower -> sp
     {
         morphType: FollowerMorphType.Flower,
         fragment: litObjectSpaceRaymarchFragMorphFlowerContent,
-        depth: gBufferObjectSpaceRaymarchFragMetaMorphFlowerContent,
+        depth: gBufferObjectSpaceRaymarchFragMorphFlowerContent,
         uniforms: [
             {
                 name: UNIFORM_ROT_MODE_NAME,
@@ -342,8 +342,8 @@ export const createMorphFollowersActor = ({
     const instanceNum = INITIAL_INSTANCE_NUM;
 
     const materialArgs: ObjectSpaceRaymarchMaterialArgs = {
-        // fragmentShader: litObjectSpaceRaymarchMetaMorphFrag,
-        // depthFragmentShader: gBufferObjectSpaceRaymarchMetaMorphDepthFrag,
+        // fragmentShader: litObjectSpaceRaymarchMorphFrag,
+        // depthFragmentShader: gBufferObjectSpaceRaymarchMorphDepthFrag,
         metallic: 0,
         roughness: 0,
         diffuseColor: new Color(1, 1, 1, 1),
@@ -390,7 +390,7 @@ export const createMorphFollowersActor = ({
 
     // const material = createObjectSpaceRaymarchMaterial({
     //     fragmentShaderContent: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
-    //     depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent,
+    //     depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
     //     materialArgs
     // });
 

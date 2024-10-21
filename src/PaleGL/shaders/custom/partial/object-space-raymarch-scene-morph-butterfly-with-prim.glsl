@@ -6,8 +6,8 @@ vec2 dfScene(vec3 p) {
     float morphRate = vInstanceState.x;
 
     p *= 1.; // adjust scale
-    vec2 butterflyR = opButterfly(p, vInstanceId);
-    vec2 flowerR = opFlower(p);
+    vec2 butterflyR = opBu(p, vInstanceId);
+    vec2 flowerR = opFl(p);
     
     float d = opDb(morphRate, ds, butterflyR.x, ds, flowerR.x, ds);
     return vec2(d, 0.);

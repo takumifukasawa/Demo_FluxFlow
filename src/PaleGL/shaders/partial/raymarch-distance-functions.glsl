@@ -28,7 +28,7 @@ vec2 opRot(vec2 p, float a) {
     return p * rot(-a);
 }
 
-vec3 opTranslate(vec3 p, vec3 t) {
+vec3 opTr(vec3 p, vec3 t) {
     return p - t;
 }
 
@@ -68,12 +68,13 @@ float dfSp(vec3 p, float radius) {
     return length(p) - radius;
 }
 
-float dfRoundBox(vec3 p, vec3 b, float r) {
+// round box
+float dfRb(vec3 p, vec3 b, float r) {
     vec3 q = abs(p) - b;
     return length(max(q, 0.)) + min(max(q.x, max(q.y, q.z)), 0.) - r;
 }
 
-float dfBox(vec3 p, vec3 b)
+float dfBo(vec3 p, vec3 b)
 {
     vec3 q = abs(p) - b;
     return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0);
@@ -114,9 +115,10 @@ float dfCone(vec3 p, vec2 c, float h)
 // custom
 // ---------------------------------------------------------------
 
+// buggerfly: wing
 // r ... 回転
-float opWing(vec3 p, vec3 s, float r, vec2 t) {
-    p = opTranslate(p, vec3(t.x, t.y, 0.));
+float opWi(vec3 p, vec3 s, float r, vec2 t) {
+    p = opTr(p, vec3(t.x, t.y, 0.));
     p.xy = opRot(p.xy, r);
 
     p.yz = opRot(p.yz, PI * .5); // 手前に向ける回転
@@ -129,8 +131,9 @@ float opWing(vec3 p, vec3 s, float r, vec2 t) {
     return opPostScale(d, s);
 }
 
-vec2 opButterfly(vec3 p, float seed) {
-    p /= 2.; // adjust scale
+// butterfly content
+vec2 opBu(vec3 p, float seed) {
+    p /= 1.4; // adjust scale
     
     float dist = 0.;
 
@@ -140,35 +143,39 @@ vec2 opButterfly(vec3 p, float seed) {
     q.yz = opRot(q.yz, -PI * .5);
 
     // パタパタさせる
+    vec2 paSpeed = vec2(10., .6);
     q.x = abs(q.x);
-    // q.xz = opRot(q.xz, PI * sin(sin(uTime * 10. + seed) * cos(uTime * 6. + seed)) * .3);
-    q.xz = opRot(q.xz, PI * sin(sin(uTimelineTime * 10. + seed) * cos(uTimelineTime * 6. + seed)) * .3);
+    q.xz = opRot(q.xz, PI * sin(sin(uTimelineTime * paSpeed.x + seed) * cos(uTimelineTime * paSpeed.y + seed)) * .3);
 
     // 全体調整用
     float s = .2;
-    float topWing = opWing(q, vec3(.4, .2, .24) * s, PI * -.3, vec2(.5, .4) * s);
-    float bottomWing = opWing(q, vec3(.32, .2, .2) * s, PI * .3, vec2(.4, -.4) * s);
+    float topWing = opWi(q, vec3(.4, .2, .24) * s, PI * -.3, vec2(.5, .4) * s);
+    float bottomWing = opWi(q, vec3(.32, .2, .2) * s, PI * .3, vec2(.4, -.4) * s);
 
     float d = min(topWing, bottomWing);
 
     return vec2(d, 0.);
 }
 
-vec2 opFlower(vec3 p) {
+// flower
+vec2 opFl(vec3 p, float seed) {
     vec2 res = vec2(10000., -10000.);
+
+    p /= 1.; // adjust scale
 
     float gOffsetY = -.8;
     p.y -= gOffsetY;
 
     float aHeight = .28;
     float aOffsetY = aHeight;
+    
+    float swaySpeedX = 1.4;
+    float swaySpeedZ = 1.6;
 
     float swayPeriodX = .1;
-    // swayPeriodX = sin(uTime * 2.4 + .2) * .5;
-    swayPeriodX = sin(uTimelineTime * 2.4 + .2) * .5;
+    swayPeriodX = sin(uTimelineTime * swaySpeedX + .2 + seed) * .5;
     float swayPeriodZ = -.1;
-    // swayPeriodZ = cos(uTime * 2.6 + .1) * -.5;
-    swayPeriodZ = cos(uTimelineTime * 2.6 + .1) * -.5;
+    swayPeriodZ = cos(uTimelineTime * swaySpeedZ + .1 + seed) * -.5;
 
     float aSwayX = p.y * sin(p.y * swayPeriodX);
     float aSwayZ = p.y * sin(p.y * swayPeriodZ);
@@ -183,7 +190,7 @@ vec2 opFlower(vec3 p) {
 
     vec3 aq = p;
 
-    aq = opTranslate(aq, vec3(aSwayX, aOffsetY, aSwayZ));
+    aq = opTr(aq, vec3(aSwayX, aOffsetY, aSwayZ));
     float ad = dfRoundedCylinder(aq, .015, .05, aHeight);
 
     float matA = 1.;
@@ -195,7 +202,7 @@ vec2 opFlower(vec3 p) {
 
     // fq.xz = opRot(fq.xz, iTime);
 
-    fq = opTranslate(fq, vec3(fSwayOffsetX, fOffsetY, fSwayOffsetZ));
+    fq = opTr(fq, vec3(fSwayOffsetX, fOffsetY, fSwayOffsetZ));
 
     // 上を向かせる
     fq.yz = opRot(fq.yz, PI * .5);
@@ -206,7 +213,7 @@ vec2 opFlower(vec3 p) {
     fq.xy = opFoldRotate(fq.xy, 10.);
 
     // t.z...自重の影響
-    fq = opTranslate(fq, vec3(0., .2, sin(fq.y * 5.) * .105));
+    fq = opTr(fq, vec3(0., .2, sin(fq.y * 5.) * .105));
     fq.yz = opRot(fq.yz, PI * .5); // 手前に向ける回転
 
     // fs.x:太さ, f.y:厚み, f.z: 長さ
@@ -223,7 +230,7 @@ vec2 opFlower(vec3 p) {
     // 中央 --------------------------
 
     vec3 cq = p;
-    cq = opTranslate(cq, vec3(fSwayOffsetX, fOffsetY + .03, fSwayOffsetZ));
+    cq = opTr(cq, vec3(fSwayOffsetX, fOffsetY + .03, fSwayOffsetZ));
 
     float cd = dfSp(cq, .04);
 
@@ -268,7 +275,7 @@ uniform vec3 uCP;
 uniform vec3 uBPs[BN];
 float dfMB(vec3 p, float d) {
     for(int i = 0; i < BN; i++) {
-        float cd = dfSp(opTranslate(p, uBPs[i].xyz), CS);
+        float cd = dfSp(opTr(p, uBPs[i].xyz), CS);
         d = opSm(d, cd, .25);
     }
     float ads = 1. - smoothstep(1., 1.8, length(p - uCP));
@@ -287,4 +294,26 @@ float dfMB(vec3 p, float d) {
 
 vec2 opMo(vec2 d1, vec2 d2, float rate) {
     return mix(d1, d2, rate);
+}
+
+vec2 dfMm(vec3 p, float d, float s) {
+    vec3 a = mod(p * s, 2.) - 1.;
+    s *= 3.;
+    vec3 r = abs(1. - 3. * abs(a));
+    float da = max(r.x, r.y);
+    float db = max(r.y, r.z);
+    float dc = max(r.z, r.x);
+    float c = (min(da, min(db, dc)) - 1.) / s;
+    return vec2(max(d, c), s);
+}
+
+float dfMe(vec3 p) {
+    p /= .5;
+    float d = dfBo(p, vec3(1.));
+    float s = 1.;
+    vec2 rd = vec2(d, s);
+    rd = dfMm(p, rd.x, rd.y);
+    rd = dfMm(p, rd.x, rd.y);
+    rd = dfMm(p, rd.x, rd.y);
+    return rd.x;
 }

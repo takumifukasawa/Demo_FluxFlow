@@ -2,8 +2,8 @@ vec2 dfScene(vec3 p) {
     // 全体のスケール調整
     p /= .5;
     
-    vec2 butterflyR = opButterfly(p, vInstanceId);
-    vec2 flowerR = opFlower(p);
+    vec2 butterflyR = opBu(p, vInstanceId);
+    vec2 flowerR = opFl(p);
    
     float r = sin(uTime * 1.4) * 1.2;
     r = clamp(r, -1., 1.);
