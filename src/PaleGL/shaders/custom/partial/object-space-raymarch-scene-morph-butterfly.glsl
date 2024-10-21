@@ -6,7 +6,8 @@ vec2 dfScene(vec3 p) {
 
     vec2 butterflyR = opBu(p, vInstanceId);
 
-    float d = opTb(morphRate, ds, butterflyR.x, ds);
+    // float d = opTb(morphRate, ds, butterflyR.x, ds);
+    float d = mix(ds, butterflyR.x, morphRate);
     return vec2(d, 0.);
 
     // // 全体のスケール調整

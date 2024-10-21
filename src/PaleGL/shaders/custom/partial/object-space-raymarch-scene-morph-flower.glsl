@@ -8,7 +8,8 @@ vec2 dfScene(vec3 p) {
 
     vec2 flowerR = opFl(p, vInstanceId);
     
-    float d = opTb(morphRate, ds, flowerR.x, ds);
+    // float d = opTb(morphRate, ds, flowerR.x, ds);
+    float d = mix(ds, flowerR.x, morphRate);
     return vec2(d, 0.);
 
     // // 全体のスケール調整

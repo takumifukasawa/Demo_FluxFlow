@@ -1055,7 +1055,7 @@ export const createMorphFollowersActor = ({
         // material index
         if (key === 'mi') {
             mesh.materials.forEach((material, i) => {
-                material.canRender = i === value;
+                material.canRender = i === Math.round(value);
             });
         }
 
@@ -1074,9 +1074,16 @@ export const createMorphFollowersActor = ({
             //}
             return;
         }
+        
         // attract power
         if (key === 'ap') {
             // setInstanceAttractPower(value, value);
+            return;
+        }
+        
+        // morph rate
+        if (key === 'mr') {
+            setInstanceState(value, { morphRate: value });
             return;
         }
     };

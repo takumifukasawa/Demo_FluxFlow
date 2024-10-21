@@ -262,7 +262,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                     morphFollowersActorController.setInstanceState(i, { morphRate: 0 });
                 } else {
-                    const morphRate = rate * .5; // .5がmorphの形なので
+                    const morphRate = rate; // .5がmorphの形なので
                     // インスタンスに切り替わった後
                     morphFollowersActorController.setInstanceAttractPower(i, easeInOutQuad(rate));
                     morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
