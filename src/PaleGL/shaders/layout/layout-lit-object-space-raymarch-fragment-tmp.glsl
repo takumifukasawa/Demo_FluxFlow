@@ -14,6 +14,8 @@ in float vInstanceId;
 in vec4 vInstanceState;
 in vec4 vInstanceColor;
 in vec4 vInstanceEmissiveColor;
+uniform float uDiffuseMixer;
+uniform float uEmissiveMixer;
 #endif
 
 #pragma BLOCK_BEFORE_RAYMARCH_CONTENT
@@ -128,7 +130,7 @@ void main() {
 
     vec3 emissiveColor = uEmissiveColor.rgb;
 #ifdef USE_INSTANCING
-    emissiveColor = vInstanceEmissiveColor.xyz; // demo用に頂点シェーダー側でblend
+    emissiveColor += vInstanceEmissiveColor.xyz; // TODO: 加算でいい？
 #endif
 
     //

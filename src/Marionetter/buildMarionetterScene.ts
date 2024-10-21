@@ -216,7 +216,7 @@ export function buildMarionetterScene(
             const camera = cameraComponent;
             if (camera.ct === 'Perspective') {
                 // TODO: near, far を受け取りたい
-                actor = new PerspectiveCamera(camera.f, 1, 0.1, 100, name);
+                actor = new PerspectiveCamera(camera.f, 1, 0.1, 1000, name);
             } else {
                 console.error(`[buildMarionetterActors] invalid camera type: ${camera.ct}`);
             }

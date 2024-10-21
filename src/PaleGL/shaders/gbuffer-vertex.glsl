@@ -26,6 +26,10 @@ out float vInstanceId;
 out vec4 vInstanceState;
 out vec4 vInstanceEmissiveColor;
 uniform float uRotMode; // 0: velocity, 1: look direction
+uniform vec4 uDiffuseColor;
+uniform float uDiffuseMixer;
+uniform vec4 uEmissiveColor;
+uniform float uEmissiveMixer;
 #endif
 
 #include ./partial/normal-map-vertex-varyings.glsl
@@ -193,7 +197,8 @@ void main() {
     vInstanceId = float(gl_InstanceID);
 
     vInstanceState = aInstanceState;
-    vInstanceEmissiveColor = aInstanceEmissiveColor;
+    // vInstanceEmissiveColor = aInstanceEmissiveColor;
+    vInstanceEmissiveColor = mix(aInstanceEmissiveColor, uEmissiveColor, uEmissiveMixer);
 #endif
 
     vec4 worldPosition = worldMatrix * localPosition;
@@ -219,7 +224,8 @@ void main() {
     gl_Position = uProjectionMatrix * uViewMatrix * worldPosition;
     
 #if defined(USE_INSTANCING) && defined(USE_VERTEX_COLOR)
-    vVertexColor = aInstanceVertexColor;
+    // vVertexColor = aInstanceVertexColor;
+    vVertexColor = mix(aInstanceVertexColor, uDiffuseColor, uDiffuseMixer);
 #endif
 
     #pragma END_MAIN

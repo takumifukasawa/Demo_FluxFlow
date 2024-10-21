@@ -5,9 +5,10 @@ import { Texture } from '@/PaleGL/core/Texture.ts';
 
 export function createFloorActorController(mesh: Mesh, surfaceMap: Texture) {
     const mat = mesh.mainMaterial as GBufferMaterial;
-    const tiling = new Vector4(20, 20, 0, 0);
+    const tiling = new Vector4(100, 100, 0, 0);
     mat.metallicMap = surfaceMap;
     mat.metallicMapTiling = tiling;
     mat.roughnessMap = surfaceMap;
     mat.roughnessMapTiling = tiling;
+    mat.receiveShadow = true;
 }

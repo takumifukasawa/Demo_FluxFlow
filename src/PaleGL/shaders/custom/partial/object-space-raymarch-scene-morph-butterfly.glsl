@@ -1,16 +1,12 @@
 vec2 dfScene(vec3 p) {
     // for debug: check scale
     float ds = dfSp(p, CS);
-    // return vec2(ds, 0.);
-    
-    float morphRate = vInstanceState.x;
-    float delayRate = vInstanceState.y;
 
-    p *= 1.; // adjust scale
+    float morphRate = vInstanceState.x;
+
     vec2 butterflyR = opButterfly(p, vInstanceId);
-    vec2 flowerR = opFlower(p);
-    
-    float d = opDb(0., ds, butterflyR.x, ds, flowerR.x, ds);
+
+    float d = opTb(.5, ds, butterflyR.x, ds);
     return vec2(d, 0.);
 
     // // 全体のスケール調整

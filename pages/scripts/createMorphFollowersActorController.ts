@@ -7,8 +7,8 @@ import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
 // import litObjectSpaceRaymarchFragMetaMorphContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-meta-morph.glsl';
 // import gBufferObjectSpaceRaymarchFragMetaMorphDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-meta-morph.glsl';
-import litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-butterly-with-flower.glsl';
-import gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly-with-flower.glsl';
+import litObjectSpaceRaymarchFragMorphButterflyContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-buttery.glsl';
+import gBufferObjectSpaceRaymarchFragMetaMorphButterflyContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly.glsl';
 import litObjectSpaceRaymarchFragMorphButterflyWithPrimContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-butterly-with-prim.glsl';
 import gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithPrimContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-morph-butterfly-with-prim.glsl';
 import litObjectSpaceRaymarchFragMorphFlowerContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-morph-flower.glsl';
@@ -29,7 +29,7 @@ import { OrbitMoverBinder } from './orbitMoverBinder.ts';
 
 const updateBufferSubDataEnabled = false;
 
-const MAX_INSTANCE_NUM = 256;
+const MAX_INSTANCE_NUM = 1024;
 const INITIAL_INSTANCE_NUM = 0;
 
 const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;
@@ -47,28 +47,68 @@ const TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME = 'aState';
 const TRANSFORM_FEEDBACK_VARYINGS_POSITION = 'vPosition';
 const TRANSFORM_FEEDBACK_VARYINGS_VELOCITY = 'vVelocity';
 
+const UNIFORM_DIFFUSE_MIXER_NAME = 'uDiffuseMixer';
+const UNIFORM_EMISSIVE_MIXER_NAME = 'uEmissiveMixer';
+const UNIFORM_ROT_MODE_NAME = 'uRotMode';
+
+const rotRateForVelocityValue = 0;
 const rotRateForLookDirectionValue = 1;
 
-const shaderContentPairs: { fragment: string; depth: string; uniforms: UniformsData }[] = [
+export const FollowerMorphType = {
+    None: 0,
+    Butterfly: 1,
+    Primitive: 2,
+    Flower: 3,
+} as const;
+export type FollowerMorphType = (typeof FollowerMorphType)[keyof typeof FollowerMorphType];
+
+export const FollowerMorphMaterialData = {
+    [FollowerMorphType.None]: -1,
+    [FollowerMorphType.Butterfly]: 0,
+    [FollowerMorphType.Primitive]: 1,
+    [FollowerMorphType.Flower]: 2,
+};
+
+const shaderContentPairs: {
+    morphType: FollowerMorphType;
+    fragment: string;
+    depth: string;
+    uniforms: UniformsData;
+}[] = [
     // sp -> butterfly -> sp -> flower -> sp
     {
-        fragment: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
-        depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithFlowerContent,
-        uniforms: [],
+        morphType: FollowerMorphType.Butterfly,
+        fragment: litObjectSpaceRaymarchFragMorphButterflyContent,
+        depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyContent,
+        uniforms: [
+            {
+                name: UNIFORM_ROT_MODE_NAME,
+                type: UniformTypes.Float,
+                value: rotRateForVelocityValue 
+            },
+        ],
     },
     // sp -> butterfly -> sp -> primitive -> flower
     {
+        morphType: FollowerMorphType.Primitive,
         fragment: litObjectSpaceRaymarchFragMorphButterflyWithPrimContent,
         depth: gBufferObjectSpaceRaymarchFragMetaMorphButterflyWithPrimContent,
-        uniforms: [],
+        uniforms: [
+            {
+                name: UNIFORM_ROT_MODE_NAME,
+                type: UniformTypes.Float,
+                value: rotRateForVelocityValue
+            },
+        ],
     },
     // sp -> flower
     {
+        morphType: FollowerMorphType.Flower,
         fragment: litObjectSpaceRaymarchFragMorphFlowerContent,
         depth: gBufferObjectSpaceRaymarchFragMetaMorphFlowerContent,
         uniforms: [
             {
-                name: 'uRotMode',
+                name: UNIFORM_ROT_MODE_NAME,
                 type: UniformTypes.Float,
                 value: rotRateForLookDirectionValue,
             },
@@ -272,8 +312,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-} // attractorActor,
-: {
+    // attractorActor,
+}: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -307,7 +347,7 @@ export const createMorphFollowersActor = ({
         metallic: 0,
         roughness: 0,
         diffuseColor: new Color(1, 1, 1, 1),
-        emissiveColor: new Color(0, 0, 0, 1),
+        emissiveColor: new Color(0.1, 0.1, 0.1, 1),
         receiveShadow: true,
         isInstancing: true,
         useInstanceLookDirection: true,
@@ -316,22 +356,34 @@ export const createMorphFollowersActor = ({
     };
 
     const materials: Material[] = [];
-
+    
     shaderContentPairs.forEach((shaderContent) => {
-        materials.push(
-            createObjectSpaceRaymarchMaterial({
-                fragmentShaderContent: shaderContent.fragment,
-                depthFragmentShaderContent: shaderContent.depth,
-                materialArgs: {
-                    ...materialArgs,
-                    uniforms: shaderContent.uniforms,
-                },
-            })
-        );
+        const material =             createObjectSpaceRaymarchMaterial({
+            fragmentShaderContent: shaderContent.fragment,
+            depthFragmentShaderContent: shaderContent.depth,
+            materialArgs: {
+                ...materialArgs,
+                uniforms: [
+                    ...shaderContent.uniforms,
+                    {
+                        name: UNIFORM_DIFFUSE_MIXER_NAME,
+                        type: UniformTypes.Float,
+                        value: 1, // [0: instance vertex color, 1: uniform diffuse color]
+                    },
+                    {
+                        name: UNIFORM_EMISSIVE_MIXER_NAME,
+                        type: UniformTypes.Float,
+                        value: 1, // [0: instance emissive color, 1: uniform emissive color]
+                    },
+                ],
+                uniformBlockNames: [UniformBlockNames.Timeline]
+            },
+        });
+        materials.push(material);
     });
     console.log(materials);
 
-    // TODO: for debug
+    // // TODO: for debug
     materials[0].canRender = false;
     materials[1].canRender = false;
     materials[2].canRender = true;
@@ -412,7 +464,10 @@ export const createMorphFollowersActor = ({
         tmpInstanceInfo.lookDirection.push([0, 0, 1]);
 
         // states
-        tmpInstanceInfo.instanceStates.push([1, 0, 0, 0]);
+        // delayは最初は何から持たせておく
+        // const delayRate = (i / MAX_INSTANCE_NUM) * .25;
+        const delayRate = generateRandomValue(i, i) * 0.25;
+        tmpInstanceInfo.instanceStates.push([1, delayRate, 0, 0]);
 
         // transform feedback states
         tmpInstanceInfo.transformFeedbackStates.push([i, 0, 0, 0]);
@@ -805,7 +860,7 @@ export const createMorphFollowersActor = ({
                         const wp =
                             _attractorTargetSphereActors[
                                 i % _attractorTargetSphereActors.length
-                            ].transform.localPointToWorld(lp);
+                            ].transform.localPointToWorld(lp); // TODO: timelineの後でやるべき
                         // for debug
                         // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
@@ -817,7 +872,7 @@ export const createMorphFollowersActor = ({
                     continue;
 
                 case FollowerAttractMode.Ground:
-                    const wp = randomOnUnitPlane(_followerSeed + i, 5); // TODO: scaleをfloor_actorから引っ張ってきたい
+                    const wp = randomOnUnitPlane(_followerSeed + i, 10); // TODO: scaleをfloor_actorから引っ張ってきたい
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: 0,
@@ -828,7 +883,7 @@ export const createMorphFollowersActor = ({
 
             if (attractType === FollowerAttractMode.Attractor) {
                 const orbitMoverBinderComponent = attractTarget?.getComponent<OrbitMoverBinder>();
-                const delayValue = i * 0.1;
+                const delayValue = i * 0.5;
                 const p = orbitMoverBinderComponent
                     ? orbitMoverBinderComponent.calcPosition(delayValue) //
                     : attractTarget!.transform.position;
@@ -983,10 +1038,35 @@ export const createMorphFollowersActor = ({
     };
 
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
-        // forgeによる制御を受け付けている場合は無視
+        // diffuse mixer
+        if (key === 'dm') {
+            mesh.materials.forEach((material) => {
+                material.uniforms.setValue(UNIFORM_DIFFUSE_MIXER_NAME, value);
+            });
+            return;
+        }
+        // emission mixer
+        if (key === 'em') {
+            mesh.materials.forEach((material) => {
+                material.uniforms.setValue(UNIFORM_EMISSIVE_MIXER_NAME, value);
+            });
+            return;
+        }
+        // material index
+        if (key === 'mi') {
+            mesh.materials.forEach((material, i) => {
+                material.canRender = i === value;
+            });
+        }
+
+        //
+        // forgeによる制御を受け付けている場合は以降は無視
+        //
+
         if (_isControlled) {
             return;
         }
+
         // follower attract mode
         if (key === 'fm') {
             _currentFollowMode = Math.round(value) as FollowerAttractMode;

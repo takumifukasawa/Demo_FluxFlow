@@ -40,7 +40,8 @@ uniform float uSharpness;
 uniform float uStrength;
 uniform float uRayStepMultiplier;
 
-const int MARCH_COUNT = 24;
+// const int MARCH_COUNT = 24;
+const int MARCH_COUNT = 48;
 
 void calcOcclusion(PointLight pointLight, vec3 worldPosition, vec3 viewPosition, vec3 jitterOffset, out float occlusion) {
     vec3 rawLightPos = pointLight.position;

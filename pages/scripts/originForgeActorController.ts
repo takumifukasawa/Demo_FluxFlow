@@ -9,9 +9,9 @@ import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { MorphFollowerActorControllerEntity } from './createMorphFollowersActorController.ts';
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
-import {easeInOutQuad, easeOutCube} from '@/PaleGL/utilities/easingUtilities.ts';
+import { easeInOutQuad, easeOutCube } from '@/PaleGL/utilities/easingUtilities.ts';
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
-import {ORIGIN_FORGE_ACTOR_NAME} from "./demoConstants.ts";
+import { ORIGIN_FORGE_ACTOR_NAME } from './demoConstants.ts';
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
@@ -33,7 +33,7 @@ const FollowerIndex = {
 
 type FollowerIndex = (typeof FollowerIndex)[keyof typeof FollowerIndex];
 
-// [startTime[sec], endTime[sec], followerIndex, totalInstanceNum]
+// [startTime[sec], endTime[sec], followerIndex, materialIndex, totalInstanceNum]
 type TimeStampedOccurrenceSequence = [number, number, FollowerIndex, number];
 
 const occurrenceSequenceBaseData: [number, number, FollowerIndex][] = [
@@ -139,6 +139,13 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     });
     // .flat();
 
+    const defaultSurfaceParameters = {
+        metallic: 0,
+        roughness: 0,
+        diffuseColor: new Color(1, 1, 1, 1),
+        emissiveColor: new Color(0.1, 0.1, 0.1, 1),
+    };
+
     const mesh = new ObjectSpaceRaymarchMesh({
         name: ORIGIN_FORGE_ACTOR_NAME,
         gpu,
@@ -146,10 +153,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         fragmentShaderContent: litObjectSpaceRaymarchFragOriginForgeContent,
         depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragOriginForgeDepthContent,
         materialArgs: {
-            metallic: 0,
-            roughness: 0,
-            diffuseColor: new Color(1, 1, 1, 1),
-            emissiveColor: new Color(0.1, 0.1, 0.1, 1),
+            ...defaultSurfaceParameters,
             receiveShadow: true,
             faceSide: FaceSide.Double,
             uniforms: [
@@ -226,6 +230,9 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         // const rawRate = easeInOutQuad(data.rate);
         const rawRate = easeOutCube(data.rate);
 
+        // TODO: ここいい感じにコントロールしたい
+        // - delay
+        // - 0.5の崖
         // if rawRate < 0.5
         // 発生したインスタンスが移動場所を決めるフェーズ
         // 0~0.5 -> 0~1
@@ -235,7 +242,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         const rate = rawRate < 0.5 ? saturate(rawRate * 2) : saturate((rawRate - 0.5) * 2);
 
         // 発生前の段階では、metaballの位置と同期
-        // TODO: フレームが飛びまくるとおかしくなる可能性大なので、対象のinstance16子以外は常にmetaballと同期でもいい気がする
+        // TODO: フレームが飛びまくるとおかしくなる可能性大なので、対象のinstance16個以外は常にmetaballと同期でもいい気がする
         const hiddenInstancePositions = calcEmitInstancePositions(1, true);
         const entity = morphFollowersActorControllerEntities[data.followerIndex];
         // morphFollowersActorControllerEntities.forEach((entity) => {
@@ -255,10 +262,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                     morphFollowersActorController.setInstanceState(i, { morphRate: 0 });
                 } else {
+                    const morphRate = rate * .5; // .5がmorphの形なので
                     // インスタンスに切り替わった後
                     morphFollowersActorController.setInstanceAttractPower(i, easeInOutQuad(rate));
                     morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
-                    morphFollowersActorController.setInstanceState(i, { morphRate: rate });
+                    morphFollowersActorController.setInstanceState(i, { morphRate });
                 }
             } else {
                 morphFollowersActorController.setInstancePosition(i, Vector3.zero);
@@ -300,7 +308,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                 childOccurrenceSequence(sequenceData);
             }
         } else {
-            // 対象のシーケンスがない場合。つまり最後のシーケンスが終わった後 
+            // 対象のシーケンスがない場合。つまり最後のシーケンスが終わった後
             hideMetaballChildren();
         }
 

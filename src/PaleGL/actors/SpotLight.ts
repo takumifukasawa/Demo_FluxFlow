@@ -1,6 +1,6 @@
 ﻿import { Light, LightArgs } from '@/PaleGL/actors/Light';
 import { Actor, ActorUpdateArgs } from '@/PaleGL/actors/Actor';
-import {DEG_TO_RAD, LightTypes} from '@/PaleGL/constants.ts';
+import { DEG_TO_RAD, LightTypes } from '@/PaleGL/constants.ts';
 import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera.ts';
 import { rad2Deg } from '@/PaleGL/utilities/mathUtilities.ts';
 
@@ -26,7 +26,7 @@ export class SpotLight extends Light {
     get coneCos() {
         return angleToCos(this.coneAngle);
     }
-    
+
     get penumbraCos() {
         return angleToCos(this.penumbraAngle);
     }
@@ -53,9 +53,9 @@ export class SpotLight extends Light {
         if (this.shadowCamera) {
             (this.shadowCamera as PerspectiveCamera).fov = rad2Deg(Math.acos(this.coneCos)) * 2;
             (this.shadowCamera as PerspectiveCamera).far = this.distance;
-            
+
             this.shadowCamera.updateProjectionMatrix();
-            
+
             this.updateShadowCamera();
         }
     }

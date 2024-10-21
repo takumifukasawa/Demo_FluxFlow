@@ -3,6 +3,9 @@ export const MAIN_CAMERA_ACTOR_NAME = 'MC';
 
 export const DIRECT_LIGHT_ACTOR_NAME = 'DL';
 
+export const SPOT_LIGHT_ACTOR_NAME_A = 'SL_A';
+export const SPOT_LIGHT_ACTOR_NAME_B = 'SL_B';
+
 export const ORIGIN_FORGE_ACTOR_NAME = 'OF';
 
 export const FOLLOWERS_ACTOR_NAME_A = 'F_A';

@@ -82,6 +82,8 @@ import {
     FOLLOWERS_ACTOR_NAME_B,
     FOLLOWERS_ACTOR_NAME_C,
     MAIN_CAMERA_ACTOR_NAME,
+    SPOT_LIGHT_ACTOR_NAME_A,
+    SPOT_LIGHT_ACTOR_NAME_B,
 } from './scripts/demoConstants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { createOrbitMoverBinder } from './scripts/orbitMoverBinder.ts';
@@ -267,6 +269,10 @@ const buildScene = (sceneJson: MarionetterScene) => {
         (actor as Camera).setClearColor(new Vector4(0, 0, 0, 1));
     });
 
+    //
+    // spot light shadow map
+    //
+
     const createSpotLightShadowMap = (spotLight: SpotLight) => {
         if (spotLight.shadowCamera) {
             spotLight.shadowCamera.visibleFrustum = true;
@@ -285,10 +291,13 @@ const buildScene = (sceneJson: MarionetterScene) => {
         }
     };
 
-    createSpotLightShadowMap(captureScene.find('SpotLightA') as SpotLight);
-    createSpotLightShadowMap(captureScene.find('SpotLightB') as SpotLight);
+    createSpotLightShadowMap(captureScene.find(SPOT_LIGHT_ACTOR_NAME_A) as SpotLight);
+    createSpotLightShadowMap(captureScene.find(SPOT_LIGHT_ACTOR_NAME_B) as SpotLight);
 
-    // shadows
+    //
+    // directional light shadows
+    //
+
     // TODO: directional light は constructor で shadow camera を生成してるのでこのガードいらない
     if (directionalLight && directionalLight.shadowCamera) {
         directionalLight.shadowCamera.visibleFrustum = true;
@@ -493,7 +502,7 @@ const load = async () => {
     });
     const textMesh1 = new TextMesh({
         gpu,
-        text: 'Meta Morph',
+        text: 'Flux Flow',
         color: new Color(3, 1, 1, 1),
         fontTexture: fontAtlasTexture,
         fontAtlas: fontAtlasJson,
@@ -502,10 +511,11 @@ const load = async () => {
         // characterSpacing: -0.2
         characterSpacing: -0.16,
     });
-    captureScene.add(textMesh1);
     textMesh1.transform.position = new Vector3(0, 1, 0);
     // textMesh1.transform.rotation.setRotationX(-90);
     textMesh1.transform.scale = Vector3.fill(0.5);
+    // TODO: 使えないかもなので一旦消しておく
+    // captureScene.add(textMesh1);
 
     //
     // build marionetter scene
@@ -604,9 +614,12 @@ const load = async () => {
     // TODO: ある程度はtimelineからいじりたい
     //
 
+    captureSceneCamera!.far = 200;
+
+    // TODO: 反映されてないかも
     renderer.fogPass.parameters.distanceFogStart = 10;
     renderer.fogPass.parameters.distanceFogPower = 0.02;
-    renderer.fogPass.parameters.fogColor = Color.fromRGB(0, 0, 0);
+    renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
 
     //
     // events

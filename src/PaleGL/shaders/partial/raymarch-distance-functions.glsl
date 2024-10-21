@@ -130,6 +130,8 @@ float opWing(vec3 p, vec3 s, float r, vec2 t) {
 }
 
 vec2 opButterfly(vec3 p, float seed) {
+    p /= 2.; // adjust scale
+    
     float dist = 0.;
 
     vec3 q = p;
@@ -244,6 +246,14 @@ float opDb(float x, float A, float B, float C, float D, float E) {
     float CDE = mix(CD, DE, smoothstep(.5, .75, x));
 
     return mix(ABC, CDE, smoothstep(.5, 1., x));
+}
+
+// 距離関数の3段階のblend
+float opTb(float x, float A, float B, float C) {
+    float AB = mix(A, B, smoothstep(0., .5, x));
+    float BC = mix(B, C, smoothstep(.5, 1., x));
+    
+    return mix(AB, BC, smoothstep(.5, 1., x));
 }
 
 //
