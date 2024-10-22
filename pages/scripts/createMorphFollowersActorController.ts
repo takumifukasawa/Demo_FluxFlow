@@ -358,7 +358,7 @@ export const createMorphFollowersActor = ({
     const materials: Material[] = [];
     
     shaderContentPairs.forEach((shaderContent) => {
-        const material =             createObjectSpaceRaymarchMaterial({
+        const material = createObjectSpaceRaymarchMaterial({
             fragmentShaderContent: shaderContent.fragment,
             depthFragmentShaderContent: shaderContent.depth,
             materialArgs: {
@@ -383,10 +383,10 @@ export const createMorphFollowersActor = ({
     });
     console.log(materials);
 
-    // // TODO: for debug
-    materials[0].canRender = false;
-    materials[1].canRender = false;
-    materials[2].canRender = true;
+    // // // TODO: for debug
+    // materials[0].canRender = false;
+    // materials[1].canRender = false;
+    // materials[2].canRender = true;
 
     // const material = createObjectSpaceRaymarchMaterial({
     //     fragmentShaderContent: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,

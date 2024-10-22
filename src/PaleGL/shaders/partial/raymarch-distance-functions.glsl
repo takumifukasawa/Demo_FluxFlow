@@ -7,7 +7,7 @@
 
 //
 // operators
-// TRSをしたいときは基本的に opTrasnalte -> opRotaet -> opPreScale -> distanceFunction -> opPostScale の順でやる 
+// TRSをしたいときは基本的に opTrasnalte -> opRoaet -> opPreScale -> distanceFunction -> opPostScale の順でやる 
 //
 
 // ref: https://www.shadertoy.com/view/ldlcRf
@@ -20,11 +20,11 @@ mat2 rot(float a) {
     return mat2(c, s, -s, c);
 }
 
-vec3 opRepeat(vec3 p, float s) {
+vec3 opRe(vec3 p, float s) {
     return p - s * round(p / s);
 }
 
-vec2 opRot(vec2 p, float a) {
+vec2 opRo(vec2 p, float a) {
     return p * rot(-a);
 }
 
@@ -49,7 +49,7 @@ vec2 opFoldRotate(in vec2 p, float s) {
     float a = PI / s - atan(p.x, p.y);
     float n = PI * 2. / s;
     a = floor(a / n) * n;
-    p = opRot(p, -a);
+    p = opRo(p, -a);
     return p;
 }
 
@@ -119,9 +119,9 @@ float dfCone(vec3 p, vec2 c, float h)
 // r ... 回転
 float opWi(vec3 p, vec3 s, float r, vec2 t) {
     p = opTr(p, vec3(t.x, t.y, 0.));
-    p.xy = opRot(p.xy, r);
+    p.xy = opRo(p.xy, r);
 
-    p.yz = opRot(p.yz, PI * .5); // 手前に向ける回転
+    p.yz = opRo(p.yz, PI * .5); // 手前に向ける回転
 
     p = opPreScale(p, s);
 
@@ -140,17 +140,17 @@ vec2 opBu(vec3 p, float seed) {
     vec3 q = p;
 
     // 上を向かせる
-    q.yz = opRot(q.yz, -PI * .5);
+    q.yz = opRo(q.yz, -PI * .5);
 
     // パタパタさせる
     vec2 paSpeed = vec2(10., .6);
     q.x = abs(q.x);
-    q.xz = opRot(q.xz, PI * sin(sin(uTimelineTime * paSpeed.x + seed) * cos(uTimelineTime * paSpeed.y + seed)) * .3);
+    q.xz = opRo(q.xz, PI * sin(sin(uTimelineTime * paSpeed.x + seed) * cos(uTimelineTime * paSpeed.y + seed)) * .3);
 
     // 全体調整用
     float s = .2;
-    float topWing = opWi(q, vec3(.4, .2, .24) * s, PI * -.3, vec2(.5, .4) * s);
-    float bottomWing = opWi(q, vec3(.32, .2, .2) * s, PI * .3, vec2(.4, -.4) * s);
+    float topWing = opWi(q, vec3(.4, .3, .24) * s, PI * -.3, vec2(.5, .4) * s);
+    float bottomWing = opWi(q, vec3(.32, .3, .2) * s, PI * .3, vec2(.4, -.4) * s);
 
     float d = min(topWing, bottomWing);
 
@@ -200,12 +200,12 @@ vec2 opFl(vec3 p, float seed) {
 
     vec3 fq = p;
 
-    // fq.xz = opRot(fq.xz, iTime);
+    // fq.xz = opRo(fq.xz, iTime);
 
     fq = opTr(fq, vec3(fSwayOffsetX, fOffsetY, fSwayOffsetZ));
 
     // 上を向かせる
-    fq.yz = opRot(fq.yz, PI * .5);
+    fq.yz = opRo(fq.yz, PI * .5);
     fq.xz *= fSwayRotXZ;
     fq.yz *= fSwayRotYZ;
 
@@ -214,7 +214,7 @@ vec2 opFl(vec3 p, float seed) {
 
     // t.z...自重の影響
     fq = opTr(fq, vec3(0., .2, sin(fq.y * 5.) * .105));
-    fq.yz = opRot(fq.yz, PI * .5); // 手前に向ける回転
+    fq.yz = opRo(fq.yz, PI * .5); // 手前に向ける回転
 
     // fs.x:太さ, f.y:厚み, f.z: 長さ
     vec3 fs = vec3(.08, .2, .2);
@@ -268,27 +268,44 @@ float opTb(float x, float A, float B, float C) {
 // しょうがないのでここでいろいろ宣言する
 //
 
-#define BN 16
-#define FS 1.
-#define CS .35
+#define BN 16 // メタボールの数
+#define FS 1. // 真ん中のメタボールのサイズ
+#define CS .35 // 小さいメタボールのサイズ
 uniform vec3 uCP;
 uniform vec3 uBPs[BN];
+uniform vec3 uGPs[4];
+
+float diMB(vec3 p) {
+    return sin(p.x * 4. + uTimelineTime * 3.4) * .07 +
+        cos(p.y * 3. + uTimelineTime * 3.2) * .07 +
+        sin(p.z * 3.5 + uTimelineTime * 3.0) * .07;
+}
+
+// metaball range attenuation
+float diMAt(vec3 p) {
+    return 1. - smoothstep(1., 1.8, length(p - uCP));
+}
+
+// // metaball center sphere
+// float dfMS() {
+//     return dfSp(opTr(p, uCP), FS);
+// }
+
 float dfMB(vec3 p, float d) {
     for(int i = 0; i < BN; i++) {
         float cd = dfSp(opTr(p, uBPs[i].xyz), CS);
         d = opSm(d, cd, .25);
     }
-    float ads = 1. - smoothstep(1., 1.8, length(p - uCP));
-    
-    float di =
-        // sin(p.x * 4. + uTime * 3.4) * .07 +
-        // cos(p.y * 3. + uTime * 3.2) * .07 +
-        // sin(p.z * 3.5 + uTime * 3.0) * .07;
-        sin(p.x * 4. + uTimelineTime * 3.4) * .07 +
-        cos(p.y * 3. + uTimelineTime * 3.2) * .07 +
-        sin(p.z * 3.5 + uTimelineTime * 3.0) * .07;
-    
-    d += di * ads;
+
+    // #pragma UNROLL_START
+    // for(int i = 0; UNROLL_i < 16; UNROLL_i++) {
+    //     float cd = dfSp(opTr(p, uBPs[UNROLL_i].xyz), CS);
+    //     dd = opSm(dd, cd, .25);
+    // }
+    // #pragma UNROLL_END
+
+
+    d += diMB(p) * diMAt(p);
     return d;
 }
 

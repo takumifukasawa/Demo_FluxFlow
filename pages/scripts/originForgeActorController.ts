@@ -1,9 +1,11 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
+import litObjectSpaceRaymarchFragOriginForgeGatherContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge-gather.glsl';
+import gBufferObjectSpaceRaymarchFragOriginForgeGatherDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge-gather.glsl';
 import litObjectSpaceRaymarchFragOriginForgeContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge.glsl';
 import gBufferObjectSpaceRaymarchFragOriginForgeDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
-import { DEG_TO_RAD, FaceSide, UniformBlockNames, UniformTypes } from '@/PaleGL/constants.ts';
+import { DEG_TO_RAD, UniformBlockNames, UniformTypes } from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
@@ -12,17 +14,54 @@ import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
 import { easeInOutQuad, easeOutCube } from '@/PaleGL/utilities/easingUtilities.ts';
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
 import { ORIGIN_FORGE_ACTOR_NAME } from './demoConstants.ts';
+import { Material } from '@/PaleGL/materials/Material.ts';
+import { createObjectSpaceRaymarchMaterial } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
+import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
     getPointLight: () => PointLight;
-    initialize: (arr: MorphFollowerActorControllerEntity[]) => void;
+    initialize: (entities: MorphFollowerActorControllerEntity[], gatherChildlenActors: Actor[]) => void;
 };
 
 const METABALL_NUM = 16;
 
 const UNIFORM_NAME_METABALL_CENTER_POSITION = 'uCP';
 const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
+const UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS = 'uGPs';
+
+const gatherChildPositions: Vector3[] = maton.range(4).map(() => Vector3.zero);
+
+const shaderContentPairs: {
+    fragment: string;
+    depth: string;
+    uniforms: UniformsData;
+}[] = [
+    // 0: gather -> emitter (only center)
+    {
+        fragment: litObjectSpaceRaymarchFragOriginForgeGatherContent,
+        depth: gBufferObjectSpaceRaymarchFragOriginForgeGatherDepthContent,
+        uniforms: [
+            {
+                name: UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS, // gather children positions
+                type: UniformTypes.Vector3Array,
+                value: gatherChildPositions
+            },
+        ],
+    },
+    // 1: emitter
+    {
+        fragment: litObjectSpaceRaymarchFragOriginForgeContent,
+        depth: gBufferObjectSpaceRaymarchFragOriginForgeDepthContent,
+        uniforms: [],
+    },
+    // 2: emitter (only center) -> butterfly
+    {
+        fragment: litObjectSpaceRaymarchFragOriginForgeContent,
+        depth: gBufferObjectSpaceRaymarchFragOriginForgeDepthContent,
+        uniforms: [],
+    },
+];
 
 const FollowerIndex = {
     None: -1,
@@ -134,6 +173,9 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
 
     // let occuranceRadius = 2;
 
+    let morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
+    let gatherChildlenActors: Actor[] = [];
+
     let metaballPositions = maton.range(METABALL_NUM).map(() => {
         return new Vector3(0, 0, 0);
     });
@@ -146,34 +188,63 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         emissiveColor: new Color(0.1, 0.1, 0.1, 1),
     };
 
+    const materials: Material[] = [];
+
+    shaderContentPairs.forEach((shaderContent) => {
+        const material = createObjectSpaceRaymarchMaterial({
+            fragmentShaderContent: shaderContent.fragment,
+            depthFragmentShaderContent: shaderContent.depth,
+            materialArgs: {
+                ...defaultSurfaceParameters,
+                receiveShadow: true,
+                uniforms: [
+                    ...shaderContent.uniforms,
+                    {
+                        name: UNIFORM_NAME_METABALL_CENTER_POSITION,
+                        type: UniformTypes.Vector3,
+                        value: Vector3.zero,
+                    },
+                    {
+                        name: UNIFORM_NAME_METABALL_POSITIONS,
+                        type: UniformTypes.Vector3Array,
+                        value: metaballPositions,
+                    },
+                ],
+                uniformBlockNames: [UniformBlockNames.Timeline],
+            },
+        });
+        materials.push(material);
+    });
+
     const mesh = new ObjectSpaceRaymarchMesh({
         name: ORIGIN_FORGE_ACTOR_NAME,
         gpu,
         size: 0.5,
-        fragmentShaderContent: litObjectSpaceRaymarchFragOriginForgeContent,
-        depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragOriginForgeDepthContent,
-        materialArgs: {
-            ...defaultSurfaceParameters,
-            receiveShadow: true,
-            faceSide: FaceSide.Double,
-            uniforms: [
-                {
-                    name: UNIFORM_NAME_METABALL_CENTER_POSITION,
-                    type: UniformTypes.Vector3,
-                    value: Vector3.zero,
-                },
-                {
-                    name: UNIFORM_NAME_METABALL_POSITIONS,
-                    type: UniformTypes.Vector3Array,
-                    value: metaballPositions,
-                },
-            ],
-            uniformBlockNames: [UniformBlockNames.Timeline],
-        },
+        materials,
         castShadow: true,
+        // fragmentShaderContent: litObjectSpaceRaymarchFragOriginForgeContent,
+        // depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragOriginForgeDepthContent,
+        // materialArgs: {
+        //     ...defaultSurfaceParameters,
+        //     receiveShadow: true,
+        //     faceSide: FaceSide.Double,
+        //     uniforms: [
+        //         {
+        //             name: UNIFORM_NAME_METABALL_CENTER_POSITION,
+        //             type: UniformTypes.Vector3,
+        //             value: Vector3.zero,
+        //         },
+        //         {
+        //             name: UNIFORM_NAME_METABALL_POSITIONS,
+        //             type: UniformTypes.Vector3Array,
+        //             value: metaballPositions,
+        //         },
+        //     ],
+        //     uniformBlockNames: [UniformBlockNames.Timeline],
+        // },
+        // material,
+        // castShadow: true,
     });
-
-    let morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
 
     const pointLight = new PointLight({
         intensity: 6,
@@ -185,8 +256,9 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     // TODO: 手動オフセットしないとなぜか中央にならない
     pointLight.transform.position = new Vector3(0, 3, 0);
 
-    const initialize = (arr: MorphFollowerActorControllerEntity[]) => {
-        morphFollowersActorControllerEntities = arr;
+    const initialize = (entities: MorphFollowerActorControllerEntity[], _gatherChildrenActors: Actor[]) => {
+        morphFollowersActorControllerEntities = entities;
+        gatherChildlenActors = _gatherChildrenActors;
     };
 
     // mesh.subscribeOnStart(() => {
@@ -194,24 +266,30 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     //     followTargetA?.addComponent(createOrbitMoverBinder());
     // });
 
-    // mesh.onProcessPropertyBinder = (key: string, value: number) => {
-    //     if (key === 'cpr') {
-    //         metaballPositions = maton.range(METABALL_NUM, true).map((i) => {
-    //             const pd = 360 / METABALL_NUM;
-    //             const rad = i * pd * DEG_TO_RAD;
-    //             const x = Math.cos(rad) * value;
-    //             const y = Math.sin(rad) * value;
-    //             const v = new Vector3(x, y, 0);
-    //             return v;
-    //         });
-    //         mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
-    //         return;
-    //     }
-    //     // if(key === "or") {
-    //     //     occuranceRadius = value;
-    //     //     return;
-    //     // }
-    // };
+    mesh.onProcessPropertyBinder = (key: string, value: number) => {
+        if (key === 'mi') {
+            mesh.materials.forEach((material, i) => {
+                material.canRender = i === Math.round(value);
+            });
+        }
+
+        // if (key === 'cpr') {
+        //     metaballPositions = maton.range(METABALL_NUM, true).map((i) => {
+        //         const pd = 360 / METABALL_NUM;
+        //         const rad = i * pd * DEG_TO_RAD;
+        //         const x = Math.cos(rad) * value;
+        //         const y = Math.sin(rad) * value;
+        //         const v = new Vector3(x, y, 0);
+        //         return v;
+        //     });
+        //     mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+        //     return;
+        // }
+        // // if(key === "or") {
+        // //     occuranceRadius = value;
+        // //     return;
+        // // }
+    };
 
     const calcEmitInstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
         const range = lerp(0, 2, r);
@@ -279,7 +357,9 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
             const instancePositions = calcEmitInstancePositions(easeInOutQuad(rate), false);
             metaballPositions = instancePositions;
-            mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+            mesh.materials.forEach(material => {
+                material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+            });
         } else {
             morphFollowersActorController.setInstanceNum(data.instanceNum);
             hideMetaballChildren();
@@ -291,10 +371,25 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         metaballPositions = maton.range(METABALL_NUM, true).map(() => {
             return new Vector3(0, 0, 0);
         });
-        mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+        mesh.materials.forEach(material => {
+            material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+        });
     };
 
     mesh.onPostProcessTimeline = (time: number) => {
+        //
+        // gatherフェーズの更新
+        //
+        
+        gatherChildlenActors.forEach((actor, i) => {
+            // gatherChildPositions[i] = mesh.transform.worldToLocalPoint(actor.transform.position);
+            gatherChildPositions[i] = actor.transform.position.subVector(mesh.transform.position);
+        });
+        mesh.materials[0].uniforms.setValue(UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS, gatherChildPositions);
+        
+        //
+        // シーケンスの処理
+        //
         const sequenceData = findOccurrenceSequenceData(time);
         if (sequenceData !== null) {
             // 一番最初のシーケンスは空とみなす

@@ -82,6 +82,9 @@ import {
     FOLLOWERS_ACTOR_NAME_B,
     FOLLOWERS_ACTOR_NAME_C,
     MAIN_CAMERA_ACTOR_NAME,
+    ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_1,
+    ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_2,
+    ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_3, ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_4,
     SPOT_LIGHT_ACTOR_NAME_A,
     SPOT_LIGHT_ACTOR_NAME_B,
 } from './scripts/demoConstants.ts';
@@ -572,7 +575,15 @@ const load = async () => {
         );
     });
 
-    originForgeActorController.initialize(morphFollowersActorControllerEntities);
+    originForgeActorController.initialize(
+        morphFollowersActorControllerEntities,
+        [
+            ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_1,
+            ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_2,
+            ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_3,
+            ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_4
+        ].map(name => captureScene.find(name) as Actor)
+    );
 
     //
     // camera, focus target

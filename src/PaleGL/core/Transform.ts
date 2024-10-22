@@ -160,4 +160,8 @@ export class Transform {
     localPointToWorld(p: Vector3) {
         return p.multiplyMatrix4(this.worldMatrix);
     }
+    
+    worldToLocalPoint(p: Vector3) {
+        return p.multiplyMatrix4(this.inverseWorldMatrix);
+    }
 }
