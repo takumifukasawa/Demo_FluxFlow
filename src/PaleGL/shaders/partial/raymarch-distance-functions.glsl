@@ -276,7 +276,7 @@ uniform vec3 uCP;
 uniform vec3 uBPs[BN];
 uniform vec3 uGPs[4];
 uniform float uGS; // gather scale rate
-uniform float uGM; // gather morph rate
+uniform vec4 uGSs[4]; // gather states [morph rate, state x, state y, ,]
 
 float diMB(vec3 p) {
     return sin(p.x * 4. + uTimelineTime * 3.4) * .07 +

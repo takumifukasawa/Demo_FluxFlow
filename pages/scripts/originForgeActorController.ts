@@ -5,7 +5,7 @@ import gBufferObjectSpaceRaymarchFragOriginForgeGatherDepthContent from '@/PaleG
 import litObjectSpaceRaymarchFragOriginForgeContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge.glsl';
 import gBufferObjectSpaceRaymarchFragOriginForgeDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
-import { DEG_TO_RAD, UniformBlockNames, UniformTypes } from '@/PaleGL/constants.ts';
+import { DEG_TO_RAD, UniformBlockNames, UniformNames, UniformTypes } from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
@@ -17,6 +17,12 @@ import { ORIGIN_FORGE_ACTOR_NAME } from './demoConstants.ts';
 import { Material } from '@/PaleGL/materials/Material.ts';
 import { createObjectSpaceRaymarchMaterial } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
+import { Vector4 } from '@/PaleGL/math/Vector4.ts';
+import {
+    buildTimelinePropertyR,
+    buildTimelinePropertyG,
+    buildTimelinePropertyB,
+} from '@/Marionetter/timelineUtilities.ts';
 
 export type OriginForgeActorController = {
     getActor: () => Actor;
@@ -30,11 +36,16 @@ const UNIFORM_NAME_METABALL_CENTER_POSITION = 'uCP';
 const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
 const UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS = 'uGPs';
 const UNIFORM_NAME_METABALL_GATHER_SCALE_RATE = 'uGS';
-const UNIFORM_NAME_METABALL_GATHER_MORPH_RATE = 'uGM';
+const UNIFORM_NAME_METABALL_GATHER_MORPH_STATES = 'uGSs';
+// const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR = 'uGEC';
+const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE = 'gec';
 
 const GATHER_PHASE_MATERIAL_INDEX = 0;
 
 const gatherChildPositions: Vector3[] = maton.range(4).map(() => Vector3.zero);
+
+// [morph rate, rot x, rot y, ,]
+const gatherChildMorphStates: Vector4[] = maton.range(4).map(() => Vector4.zero);
 
 const shaderContentPairs: {
     fragment: string;
@@ -57,9 +68,9 @@ const shaderContentPairs: {
                 value: 0,
             },
             {
-                name: UNIFORM_NAME_METABALL_GATHER_MORPH_RATE,
-                type: UniformTypes.Float,
-                value: 0,
+                name: UNIFORM_NAME_METABALL_GATHER_MORPH_STATES,
+                type: UniformTypes.Vector4Array,
+                value: gatherChildMorphStates,
             },
         ],
     },
@@ -193,7 +204,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     let metaballPositions = maton.range(METABALL_NUM).map(() => {
         return new Vector3(0, 0, 0);
     });
-    // .flat();
+
+    const gatherPhaseEmissiveColor = new Color(0, 0, 0, 0);
 
     const defaultSurfaceParameters = {
         metallic: 0,
@@ -273,6 +285,29 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     const initialize = (entities: MorphFollowerActorControllerEntity[], _gatherChildrenActors: Actor[]) => {
         morphFollowersActorControllerEntities = entities;
         gatherChildlenActors = _gatherChildrenActors;
+
+        // gatherの子たちにproperty binderを設定
+        // morph rate
+        // post process timeline でやったほうが uniform のセットの回数は減るが、多くないので許容
+        gatherChildlenActors.forEach((actor, i) => {
+            actor.onProcessPropertyBinder = (key: string, value: number) => {
+                // gather morph rate
+                if (key === 'gm') {
+                    gatherChildMorphStates[i].x = value;
+                    return;
+                }
+                // // rotation x
+                // if(key === 'rx') {
+                //     gatherChildMorphStates[i].y = value;
+                //     return;
+                // }
+                // // rotation y
+                // if(key === 'ry') {
+                //     gatherChildMorphStates[i].z = value;
+                //     return;
+                // }
+            };
+        });
     };
 
     // mesh.subscribeOnStart(() => {
@@ -296,12 +331,16 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             );
             return;
         }
-        // gather morph rate
-        if (key === 'gm') {
-            mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
-                UNIFORM_NAME_METABALL_GATHER_MORPH_RATE,
-                value
-            );
+        if (key === buildTimelinePropertyR(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
+            gatherPhaseEmissiveColor.r = value;
+            return;
+        }
+        if (key === buildTimelinePropertyG(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
+            gatherPhaseEmissiveColor.g = value;
+            return;
+        }
+        if (key === buildTimelinePropertyB(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
+            gatherPhaseEmissiveColor.b = value;
             return;
         }
 
@@ -420,6 +459,20 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
             UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS,
             gatherChildPositions
+        );
+
+        gatherChildlenActors.forEach((actor, i) => {
+            const rot = actor.transform.rotation.getAxesRadians();
+            gatherChildMorphStates[i].y = rot.x + Math.PI;
+            gatherChildMorphStates[i].z = rot.y + Math.PI;
+        });
+        mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
+            UNIFORM_NAME_METABALL_GATHER_MORPH_STATES,
+            gatherChildMorphStates
+        );
+        mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
+            UniformNames.EmissiveColor,
+            gatherPhaseEmissiveColor
         );
 
         //

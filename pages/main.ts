@@ -58,7 +58,7 @@ import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 // import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
-// import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
+import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import {
     createMorphFollowersActor,
@@ -94,6 +94,7 @@ import { createDofFocusTargetController } from './scripts/dofFocusTargetControll
 import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineHandShakeController.ts';
 import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
+import {ScreenSpaceRaymarchMesh} from "@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts";
 
 const stylesText = `
 :root {
@@ -405,6 +406,7 @@ const attractorTargetBoxMeshes: Mesh[] = [];
 const attractorTargetSphereActors: Actor[] = [];
 // let metaMorphActor: ObjectSpaceRaymarchMesh;
 let originForgeActorController: OriginForgeActorController;
+let screenSpaceRaymarchMesh: ScreenSpaceRaymarchMesh;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 const load = async () => {
@@ -478,9 +480,9 @@ const load = async () => {
     // // screen space object
     // //
 
-    // screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
-    // screenSpaceRaymarchMesh.enabled = false;
-    // captureScene.add(screenSpaceRaymarchMesh);
+    screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
+    screenSpaceRaymarchMesh.enabled = false;
+    captureScene.add(screenSpaceRaymarchMesh);
 
     //
     // text mesh

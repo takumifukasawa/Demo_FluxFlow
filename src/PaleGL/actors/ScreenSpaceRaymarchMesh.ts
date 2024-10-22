@@ -1,5 +1,11 @@
 import { GPU } from '@/PaleGL/core/GPU.ts';
-import { PRAGMA_RAYMARCH_SCENE, PrimitiveTypes, UniformNames, UniformTypes } from '@/PaleGL/constants.ts';
+import {
+    PRAGMA_RAYMARCH_SCENE,
+    PrimitiveTypes,
+    UniformBlockNames,
+    UniformNames,
+    UniformTypes,
+} from '@/PaleGL/constants.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { PlaneGeometry } from '@/PaleGL/geometries/PlaneGeometry.ts';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
@@ -59,6 +65,7 @@ export class ScreenSpaceRaymarchMesh extends Mesh {
             uniforms: mergedUniforms,
             // receiveShadow: !!receiveShadow,
             primitiveType: PrimitiveTypes.Triangles,
+            uniformBlockNames: [UniformBlockNames.Timeline],
         });
 
         super({ name, geometry, material });
