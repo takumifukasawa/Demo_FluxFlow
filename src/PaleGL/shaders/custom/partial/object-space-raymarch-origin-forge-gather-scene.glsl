@@ -8,20 +8,23 @@ vec2 dfScene(vec3 p) {
 
     vec3 q1 = opTr(q, uGPs[0]);
     vec3 q2 = opTr(q, uGPs[1]);
+    vec3 q3 = opTr(q, uGPs[2]);
+    vec3 q4 = opTr(q, uGPs[3]);
    
     q1.xz = opRo(q1.xz, 45.);
     
-    float db1 = mix(opBu(q1, 0.).x, dfSp(q1, CS), .2);
-    float db2 = mix(opBu(q2, 0.).x, dfSp(q2, CS), .2);
-    
-    float cs = dfSp(opTr(p, uCP), FS);
-    cs += diMB(p) * diMAt(p);
-    // float cpf = dfSp(p, uBPs[0].xyz) * diAT(p);
-    // cp += cpf;
+    float db1 = mix(opBu(q1, 0.).x, dfSp(q1, CS), uGM);
+    float db2 = mix(opBu(q2, 0.).x, dfSp(q2, CS), uGM);
+    float db3 = mix(opBu(q3, 0.).x, dfSp(q3, CS), uGM);
+    float db4 = mix(opBu(q4, 0.).x, dfSp(q4, CS), uGM);
+
+    float cs = dfSp(opTr(p, uCP), FS * uGS);
+    cs += diMB(p) * diMAt(p) * uGS;
+    // cs += diMB(p);
    
-    float d = min(db1, db2);
+    float gd = min(min(min(db1, db2), db3), db4);
     
-    d = opSm(cs, d, .25);
+    float d = opSm(cs, gd, MS);
     
     return vec2(d, 0.);
     

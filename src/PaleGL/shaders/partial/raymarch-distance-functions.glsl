@@ -271,9 +271,12 @@ float opTb(float x, float A, float B, float C) {
 #define BN 16 // メタボールの数
 #define FS 1. // 真ん中のメタボールのサイズ
 #define CS .35 // 小さいメタボールのサイズ
+#define MS .25 // メタボールのsmooth
 uniform vec3 uCP;
 uniform vec3 uBPs[BN];
 uniform vec3 uGPs[4];
+uniform float uGS; // gather scale rate
+uniform float uGM; // gather morph rate
 
 float diMB(vec3 p) {
     return sin(p.x * 4. + uTimelineTime * 3.4) * .07 +
@@ -294,7 +297,7 @@ float diMAt(vec3 p) {
 float dfMB(vec3 p, float d) {
     for(int i = 0; i < BN; i++) {
         float cd = dfSp(opTr(p, uBPs[i].xyz), CS);
-        d = opSm(d, cd, .25);
+        d = opSm(d, cd, MS);
     }
 
     // #pragma UNROLL_START

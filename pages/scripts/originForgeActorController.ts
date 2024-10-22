@@ -29,6 +29,10 @@ const METABALL_NUM = 16;
 const UNIFORM_NAME_METABALL_CENTER_POSITION = 'uCP';
 const UNIFORM_NAME_METABALL_POSITIONS = 'uBPs';
 const UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS = 'uGPs';
+const UNIFORM_NAME_METABALL_GATHER_SCALE_RATE = 'uGS';
+const UNIFORM_NAME_METABALL_GATHER_MORPH_RATE = 'uGM';
+
+const GATHER_PHASE_MATERIAL_INDEX = 0;
 
 const gatherChildPositions: Vector3[] = maton.range(4).map(() => Vector3.zero);
 
@@ -45,7 +49,17 @@ const shaderContentPairs: {
             {
                 name: UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS, // gather children positions
                 type: UniformTypes.Vector3Array,
-                value: gatherChildPositions
+                value: gatherChildPositions,
+            },
+            {
+                name: UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+            {
+                name: UNIFORM_NAME_METABALL_GATHER_MORPH_RATE,
+                type: UniformTypes.Float,
+                value: 0,
             },
         ],
     },
@@ -267,10 +281,28 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     // });
 
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
+        // material index
         if (key === 'mi') {
             mesh.materials.forEach((material, i) => {
                 material.canRender = i === Math.round(value);
             });
+            return;
+        }
+        // gather scale rate
+        if (key === 'gs') {
+            mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
+                UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
+                value
+            );
+            return;
+        }
+        // gather morph rate
+        if (key === 'gm') {
+            mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
+                UNIFORM_NAME_METABALL_GATHER_MORPH_RATE,
+                value
+            );
+            return;
         }
 
         // if (key === 'cpr') {
@@ -357,7 +389,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
             const instancePositions = calcEmitInstancePositions(easeInOutQuad(rate), false);
             metaballPositions = instancePositions;
-            mesh.materials.forEach(material => {
+            mesh.materials.forEach((material) => {
                 material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
             });
         } else {
@@ -371,7 +403,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         metaballPositions = maton.range(METABALL_NUM, true).map(() => {
             return new Vector3(0, 0, 0);
         });
-        mesh.materials.forEach(material => {
+        mesh.materials.forEach((material) => {
             material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
         });
     };
@@ -380,13 +412,16 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         //
         // gatherフェーズの更新
         //
-        
+
         gatherChildlenActors.forEach((actor, i) => {
             // gatherChildPositions[i] = mesh.transform.worldToLocalPoint(actor.transform.position);
-            gatherChildPositions[i] = actor.transform.position.subVector(mesh.transform.position);
+            gatherChildPositions[i] = Vector3.subVectors(actor.transform.position, mesh.transform.position);
         });
-        mesh.materials[0].uniforms.setValue(UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS, gatherChildPositions);
-        
+        mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
+            UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS,
+            gatherChildPositions
+        );
+
         //
         // シーケンスの処理
         //
