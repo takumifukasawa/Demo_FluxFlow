@@ -150,22 +150,24 @@ void main() {
     );
     vec3 worldPosition = worldPositionFrustum;
 
-    // //
-    // // pattern_1: ワールド座標系でカメラの位置からレイを飛ばす
-    // // カメラの距離が変わるときに弱い
-    // //
-    // vec3 rayOrigin = uViewPosition + vec3(jitterOffset, 0.);
-    // vec3 vpos = vec3(uv * 2. - 1., 1.);
-    // vec3 viewDir = (uInverseProjectionMatrix * vpos.xyzz * uFarClip).xyz;
-    // vec3 viewDirInWorld = (uInverseViewMatrix * vec4(viewDir, 0.)).xyz;
-    // vec3 rayDir = normalize(viewDirInWorld);
+    //
+    // pattern_1: ワールド座標系でカメラの位置からレイを飛ばす
+    // カメラの距離が変わるときに弱い
+    //
+    vec3 rayOrigin = uViewPosition + vec3(jitterOffset, 0.);
+    vec3 vpos = vec3(uv * 2. - 1., 1.);
+    vec3 viewDir = (uInverseProjectionMatrix * vpos.xyzz * uFarClip).xyz;
+    vec3 viewDirInWorld = (uInverseViewMatrix * vec4(viewDir, 0.)).xyz;
+    vec3 rayDir = normalize(viewDirInWorld);
+    // pattern_1: end
 
-    //
-    // pattern_2: frustumの位置からレイを飛ばす
-    // カメラの距離が変わっても一定のfogは出るが、重なり部分がちょっとうまくいってない
-    //
-    vec3 rayOrigin = worldPosition + vec3(jitterOffset, 0.);
-    vec3 rayDir = normalize(rayOrigin - uViewPosition);
+    // //
+    // // pattern_2: frustumの位置からレイを飛ばす
+    // // カメラの距離が変わっても一定のfogは出るが、重なり部分がちょっとうまくいってない
+    // //
+    // vec3 rayOrigin = worldPosition + vec3(jitterOffset, 0.);
+    // vec3 rayDir = normalize(rayOrigin - uViewPosition);
+    // // pattern_2: end
 
     float rayStep = 0.;
 

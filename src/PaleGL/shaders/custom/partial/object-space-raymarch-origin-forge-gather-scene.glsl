@@ -26,9 +26,10 @@ vec2 dfScene(vec3 p) {
     float db3 = mix(dfSp(q3, CS), opBu(q3, 0.).x, state3.x);
     float db4 = mix(dfSp(q4, CS), opBu(q4, 0.).x, state4.x);
 
-    float cs = dfSp(opTr(p, uCP), FS * uGS);
-    cs += diMB(p) * diMAt(p) * uGS;
-    // cs += diMB(p);
+    // float cs = dfSp(opTr(p, uCP), FS * uGS);
+    // cs += diMB(p) * diMAt(p) * uGS;
+    // // cs += diMB(p);
+    float cs = dfMBs(p);
    
     float gd = min(min(min(db1, db2), db3), db4);
     

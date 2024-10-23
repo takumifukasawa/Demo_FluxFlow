@@ -4,6 +4,8 @@ import litObjectSpaceRaymarchFragOriginForgeGatherContent from '@/PaleGL/shaders
 import gBufferObjectSpaceRaymarchFragOriginForgeGatherDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge-gather.glsl';
 import litObjectSpaceRaymarchFragOriginForgeContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge.glsl';
 import gBufferObjectSpaceRaymarchFragOriginForgeDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge.glsl';
+import litObjectSpaceRaymarchFragOriginForgeButterflyContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge-butterfly.glsl';
+import gBufferObjectSpaceRaymarchFragOriginForgeButterflyDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge-butterfly.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
 import {DEG_TO_RAD, FaceSide, UniformBlockNames, UniformNames, UniformTypes} from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
@@ -39,6 +41,7 @@ const UNIFORM_NAME_METABALL_GATHER_SCALE_RATE = 'uGS';
 const UNIFORM_NAME_METABALL_GATHER_MORPH_STATES = 'uGSs';
 // const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR = 'uGEC';
 const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE = 'gec';
+const UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE = 'uOMR';
 
 const GATHER_PHASE_MATERIAL_INDEX = 0;
 
@@ -63,11 +66,6 @@ const shaderContentPairs: {
                 value: gatherChildPositions,
             },
             {
-                name: UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
-                type: UniformTypes.Float,
-                value: 0,
-            },
-            {
                 name: UNIFORM_NAME_METABALL_GATHER_MORPH_STATES,
                 type: UniformTypes.Vector4Array,
                 value: gatherChildMorphStates,
@@ -82,8 +80,8 @@ const shaderContentPairs: {
     },
     // 2: emitter (only center) -> butterfly
     {
-        fragment: litObjectSpaceRaymarchFragOriginForgeContent,
-        depth: gBufferObjectSpaceRaymarchFragOriginForgeDepthContent,
+        fragment: litObjectSpaceRaymarchFragOriginForgeButterflyContent,
+        depth: gBufferObjectSpaceRaymarchFragOriginForgeButterflyDepthContent,
         uniforms: [],
     },
 ];
@@ -235,6 +233,16 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                         type: UniformTypes.Vector3Array,
                         value: metaballPositions,
                     },
+                    {
+                        name: UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
+                        type: UniformTypes.Float,
+                        value: 0,
+                    },
+                    {
+                        name: UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE,
+                        type: UniformTypes.Float,
+                        value: 0,
+                    }
                 ],
                 uniformBlockNames: [UniformBlockNames.Timeline],
                 faceSide: FaceSide.Double
@@ -326,12 +334,15 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         }
         // gather scale rate
         if (key === 'gs') {
-            mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
-                UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
-                value
-            );
+            mesh.materials.forEach((material) => {
+                material.uniforms.setValue(
+                    UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
+                    value
+                );
+            });
             return;
         }
+        // gather emissive color
         if (key === buildTimelinePropertyR(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
             gatherPhaseEmissiveColor.r = value;
             return;
@@ -342,6 +353,13 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         }
         if (key === buildTimelinePropertyB(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
             gatherPhaseEmissiveColor.b = value;
+            return;
+        }
+        // origin morph rate
+        if (key === 'mr') {
+            mesh.materials.forEach((material) => {
+                material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, value);
+            });
             return;
         }
 

@@ -277,11 +277,17 @@ uniform vec3 uBPs[BN];
 uniform vec3 uGPs[4];
 uniform float uGS; // gather scale rate
 uniform vec4 uGSs[4]; // gather states [morph rate, state x, state y, ,]
+uniform float uOMR; // origin forge morph rate
 
 float diMB(vec3 p) {
     return sin(p.x * 4. + uTimelineTime * 3.4) * .07 +
         cos(p.y * 3. + uTimelineTime * 3.2) * .07 +
         sin(p.z * 3.5 + uTimelineTime * 3.0) * .07;
+}
+
+// 真ん中のメタボール
+float dfMC(vec3 p) {
+    return dfSp(p, FS);
 }
 
 // metaball range attenuation
@@ -308,8 +314,22 @@ float dfMB(vec3 p, float d) {
     // #pragma UNROLL_END
 
 
-    d += diMB(p) * diMAt(p);
+    d += diMB(p) * diMAt(p) * uGS;
     return d;
+}
+
+float dfMBs(vec3 p) {
+    // 真ん中
+    float s = dfSp(opTr(p, uCP), FS * uGS);
+    // 子供を含めたmetaball
+    float mb = dfMB(p, s);
+
+    // // 真ん中
+    // float s = dfSp(opTr(p, uCP), FS);
+    // // 子供を含めたmetaball
+    // float mb = dfMB(p, s);
+    
+    return mb;
 }
 
 vec2 opMo(vec2 d1, vec2 d2, float rate) {

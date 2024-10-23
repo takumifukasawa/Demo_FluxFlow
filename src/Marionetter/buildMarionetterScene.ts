@@ -254,8 +254,6 @@ export function buildMarionetterScene(
             actor = new Actor({ name });
         }
 
-        console.log(actor);
-
         //
         // component関連
         //

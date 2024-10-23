@@ -81,11 +81,12 @@ export function buildMarionetterTimeline(
 ): MarionetterTimeline {
     const tracks: MarionetterTimelineTrackKinds[] = [];
 
-    console.log(
-        `[buildMarionetterTimeline] marionetterPlayableDirectorComponentInfo:`,
-        marionetterPlayableDirectorComponentInfo,
-        marionetterActors
-    );
+    // for debug
+    // console.log(
+    //     `[buildMarionetterTimeline] marionetterPlayableDirectorComponentInfo:`,
+    //     marionetterPlayableDirectorComponentInfo,
+    //     marionetterActors
+    // );
 
     const buildSignalEmitter = (signalEmitter: MarionetterSignalEmitter): MarionetterTimelineSignalEmitter => {
         let triggered = false;
@@ -131,11 +132,12 @@ export function buildMarionetterTimeline(
                 console.warn(`[buildMarionetterTimeline] target actor is not found: ${targetName}`);
             }
 
-            console.log(
-                `[buildMarionetterTimeline] targetName: ${targetName}, targetActor:`,
-                targetActors,
-                marionetterClips
-            );
+            // for debug
+            // console.log(
+            //     `[buildMarionetterTimeline] targetName: ${targetName}, targetActor:`,
+            //     targetActors,
+            //     marionetterClips
+            // );
 
             const data = {
                 targetName,
