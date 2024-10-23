@@ -1519,47 +1519,28 @@ export class Renderer {
         this.updateCameraUniforms(camera);
 
         depthPrePassRenderMeshInfos.forEach(({ actor }) => {
-            const depthMaterial = actor.depthMaterial;
-
-            if (!depthMaterial) {
-                console.error('[Renderer.depthPrePass] invalid depth material');
-                return;
-            }
-
-            if (actor.mainMaterial.skipDepthPrePass) {
-                return;
-            }
-
-            // console.log(depthMaterial.name, depthMaterial.depthTest, depthMaterial.depthWrite, depthMaterial.depthFuncType)
-
-            // this.setUniformBlockValue(
-            //     UniformBlockNames.Transformations,
-            //     UniformNames.WorldMatrix,
-            //     actor.transform.worldMatrix
-            // );
-            // this.setUniformBlockValue(
-            //     UniformBlockNames.Transformations,
-            //     UniformNames.InverseWorldMatrix,
-            //     actor.transform.inverseWorldMatrix
-            // );
             this.updateActorTransformUniforms(actor);
-            // depthMaterial.uniforms.setValue(UniformNames.InverseWorldMatrix, actor.transform.inverseWorldMatrix);
-            // depthMaterial.uniforms.setValue(UniformNames.ViewPosition, camera.transform.worldMatrix.position);
 
-            // depthMaterial.uniforms.setValue(UniformNames.InverseWorldMatrix, actor.transform.inverseWorldMatrix);
-            // // depthMaterial.uniforms.setValue(UniformNames.WorldMatrix, actor.transform.worldMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.WorldMatrix, actor.transform.worldMatrix.elements);
-            // depthMaterial.uniforms.setValue(UniformNames.ViewPosition, camera.transform.worldMatrix.position);
-            // // depthMaterial.uniforms.setValue(UniformNames.ViewMatrix, camera.viewMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.ViewMatrix, camera.viewMatrix.elements);
-            // // depthMaterial.uniforms.setValue(UniformNames.ProjectionMatrix, camera.projectionMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.ProjectionMatrix, camera.projectionMatrix.elements);
+            actor.depthMaterials.forEach((depthMaterial) => {
+                if (!depthMaterial) {
+                    console.error('[Renderer.depthPrePass] invalid depth material');
+                    return;
+                }
+                
+                if(!depthMaterial.canRender) {
+                    return;
+                }
 
-            this.renderMesh(actor.geometry, depthMaterial);
+                if (actor.mainMaterial.skipDepthPrePass) {
+                    return;
+                }
 
-            if (this.stats) {
-                this.stats.addPassInfo('depth pre pass', actor.name, actor.geometry);
-            }
+                this.renderMesh(actor.geometry, depthMaterial);
+
+                if (this.stats) {
+                    this.stats.addPassInfo('depth pre pass', actor.name, actor.geometry);
+                }
+            });
         });
     }
 
@@ -1607,29 +1588,32 @@ export class Renderer {
             this.updateCameraUniforms(lightActor.shadowCamera);
 
             castShadowRenderMeshInfos.forEach(({ actor }) => {
-                const targetMaterial = actor.depthMaterial;
-
-                // TODO: material 側でやった方がよい？
-                if (!targetMaterial) {
-                    console.error('invalid target material');
-                    return;
-                }
-
                 // TODO: material 側でやった方がよい？
                 this.updateActorTransformUniforms(actor);
 
-                targetMaterial.uniforms.setValue(
-                    UniformNames.DepthTexture,
-                    this._copyDepthDestRenderTarget.depthTexture
-                );
-
                 actor.updateDepthMaterial({ camera: lightActor.shadowCamera! });
 
-                this.renderMesh(actor.geometry, targetMaterial);
+                actor.depthMaterials.forEach((depthMaterial) => {
+                    // TODO: material 側でやった方がよい？
+                    if (!depthMaterial) {
+                        console.error('invalid target material');
+                        return;
+                    }
 
-                if (this.stats) {
-                    this.stats.addPassInfo('shadow pass', actor.name, actor.geometry);
-                }
+                    if(!depthMaterial.canRender) {
+                        return;
+                    }
+
+                    depthMaterial.uniforms.setValue(
+                        UniformNames.DepthTexture,
+                        this._copyDepthDestRenderTarget.depthTexture
+                    );
+
+                    this.renderMesh(actor.geometry, depthMaterial);
+                    if (this.stats) {
+                        this.stats.addPassInfo('shadow pass', actor.name, actor.geometry);
+                    }
+                });
             });
         });
     }

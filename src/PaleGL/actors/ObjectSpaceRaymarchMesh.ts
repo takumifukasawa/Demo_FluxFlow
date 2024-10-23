@@ -12,6 +12,8 @@ import { Camera } from '@/PaleGL/actors/Camera.ts';
 import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
 // import {GBufferMaterial} from "@/PaleGL/materials/GBufferMaterial.ts";
 
+const UNIFORM_NAME_PERSPECTIVE_FLAG = 'uIsPerspective';
+
 type ObjectSpaceRaymarchMeshArgs = {
     name?: string;
     gpu: GPU;
@@ -108,18 +110,22 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
         this.materials.forEach((material) => {
             material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
         });
-        this.depthMaterial!.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+        this.depthMaterials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+        });
     }
 
     updateMaterial({ camera }: { camera: Camera }) {
         super.updateMaterial({ camera });
         this.materials.forEach((material) => {
-            material.uniforms.setValue('uIsPerspective', camera.isPerspective() ? 1 : 0);
+            material.uniforms.setValue(UNIFORM_NAME_PERSPECTIVE_FLAG, camera.isPerspective() ? 1 : 0);
         });
     }
 
     updateDepthMaterial({ camera }: { camera: Camera }) {
         super.updateMaterial({ camera });
-        this.depthMaterial?.uniforms.setValue('uIsPerspective', camera.isPerspective() ? 1 : 0);
+        this.depthMaterials.forEach((material) => {
+            material.uniforms.setValue(UNIFORM_NAME_PERSPECTIVE_FLAG, camera.isPerspective() ? 1 : 0);
+        });
     }
 }

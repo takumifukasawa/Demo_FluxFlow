@@ -363,6 +363,7 @@ export const createMorphFollowersActor = ({
             depthFragmentShaderContent: shaderContent.depth,
             materialArgs: {
                 ...materialArgs,
+                receiveShadow: true,
                 uniforms: [
                     ...shaderContent.uniforms,
                     {
@@ -381,18 +382,6 @@ export const createMorphFollowersActor = ({
         });
         materials.push(material);
     });
-    console.log(materials);
-
-    // // // TODO: for debug
-    // materials[0].canRender = false;
-    // materials[1].canRender = false;
-    // materials[2].canRender = true;
-
-    // const material = createObjectSpaceRaymarchMaterial({
-    //     fragmentShaderContent: litObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
-    //     depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragMorphButterflyWithFlowerContent,
-    //     materialArgs
-    // });
 
     const mesh = new ObjectSpaceRaymarchMesh({
         name,
@@ -1054,8 +1043,8 @@ export const createMorphFollowersActor = ({
         }
         // material index
         if (key === 'mi') {
-            mesh.materials.forEach((material, i) => {
-                material.canRender = i === Math.round(value);
+            mesh.materials.forEach((_, i) => {
+                mesh.setCanRenderMaterial(i, i === Math.round(value));
             });
         }
 

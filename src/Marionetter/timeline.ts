@@ -385,7 +385,13 @@ function createMarionetterAnimationClip(
             );
             const q = Quaternion.rotationMatrixToQuaternion(rm);
             actor.transform.rotation = new Rotator(
-                actor.type === ActorTypes.Light && (actor as Light).lightType === LightTypes.Spot ? q.invertAxis() : q
+                // actor.type === ActorTypes.Light && (actor as Light).lightType === LightTypes.Spot ? q.invertAxis() : q
+                (actor.type === ActorTypes.Light) &&
+                    (
+                        (actor as Light).lightType === LightTypes.Spot || 
+                        (actor as Light).lightType === LightTypes.Directional
+                    )
+                ? q.invertAxis() : q
             );
         } else {
             actor.transform.rotation = Rotator.fromQuaternion(Quaternion.identity());

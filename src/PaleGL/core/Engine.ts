@@ -231,9 +231,9 @@ export class Engine {
                     mesh.materials.forEach((mat) => {
                         this.renderer.checkNeedsBindUniformBufferObjectToMaterial(mat);
                     });
-                    if (mesh.depthMaterial) {
-                        this.renderer.checkNeedsBindUniformBufferObjectToMaterial(mesh.depthMaterial);
-                    }
+                    mesh.depthMaterials.forEach((mat) => {
+                        this.renderer.checkNeedsBindUniformBufferObjectToMaterial(mat);
+                    });
                     break;
                 default:
                     break;

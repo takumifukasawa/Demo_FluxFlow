@@ -320,7 +320,7 @@ export function buildMarionetterScene(
             return;
         }
 
-        console.error(`[recursiveBuildActor] actor is null`);
+        console.error(`[recursiveBuildActor] actor is null - name: ${obj.n}`);
     }
 
     //

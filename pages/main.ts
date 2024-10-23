@@ -75,8 +75,8 @@ import {
     ATTRACTOR_TARGET_BOX_B_MESH,
     ATTRACTOR_TARGET_SPHERE_ACTOR_A_NAME,
     ATTRACTOR_TARGET_SPHERE_ACTOR_B_NAME,
-    DEPTH_OF_FIELD_TARGET_ACTOR_NAME,
-    DIRECT_LIGHT_ACTOR_NAME,
+    DEPTH_OF_FIELD_TARGET_ACTOR_NAME, DIRECT_LIGHT_ACTOR_NAME,
+    // DIRECT_LIGHT_ACTOR_NAME,
     FLOOR_ACTOR_NAME,
     FOLLOWERS_ACTOR_NAME_A,
     FOLLOWERS_ACTOR_NAME_B,
@@ -190,6 +190,7 @@ document.head.appendChild(styleElement);
 
 let width: number, height: number;
 let bufferVisualizerPass: BufferVisualizerPass;
+let directionalLight: DirectionalLight;
 
 // const wrapperElement = document.getElementById("wrapper")!;
 const wrapperElement = document.createElement('div');
@@ -267,7 +268,12 @@ const buildScene = (sceneJson: MarionetterScene) => {
     }
 
     captureSceneCamera = captureScene.find(MAIN_CAMERA_ACTOR_NAME) as PerspectiveCamera;
-    const directionalLight = captureScene.find(DIRECT_LIGHT_ACTOR_NAME) as DirectionalLight;
+    directionalLight = captureScene.find(DIRECT_LIGHT_ACTOR_NAME) as DirectionalLight;
+    // directionalLight = new DirectionalLight({
+    //     intensity: 1,
+    //     color: Color.white
+    // });
+    // captureScene.add(directionalLight);
 
     captureSceneCamera.subscribeOnStart(({ actor }) => {
         (actor as Camera).setClearColor(new Vector4(0, 0, 0, 1));
@@ -307,8 +313,9 @@ const buildScene = (sceneJson: MarionetterScene) => {
         directionalLight.shadowCamera.visibleFrustum = true;
         directionalLight.castShadow = true;
         directionalLight.shadowCamera.near = 1;
-        directionalLight.shadowCamera.far = 30;
-        (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -12, 12, -12, 12);
+        directionalLight.shadowCamera.far = 30; 
+        const size = 6;
+        (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -size, size, -size, size);
         directionalLight.shadowMap = new RenderTarget({
             gpu,
             width: 1024,
@@ -316,10 +323,14 @@ const buildScene = (sceneJson: MarionetterScene) => {
             type: RenderTargetTypes.Depth,
         });
 
+        // directionalLight.transform.setTranslation(new Vector3(-9.7, 10.1, -9));
         // directionalLight.subscribeOnStart(({ actor }) => {
-        //     actor.transform.setTranslation(new Vector3(-8, 8, -2));
         //     actor.transform.lookAt(new Vector3(0, 0, 0));
         // });
+        
+        // directionalLight.onUpdate = () => {
+        //     directionalLight.transform.position.log()
+        // }
     }
 
     const cameraPostProcess = new PostProcess();
@@ -740,7 +751,8 @@ const playDemo = () => {
         stopSound: glslSoundWrapper.stop,
         renderer,
         wrapperElement,
-        directionalLight: captureScene.find(DIRECT_LIGHT_ACTOR_NAME)! as DirectionalLight,
+        // directionalLight: captureScene.find(DIRECT_LIGHT_ACTOR_NAME)! as DirectionalLight,
+        directionalLight,
     });
     createPointLightDebugger(debuggerGUI, originForgeActorController.getPointLight(), 'point light');
 };

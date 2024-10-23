@@ -42,6 +42,7 @@ const UNIFORM_NAME_METABALL_GATHER_MORPH_STATES = 'uGSs';
 // const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR = 'uGEC';
 const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE = 'gec';
 const UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE = 'uOMR';
+const UNIFORM_NAME_METABALL_ORIGIN_ROT = 'uORo';
 
 const GATHER_PHASE_MATERIAL_INDEX = 0;
 
@@ -49,6 +50,8 @@ const gatherChildPositions: Vector3[] = maton.range(4).map(() => Vector3.zero);
 
 // [morph rate, rot x, rot y, ,]
 const gatherChildMorphStates: Vector4[] = maton.range(4).map(() => Vector4.zero);
+
+const originForgeRotationRad: Vector3 = Vector3.zero;
 
 const shaderContentPairs: {
     fragment: string;
@@ -242,7 +245,12 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                         name: UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE,
                         type: UniformTypes.Float,
                         value: 0,
-                    }
+                    },
+                    {
+                        name: UNIFORM_NAME_METABALL_ORIGIN_ROT,
+                        type: UniformTypes.Vector3,
+                        value: originForgeRotationRad,
+                    },
                 ],
                 uniformBlockNames: [UniformBlockNames.Timeline],
                 faceSide: FaceSide.Double
@@ -327,8 +335,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
         // material index
         if (key === 'mi') {
-            mesh.materials.forEach((material, i) => {
-                material.canRender = i === Math.round(value);
+            mesh.materials.forEach((_, i) => {
+                mesh.setCanRenderMaterial(i, i === Math.round(value));
             });
             return;
         }
@@ -360,6 +368,16 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             mesh.materials.forEach((material) => {
                 material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, value);
             });
+            return;
+        }
+        // origin forge: rot x
+        if (key === 'rx') {
+            originForgeRotationRad.x = value * DEG_TO_RAD;
+            return;
+        }
+        // origin forge: rot y
+        if (key === 'ry') {
+            originForgeRotationRad.y = value * DEG_TO_RAD
             return;
         }
 
@@ -492,7 +510,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
             UniformNames.EmissiveColor,
             gatherPhaseEmissiveColor
-        );
+        )
+
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_ROT, originForgeRotationRad);
+        });
 
         //
         // シーケンスの処理

@@ -102,7 +102,7 @@ export function initDebugger({
     directionalLightDebuggerGroup.addSliderDebugger({
         label: 'intensity',
         minValue: 0,
-        maxValue: 4,
+        maxValue: 10,
         stepValue: 0.001,
         initialValue: directionalLight.intensity,
         onChange: (value) => {
@@ -112,8 +112,8 @@ export function initDebugger({
 
     directionalLightDebuggerGroup.addSliderDebugger({
         label: 'pos x',
-        minValue: -10,
-        maxValue: 10,
+        minValue: -20,
+        maxValue: 20,
         stepValue: 0.001,
         initialValue: directionalLight.transform.position.x,
         onChange: (value) => {
@@ -124,7 +124,7 @@ export function initDebugger({
     directionalLightDebuggerGroup.addSliderDebugger({
         label: 'pos y',
         minValue: 0,
-        maxValue: 10,
+        maxValue: 20,
         stepValue: 0.001,
         initialValue: directionalLight.transform.position.y,
         onChange: (value) => {
@@ -134,8 +134,8 @@ export function initDebugger({
 
     directionalLightDebuggerGroup.addSliderDebugger({
         label: 'pos z',
-        minValue: -10,
-        maxValue: 10,
+        minValue: -20,
+        maxValue: 20,
         stepValue: 0.001,
         initialValue: directionalLight.transform.position.z,
         onChange: (value) => {

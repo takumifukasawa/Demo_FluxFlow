@@ -244,9 +244,9 @@ export class SkinnedMesh extends Mesh {
             this.materials.forEach((material) =>
                 material.uniforms.setValue(UniformNames.TotalFrameCount, framesDuration)
             );
-            if (this.depthMaterial) {
-                this.depthMaterial.uniforms.setValue(UniformNames.TotalFrameCount, framesDuration);
-            }
+            this.depthMaterials.forEach((depthMaterial) => {
+                depthMaterial.uniforms.setValue(UniformNames.TotalFrameCount, framesDuration);
+            });
 
             // for debug
             console.log(`# bake skin animation to texture
@@ -289,14 +289,14 @@ matrix elements: ${jointData.length}`);
 
         if (this.#gpuSkinning) {
             this.materials.forEach((mat) => mat.uniforms.setValue(UniformNames.Time, time));
-            if (this.depthMaterial) {
-                this.depthMaterial.uniforms.setValue(UniformNames.Time, time);
-            }
+            this.depthMaterials.forEach((depthMaterial) => {
+                depthMaterial.uniforms.setValue(UniformNames.Time, time);
+            });
 
             this.materials.forEach((mat) => mat.uniforms.setValue(UniformNames.JointTexture, this.#jointTexture));
-            if (this.depthMaterial) {
-                this.depthMaterial.uniforms.setValue(UniformNames.JointTexture, this.#jointTexture);
-            }
+            this.depthMaterials.forEach((depthMaterial) => {
+                depthMaterial.uniforms.setValue(UniformNames.JointTexture, this.#jointTexture);
+            });
         } else {
             // NOTE: test update skinning by cpu
             // needs
@@ -326,9 +326,9 @@ matrix elements: ${jointData.length}`);
             }
 
             this.materials.forEach((mat) => mat.uniforms.setValue(UniformNames.JointTexture, this.#jointTexture));
-            if (this.depthMaterial) {
-                this.depthMaterial.uniforms.setValue(UniformNames.JointTexture, this.#jointTexture);
-            }
+            this.depthMaterials.forEach((depthMaterial) => {
+                depthMaterial.uniforms.setValue(UniformNames.JointTexture, this.#jointTexture);
+            });
         }
     }
 

@@ -278,6 +278,7 @@ uniform vec3 uGPs[4];
 uniform float uGS; // gather scale rate
 uniform vec4 uGSs[4]; // gather states [morph rate, state x, state y, ,]
 uniform float uOMR; // origin forge morph rate
+uniform vec3 uORo; // rot x for origin forge
 
 float diMB(vec3 p) {
     return sin(p.x * 4. + uTimelineTime * 3.4) * .07 +

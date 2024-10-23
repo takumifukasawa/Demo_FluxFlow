@@ -2,6 +2,9 @@
 
 vec2 dfScene(vec3 p) {
     float d = 0.;
+
+    // for debug
+    // return vec2(dfSp(p, 1.), 0.);
     
     vec4 state1 = uGSs[0];
     vec4 state2 = uGSs[1];

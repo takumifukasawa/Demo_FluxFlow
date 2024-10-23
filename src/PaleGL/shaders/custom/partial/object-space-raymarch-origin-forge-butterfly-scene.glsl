@@ -3,20 +3,17 @@
 vec2 dfScene(vec3 p) {
     float cs = dfMBs(p);
 
-    p.yz = opRo(p.yz, 45.);
-    vec2 butterflyR = opBu(p / 2., 0.);
+    vec3 q = p;
+    q.yz = opRo(q.yz, uORo.x);
+    q.xz = opRo(q.xz, uORo.y);
+    vec2 butterflyR = opBu(q / 2., 0.);
 
-    // float d = opTb(morphRate, ds, butterflyR.x, ds);
+    // // test
+    // float db = dfMB(q, butterflyR.x);
+    // float d = mix(cs, db, uOMR);
+   
+    // default
     float d = mix(cs, butterflyR.x, uOMR);
+    
     return vec2(d, 0.);
-
-
-    // // 真ん中
-    // float s = dfSp(opTr(p, uCP), FS);
-
-    // // 子供を含めたmetaball
-    // float mb = dfMB(p, s);
-    // 
-    // return vec2(mb, 0.);
-
 }
