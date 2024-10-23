@@ -103,18 +103,34 @@ float calcTransmittance(
     float attenuation = punctualLightIntensityToIrradianceFactor(lightDistance, spotLight.distance, spotLight.attenuation);
    
     if(abs(rayPosInView.z) < viewZFromDepth) {
-        if(all(
-            bvec4(
-                angleCos > spotLight.coneCos,
-                testLightInRange(lightDistance, spotLight.distance),
-                spotLightShadowDepth > rayDepthInProjection, // 深度がray.zよりも近い場合は光の影響を受けているとみなす
+        // tmp
+        // if(all(
+        //     bvec4(
+        //         angleCos > spotLight.coneCos,
+        //         testLightInRange(lightDistance, spotLight.distance),
+        //         spotLightShadowDepth > rayDepthInProjection, // 深度がray.zよりも近い場合は光の影響を受けているとみなす
+        //         spotLightShadowDepth < 1. // 1の時は影の影響を受けていないとみなす. ただし、床もcastshadowしておいた方がよい
+        //     )
+        // )) {
+        //     // TODO: 指数減衰使いたい
+        //     rate = (1. / MARCH_COUNT_F) * attenuation * spotEffect * isShadowArea * uDensityMultiplier;
+        // }
+        
+        if(all(bvec2(
+            angleCos > spotLight.coneCos,
+            testLightInRange(lightDistance, spotLight.distance)
+        ))) {
+            if(all(bvec2(
+                spotLightShadowDepth < rayDepthInProjection, // 深度がray.zよりも近い場合は光の影響を受けているとみなす
                 spotLightShadowDepth < 1. // 1の時は影の影響を受けていないとみなす. ただし、床もcastshadowしておいた方がよい
-            )
-        )) {
-            // TODO: 指数減衰使いたい
-            rate = (1. / MARCH_COUNT_F) * attenuation * spotEffect * isShadowArea * uDensityMultiplier;
+            ))) {
+            } else {
+                // TODO: 指数減衰使いたい
+                rate += (1. / MARCH_COUNT_F) * attenuation * spotEffect * isShadowArea * uDensityMultiplier;
+            }
         }
     }
+    // rate = (1. / MARCH_COUNT_F);
 
     // for debug
     // fogRate = spotLight.direction.x;
