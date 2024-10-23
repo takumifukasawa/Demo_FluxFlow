@@ -268,6 +268,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     captureSceneCamera = captureScene.find(MAIN_CAMERA_ACTOR_NAME) as PerspectiveCamera;
     const directionalLight = captureScene.find(DIRECT_LIGHT_ACTOR_NAME) as DirectionalLight;
+    console.log("hogehoge", captureSceneCamera, directionalLight);
 
     captureSceneCamera.subscribeOnStart(({ actor }) => {
         (actor as Camera).setClearColor(new Vector4(0, 0, 0, 1));

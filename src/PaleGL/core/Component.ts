@@ -17,6 +17,7 @@ type OnProcessPropertyBinderCallback = (key: string, value: number) => void;
 type OnPostProcessTimelineCallback = (actor: Actor, timelineTime: number) => void;
 
 export type Component = {
+    name: string;
     start: (args: ComponentStartArgs) => void;
     fixedUpdate: (args: ComponentFixedUpdateArgs) => void;
     beforeUpdate: (args: ComponentBeforeUpdateArgs) => void;
@@ -27,6 +28,7 @@ export type Component = {
 };
 
 export type ComponentArgs = {
+    name?: string;
     onStartCallback?: OnStartCallback;
     onFixedUpdateCallback?: OnFixedUpdateCallback;
     onBeforeUpdateCallback?: OnBeforeUpdateCallback;
@@ -38,6 +40,7 @@ export type ComponentArgs = {
 
 export function createComponent(args: ComponentArgs): Component {
     const {
+        name,
         onStartCallback,
         onFixedUpdateCallback,
         onBeforeUpdateCallback,
@@ -88,8 +91,9 @@ export function createComponent(args: ComponentArgs): Component {
             onPostProcessTimeline(actor, timelineTime);
         }
     };
-
+    
     return {
+        name: name || "",
         start,
         fixedUpdate,
         beforeUpdate,

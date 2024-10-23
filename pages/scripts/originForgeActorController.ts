@@ -5,7 +5,7 @@ import gBufferObjectSpaceRaymarchFragOriginForgeGatherDepthContent from '@/PaleG
 import litObjectSpaceRaymarchFragOriginForgeContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge.glsl';
 import gBufferObjectSpaceRaymarchFragOriginForgeDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
-import { DEG_TO_RAD, UniformBlockNames, UniformNames, UniformTypes } from '@/PaleGL/constants.ts';
+import {DEG_TO_RAD, FaceSide, UniformBlockNames, UniformNames, UniformTypes} from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
@@ -237,6 +237,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     },
                 ],
                 uniformBlockNames: [UniformBlockNames.Timeline],
+                faceSide: FaceSide.Double
             },
         });
         materials.push(material);
