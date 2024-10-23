@@ -313,8 +313,8 @@ const buildScene = (sceneJson: MarionetterScene) => {
         directionalLight.shadowCamera.visibleFrustum = true;
         directionalLight.castShadow = true;
         directionalLight.shadowCamera.near = 1;
-        directionalLight.shadowCamera.far = 30; 
-        const size = 6;
+        directionalLight.shadowCamera.far = 40; 
+        const size = 10;
         (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -size, size, -size, size);
         directionalLight.shadowMap = new RenderTarget({
             gpu,
@@ -344,6 +344,8 @@ const buildScene = (sceneJson: MarionetterScene) => {
     cameraPostProcess.enabled = true;
     // TODO: set post process いらないかも
     captureSceneCamera.setPostProcess(cameraPostProcess);
+    
+    console.log("hogehoge", captureSceneCamera)
 
     console.log('scene', actors);
 };
@@ -638,7 +640,7 @@ const load = async () => {
     // TODO: ある程度はtimelineからいじりたい
     //
 
-    captureSceneCamera!.far = 200;
+    captureSceneCamera!.far = 500;
 
     // TODO: 反映されてないかも
     renderer.fogPass.parameters.distanceFogStart = 10;
