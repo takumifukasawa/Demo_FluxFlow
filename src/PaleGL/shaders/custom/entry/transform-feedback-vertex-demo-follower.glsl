@@ -84,9 +84,9 @@ void main() {
         vec2 seed = vec2(rawSeed, rawSeed);
         float rand = noise(seed);
         target += vec3(
-            cos((uTime + rand * 100. + seed.x)) * (2. + rand * 1.),
-            sin((uTime - rand * 400. + seed.x)) * (2. + rand * 1.),
-            cos((uTime - rand * 300. + seed.x)) * (2. + rand * 1.)
+            cos((uTimelineTime + rand * 100. + seed.x)) * (2. + rand * 1.),
+            sin((uTimelineTime - rand * 400. + seed.x)) * (2. + rand * 1.),
+            cos((uTimelineTime - rand * 300. + seed.x)) * (2. + rand * 1.)
         ) * attractAmplitude;
 
         vec3 diffP = target - vPosition;

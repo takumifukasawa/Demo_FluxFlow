@@ -345,8 +345,6 @@ const buildScene = (sceneJson: MarionetterScene) => {
     // TODO: set post process いらないかも
     captureSceneCamera.setPostProcess(cameraPostProcess);
     
-    console.log("hogehoge", captureSceneCamera)
-
     console.log('scene', actors);
 };
 
@@ -754,7 +752,7 @@ const playDemo = () => {
         renderer,
         wrapperElement,
         // directionalLight: captureScene.find(DIRECT_LIGHT_ACTOR_NAME)! as DirectionalLight,
-        directionalLight,
+        // directionalLight,
     });
     createPointLightDebugger(debuggerGUI, originForgeActorController.getPointLight(), 'point light');
 };

@@ -4,7 +4,7 @@ import { Color } from '@/PaleGL/math/Color.ts';
 import { GLSLSound } from '@/PaleGL/core/GLSLSound.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
-import { DirectionalLight } from '@/PaleGL/actors/DirectionalLight.ts';
+// import { DirectionalLight } from '@/PaleGL/actors/DirectionalLight.ts';
 
 export function initDebugger({
     bufferVisualizerPass,
@@ -13,7 +13,7 @@ export function initDebugger({
     stopSound,
     renderer,
     wrapperElement,
-    directionalLight,
+    // directionalLight,
 }: {
     bufferVisualizerPass: BufferVisualizerPass;
     glslSound: GLSLSound;
@@ -21,7 +21,7 @@ export function initDebugger({
     stopSound: () => void;
     renderer: Renderer;
     wrapperElement: HTMLElement;
-    directionalLight: DirectionalLight;
+    // directionalLight: DirectionalLight;
 }): DebuggerGUI {
     const debuggerGUI = new DebuggerGUI();
 
@@ -91,77 +91,77 @@ export function initDebugger({
         },
     });
 
-    //
-    // directional light
-    //
+    // //
+    // // directional light
+    // //
 
-    debuggerGUI.addBorderSpacer();
+    // debuggerGUI.addBorderSpacer();
 
-    const directionalLightDebuggerGroup = debuggerGUI.addGroup('directional light', false);
+    // const directionalLightDebuggerGroup = debuggerGUI.addGroup('directional light', false);
 
-    directionalLightDebuggerGroup.addSliderDebugger({
-        label: 'intensity',
-        minValue: 0,
-        maxValue: 10,
-        stepValue: 0.001,
-        initialValue: directionalLight.intensity,
-        onChange: (value) => {
-            directionalLight.intensity = value;
-        },
-    });
+    // directionalLightDebuggerGroup.addSliderDebugger({
+    //     label: 'intensity',
+    //     minValue: 0,
+    //     maxValue: 10,
+    //     stepValue: 0.001,
+    //     initialValue: directionalLight.intensity,
+    //     onChange: (value) => {
+    //         directionalLight.intensity = value;
+    //     },
+    // });
 
-    directionalLightDebuggerGroup.addSliderDebugger({
-        label: 'pos x',
-        minValue: -20,
-        maxValue: 20,
-        stepValue: 0.001,
-        initialValue: directionalLight.transform.position.x,
-        onChange: (value) => {
-            directionalLight.transform.position.x = value;
-        },
-    });
+    // directionalLightDebuggerGroup.addSliderDebugger({
+    //     label: 'pos x',
+    //     minValue: -20,
+    //     maxValue: 20,
+    //     stepValue: 0.001,
+    //     initialValue: directionalLight.transform.position.x,
+    //     onChange: (value) => {
+    //         directionalLight.transform.position.x = value;
+    //     },
+    // });
 
-    directionalLightDebuggerGroup.addSliderDebugger({
-        label: 'pos y',
-        minValue: 0,
-        maxValue: 20,
-        stepValue: 0.001,
-        initialValue: directionalLight.transform.position.y,
-        onChange: (value) => {
-            directionalLight.transform.position.y = value;
-        },
-    });
+    // directionalLightDebuggerGroup.addSliderDebugger({
+    //     label: 'pos y',
+    //     minValue: 0,
+    //     maxValue: 20,
+    //     stepValue: 0.001,
+    //     initialValue: directionalLight.transform.position.y,
+    //     onChange: (value) => {
+    //         directionalLight.transform.position.y = value;
+    //     },
+    // });
 
-    directionalLightDebuggerGroup.addSliderDebugger({
-        label: 'pos z',
-        minValue: -20,
-        maxValue: 20,
-        stepValue: 0.001,
-        initialValue: directionalLight.transform.position.z,
-        onChange: (value) => {
-            directionalLight.transform.position.z = value;
-        },
-    });
+    // directionalLightDebuggerGroup.addSliderDebugger({
+    //     label: 'pos z',
+    //     minValue: -20,
+    //     maxValue: 20,
+    //     stepValue: 0.001,
+    //     initialValue: directionalLight.transform.position.z,
+    //     onChange: (value) => {
+    //         directionalLight.transform.position.z = value;
+    //     },
+    // });
 
-    // bufferVisualizerPass.beforeRender = () => {
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uDirectionalLightShadowMap',
-    //         directionalLight.shadowMap!.read.depthTexture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uAmbientOcclusionTexture',
-    //         renderer.ambientOcclusionPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uDeferredShadingTexture',
-    //         renderer.deferredShadingPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue(
-    //         'uLightShaftTexture',
-    //         renderer.lightShaftPass.renderTarget.read.texture
-    //     );
-    //     bufferVisualizerPass.material.uniforms.setValue('uFogTexture', renderer.fogPass.renderTarget.read.texture);
-    // };
+    // // bufferVisualizerPass.beforeRender = () => {
+    // //     bufferVisualizerPass.material.uniforms.setValue(
+    // //         'uDirectionalLightShadowMap',
+    // //         directionalLight.shadowMap!.read.depthTexture
+    // //     );
+    // //     bufferVisualizerPass.material.uniforms.setValue(
+    // //         'uAmbientOcclusionTexture',
+    // //         renderer.ambientOcclusionPass.renderTarget.read.texture
+    // //     );
+    // //     bufferVisualizerPass.material.uniforms.setValue(
+    // //         'uDeferredShadingTexture',
+    // //         renderer.deferredShadingPass.renderTarget.read.texture
+    // //     );
+    // //     bufferVisualizerPass.material.uniforms.setValue(
+    // //         'uLightShaftTexture',
+    // //         renderer.lightShaftPass.renderTarget.read.texture
+    // //     );
+    // //     bufferVisualizerPass.material.uniforms.setValue('uFogTexture', renderer.fogPass.renderTarget.read.texture);
+    // // };
 
     //
     // sss

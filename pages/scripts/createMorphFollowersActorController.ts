@@ -18,7 +18,7 @@ import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
-import { generateRandomValue, randomOnUnitPlane, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
+import {generateRandomValue, lerp, randomOnUnitPlane, randomOnUnitSphere} from '@/PaleGL/utilities/mathUtilities.ts';
 import {
     createObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterialArgs,
@@ -341,6 +341,7 @@ export const createMorphFollowersActor = ({
 
     const instanceNum = INITIAL_INSTANCE_NUM;
 
+    // TODO: forge から渡したい
     const materialArgs: ObjectSpaceRaymarchMaterialArgs = {
         // fragmentShader: litObjectSpaceRaymarchMorphFrag,
         // depthFragmentShader: gBufferObjectSpaceRaymarchMorphDepthFrag,
@@ -439,14 +440,18 @@ export const createMorphFollowersActor = ({
 
         // color
         const c = Color.fromRGB(
-            Math.floor(Math.random() * 180 + 20),
-            Math.floor(Math.random() * 20 + 20),
-            Math.floor(Math.random() * 180 + 20)
+            lerp(20, 200, generateRandomValue(0, i)),
+            lerp(20, 40, generateRandomValue(1, i)),
+            lerp(20, 200, generateRandomValue(2, i)),
         );
         tmpInstanceInfo.color.push([...c.elements]);
 
         // emissive color
-        const ec = Color.fromRGB(255 * 4, 100, 100);
+        const ec = Color.fromRGB(
+            lerp(20, 200, generateRandomValue(0, i)) * 4,
+            lerp(20, 40, generateRandomValue(1, i)),
+            lerp(20, 200, generateRandomValue(2, i)) * 4,
+        );
         tmpInstanceInfo.emissiveColor.push([...ec.elements]);
 
         // look direction
@@ -836,7 +841,7 @@ export const createMorphFollowersActor = ({
                         const wp = attractorTargetBox.transform.localPointToWorld(lp);
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
                             p: wp,
-                            attractAmplitude: 0.2,
+                            attractAmplitude: 0.1
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
@@ -854,7 +859,7 @@ export const createMorphFollowersActor = ({
                         // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                             p: wp,
-                            attractAmplitude: 0.2,
+                            attractAmplitude: 0.1,
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
