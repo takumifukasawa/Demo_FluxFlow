@@ -2,9 +2,11 @@ vec2 dfScene(vec3 p) {
     // for debug: check scale
     float ds = dfSp(p, CS);
 
-    float morphRate = vInstanceState.x;
+    vec4 state = vInstanceState;
+    float morphRate = state.x;
+    float instanceScale = state.z;
 
-    vec2 butterflyR = opBu(p, vInstanceId);
+    vec2 butterflyR = opBu(p / instanceScale, vInstanceId);
 
     // float d = opTb(morphRate, ds, butterflyR.x, ds);
     float d = mix(ds, butterflyR.x, morphRate);

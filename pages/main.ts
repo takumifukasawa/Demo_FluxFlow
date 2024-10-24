@@ -582,7 +582,8 @@ const load = async () => {
         });
         elem.morphFollowersActorController.initialize(
             i,
-            i * 1000,
+            i * 2048,
+            orbitActor,
             attractorTargetBoxMeshes,
             attractorTargetSphereActors
         );

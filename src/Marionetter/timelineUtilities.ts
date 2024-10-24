@@ -1,6 +1,12 @@
+import {saturate} from "@/PaleGL/utilities/mathUtilities.ts";
+
 export const isTimeInClip = (time: number, startTime: number, endTime: number) => {
     return startTime <= time && time < endTime;
 };
+
+export const clipRate = (time: number, startTime: number, endTime: number) => {
+    return saturate((time - startTime) / (endTime - startTime));
+}
 
 export const buildTimelinePropertyX = (key: string) => {
     return `${key}.x`;

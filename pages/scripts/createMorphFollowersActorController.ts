@@ -18,7 +18,7 @@ import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
-import {generateRandomValue, lerp, randomOnUnitPlane, randomOnUnitSphere} from '@/PaleGL/utilities/mathUtilities.ts';
+import { generateRandomValue, lerp, randomOnUnitPlane, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
 import {
     createObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterialArgs,
@@ -26,10 +26,12 @@ import {
 import { Material } from '@/PaleGL/materials/Material.ts';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import { OrbitMoverBinder } from './orbitMoverBinder.ts';
+import {clipRate, isTimeInClip} from '@/Marionetter/timelineUtilities.ts';
+import {easeInOutQuad, easeOutQuad} from "@/PaleGL/utilities/easingUtilities.ts";
 
 const updateBufferSubDataEnabled = false;
 
-const MAX_INSTANCE_NUM = 1024;
+const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 0;
 
 const ATTRIBUTE_VELOCITY_ELEMENTS_NUM = 4;
@@ -84,7 +86,7 @@ const shaderContentPairs: {
             {
                 name: UNIFORM_ROT_MODE_NAME,
                 type: UniformTypes.Float,
-                value: rotRateForVelocityValue 
+                value: rotRateForVelocityValue,
             },
         ],
     },
@@ -97,7 +99,7 @@ const shaderContentPairs: {
             {
                 name: UNIFORM_ROT_MODE_NAME,
                 type: UniformTypes.Float,
-                value: rotRateForVelocityValue
+                value: rotRateForVelocityValue,
             },
         ],
     },
@@ -160,6 +162,7 @@ export type MorphFollowersActorController = {
     initialize: (
         followerIndex: number,
         followerSeed: number,
+        orbitFollowTargetActor: Actor,
         attractorTargetBoxMeshes: Mesh[],
         attractorTargetSphereActors: Actor[]
     ) => void;
@@ -312,8 +315,8 @@ export const createMorphFollowersActor = ({
     name,
     gpu,
     renderer, // instanceNum,
-    // attractorActor,
-}: {
+} // attractorActor,
+: {
     name: string;
     gpu: GPU;
     renderer: Renderer;
@@ -324,17 +327,20 @@ export const createMorphFollowersActor = ({
     let _followerSeed: number;
     let _currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
     let _isControlled = false;
+    let _orbitFollowTargetActor: Actor;
     let _attractorTargetBoxMeshes: Mesh[] = [];
     let _attractorTargetSphereActors: Actor[] = [];
 
     const initialize = (
         followerIndex: number,
         followerSeed: number,
+        orbitFollowTargetActor: Actor,
         attractorTargetBoxMeshes: Mesh[],
         attractorTargetSphereActors: Actor[]
     ) => {
         _followerIndex = followerIndex;
         _followerSeed = followerSeed;
+        _orbitFollowTargetActor = orbitFollowTargetActor;
         _attractorTargetBoxMeshes = attractorTargetBoxMeshes;
         _attractorTargetSphereActors = attractorTargetSphereActors;
     };
@@ -357,7 +363,7 @@ export const createMorphFollowersActor = ({
     };
 
     const materials: Material[] = [];
-    
+
     shaderContentPairs.forEach((shaderContent) => {
         const material = createObjectSpaceRaymarchMaterial({
             fragmentShaderContent: shaderContent.fragment,
@@ -378,7 +384,7 @@ export const createMorphFollowersActor = ({
                         value: 1, // [0: instance emissive color, 1: uniform emissive color]
                     },
                 ],
-                uniformBlockNames: [UniformBlockNames.Timeline]
+                uniformBlockNames: [UniformBlockNames.Timeline],
             },
         });
         materials.push(material);
@@ -406,7 +412,7 @@ export const createMorphFollowersActor = ({
         color: number[][];
         emissiveColor: number[][];
         lookDirection: number[][];
-        instanceStates: number[][]; // [morphRate, delayRate, 0, 0]
+        instanceStates: number[][]; // [morphRate, delayRate, instance scale, 0]
         transformFeedbackStates: number[][]; // [seed, attractType, morphRate, attractPower]
     } = {
         position: [],
@@ -426,9 +432,9 @@ export const createMorphFollowersActor = ({
 
         // scale
         // tmp
-        // const baseScale = 2;
-        // const randomScaleRange = 0.25;
-        // const s = Math.random() * randomScaleRange + baseScale;
+        // const baseScale = 1;
+        // const randomScaleRange = 0;
+        // const s = generateRandomValue(10, i) * randomScaleRange + baseScale;
         const s = 1;
         tmpInstanceInfo.scale.push([s, s, s]);
 
@@ -442,7 +448,7 @@ export const createMorphFollowersActor = ({
         const c = Color.fromRGB(
             lerp(20, 200, generateRandomValue(0, i)),
             lerp(20, 40, generateRandomValue(1, i)),
-            lerp(20, 200, generateRandomValue(2, i)),
+            lerp(20, 200, generateRandomValue(2, i))
         );
         tmpInstanceInfo.color.push([...c.elements]);
 
@@ -450,7 +456,7 @@ export const createMorphFollowersActor = ({
         const ec = Color.fromRGB(
             lerp(20, 200, generateRandomValue(0, i)) * 4,
             lerp(20, 40, generateRandomValue(1, i)),
-            lerp(20, 200, generateRandomValue(2, i)) * 4,
+            lerp(20, 200, generateRandomValue(2, i)) * 4
         );
         tmpInstanceInfo.emissiveColor.push([...ec.elements]);
 
@@ -460,8 +466,9 @@ export const createMorphFollowersActor = ({
         // states
         // delayは最初は何から持たせておく
         // const delayRate = (i / MAX_INSTANCE_NUM) * .25;
-        const delayRate = generateRandomValue(i, i) * 0.25;
-        tmpInstanceInfo.instanceStates.push([1, delayRate, 0, 0]);
+        const delayRate = generateRandomValue(2, i) * 0.25;
+        const instanceScale = generateRandomValue(3, i) * 0.6 + 0.4;
+        tmpInstanceInfo.instanceStates.push([1, delayRate, instanceScale, 0]);
 
         // transform feedback states
         tmpInstanceInfo.transformFeedbackStates.push([i, 0, 0, 0]);
@@ -665,13 +672,16 @@ export const createMorphFollowersActor = ({
         }
     };
 
-    const setInstanceState = (index: number, { morphRate, delayRate }: { morphRate?: number; delayRate?: number }) => {
+    const setInstanceState = (index: number, { morphRate, delayRate, scale }: { morphRate?: number; delayRate?: number; scale?: number }) => {
         // js側のデータとbufferのデータを更新
         if (morphRate !== undefined) {
             instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 0] = morphRate;
         }
         if (delayRate !== undefined) {
             instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 1] = delayRate;
+        }
+        if (scale !== undefined) {
+            instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 2] = scale;
         }
         if (updateBufferSubDataEnabled) {
             mesh.geometry.vertexArrayObject.updateBufferSubData(
@@ -680,7 +690,7 @@ export const createMorphFollowersActor = ({
                 new Float32Array([
                     instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 0],
                     instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 1],
-                    0,
+                    instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 2],
                     0,
                 ])
             );
@@ -841,7 +851,7 @@ export const createMorphFollowersActor = ({
                         const wp = attractorTargetBox.transform.localPointToWorld(lp);
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
                             p: wp,
-                            attractAmplitude: 0.1
+                            attractAmplitude: 0.1,
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
@@ -1068,19 +1078,42 @@ export const createMorphFollowersActor = ({
             //}
             return;
         }
-        
+
         // attract power
         if (key === 'ap') {
             // setInstanceAttractPower(value, value);
             return;
         }
-        
+
         // morph rate
         if (key === 'mr') {
             setInstanceState(value, { morphRate: value });
             return;
         }
+
+        // instance count
+        if (key === 'ic') {
+            setInstanceNum(value);
+            return;
+        }
     };
+
+    mesh.onPostProcessTimeline = (time: number) => {
+        if (isTimeInClip(time, 64, 72)) {
+            const rr = clipRate(time, 64, 72);
+            for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
+                if (i >= 96) {
+                    setInstanceAttractPower(i, easeInOutQuad(rr));
+                    setInstanceAttractorTarget(i, _orbitFollowTargetActor);
+                    setInstanceState(i, { morphRate: easeOutQuad(rr) });
+                }
+            }
+        }
+    };
+   
+    // mesh.onLastUpdate = () => {
+    //     mesh.geometry.instanceCount = MAX_INSTANCE_NUM;
+    // }
 
     return {
         getActor: () => mesh,

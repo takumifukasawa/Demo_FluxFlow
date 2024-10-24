@@ -127,7 +127,7 @@ void main() {
         vec3 v = diffP
             * uTimelineDeltaTime
             * max(max(attractPower - attractDelayValue, 0.), attractMinPower) * baseAttractPower;
-        velocity = diffDir * max(length(v), .005); // fallback. ちょっとだけ動かすと回転バグらない
+        velocity = diffDir * max(length(v), .001); // fallback. ちょっとだけ動かすと回転バグらない
 
         // attract: 簡易版_等速
         // velocity = diffDir * uDeltaTime;

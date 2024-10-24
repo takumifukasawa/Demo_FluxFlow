@@ -104,21 +104,21 @@ type TimeStampedOccurrenceSequence = [number, number, FollowerIndex, number];
 const occurrenceSequenceBaseData: [number, number, FollowerIndex][] = [
     // [0, 16, FollowerIndex.None], // なにもしない時間
     [16, 20, FollowerIndex.A],
-    [20, 24, FollowerIndex.B],
-    [24, 28, FollowerIndex.C],
-    [28, 32, FollowerIndex.A],
-    [32, 36, FollowerIndex.B],
+    [20, 24, FollowerIndex.A],
+    [24, 28, FollowerIndex.B],
+    [28, 32, FollowerIndex.B],
+    [32, 36, FollowerIndex.C],
     [36, 40, FollowerIndex.C],
     [40, 44, FollowerIndex.A],
-    [44, 48, FollowerIndex.B],
-    [48, 50, FollowerIndex.C],
-    [50, 52, FollowerIndex.A],
-    [52, 54, FollowerIndex.B],
-    [54, 56, FollowerIndex.C],
-    [56, 58, FollowerIndex.A],
-    [58, 60, FollowerIndex.B],
-    [60, 62, FollowerIndex.C],
-    [62, 64, FollowerIndex.A], // 64までは操作させたいので、何かしら置いておく
+    [44, 48, FollowerIndex.A],
+    [48, 50, FollowerIndex.B],
+    [50, 52, FollowerIndex.C],
+    [52, 54, FollowerIndex.A],
+    [54, 56, FollowerIndex.B],
+    [56, 58, FollowerIndex.C],
+    [58, 60, FollowerIndex.A],
+    [60, 62, FollowerIndex.B],
+    [62, 64, FollowerIndex.C], // 64までは操作させたいので、何かしら置いておく
     // 64secまでは色々出したい
 ];
 
@@ -139,6 +139,8 @@ occurrenceSequenceBaseData.forEach((d) => {
     const result: TimeStampedOccurrenceSequence = [s, e, fi, instanceAccCount[fi]];
     occurrenceSequenceTimestamps.push(result);
 });
+
+console.log("hogehoge", occurrenceSequenceTimestamps)
 
 // // 16回やりたいが・・・
 // // TODO: targetとなるfollowerを指定できるようにする
@@ -455,7 +457,12 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     morphFollowersActorController.setInstanceState(i, { morphRate });
                 }
             } else {
-                morphFollowersActorController.setInstancePosition(i, Vector3.zero);
+                // morphFollowersActorController.setInstancePosition(i, Vector3.zero);
+                morphFollowersActorController.setInstancePosition(i, new Vector3(
+                    Math.cos(i) * 50,
+                    Math.sin(i) * 40,
+                    0
+                ));
                 morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                 morphFollowersActorController.setInstanceState(i, { morphRate: rate });
             }

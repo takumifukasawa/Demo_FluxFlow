@@ -86,6 +86,13 @@ float dfTo(vec3 p, vec2 t)
     return length(q)-t.y;
 }
 
+float dfOc( vec3 p, float s)
+{
+    p = abs(p);
+    return (p.x+p.y+p.z-s)*0.577;
+}
+
+
 // ra: 太さ
 // rb: R
 // h: 高さ
@@ -348,13 +355,50 @@ vec2 dfMm(vec3 p, float d, float s) {
     return vec2(max(d, c), s);
 }
 
-float dfMe(vec3 p) {
+float dfMe(vec3 p, float s) {
+    p /= s;
     p /= .5;
     float d = dfBo(p, vec3(1.));
-    float s = 1.;
-    vec2 rd = vec2(d, s);
+    float is = 1.;
+    vec2 rd = vec2(d, is);
     rd = dfMm(p, rd.x, rd.y);
     rd = dfMm(p, rd.x, rd.y);
     rd = dfMm(p, rd.x, rd.y);
-    return rd.x;
+    return rd.x * s;
+}
+
+vec3 opPrf(vec3 p, float i, float id) {
+    p = abs(p) - 1.18;
+    p = abs(p) - 1.2;
+    p.xz *= rot(i + .1 + uTimelineTime * .8 + id);
+    p.xy *= rot(i + .8 + sin(uTimelineTime) * .4 + id);
+    return p;
+}
+
+float dfPr(vec3 p, float id, float s) {
+    // p /= s;
+    // p.xy *= rot(.9);
+    // p.yz *= rot(.1);
+    // p = opPrf(p, 0., id);
+    // p = opPrf(p, 1., id);
+    // // p = opPrf(p, 2., id);
+    // // p = opPrf(p, 3., id);
+    // return dfBo(p, vec3(.48)) * s;
+   
+    p /= s;
+    
+    vec3 tp1 = p;
+    tp1.xy *= rot(uTimelineTime * .8 + id);
+    float t1 = dfTo(tp1, vec2(.8, .05));
+
+    vec3 tp2 = p;
+    // tp2.xy *= rot(iTime * 1.2);
+    tp2.yz *= rot(uTimelineTime * 1.2 + id);
+    float t2 = dfTo(tp2, vec2(.8, .05));
+
+    float od = dfOc(p, .6);
+
+    float d = opSm(opSm(t1, t2, .5), od, .5);
+
+    return d * s;
 }
