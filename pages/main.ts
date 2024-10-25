@@ -19,7 +19,7 @@ import { Vector4 } from '@/PaleGL/math/Vector4';
 import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass';
 
 // others
-import { RenderTargetTypes, TextureDepthPrecisionType, TextureFilterTypes } from '@/PaleGL/constants';
+import { RenderTargetTypes, TextureDepthPrecisionType } from '@/PaleGL/constants';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -33,32 +33,26 @@ import { wait } from '@/utilities/wait.ts';
 import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import { Marionetter, MarionetterScene, MarionetterSceneStructure } from '@/Marionetter/types';
-import { buildMarionetterScene, buildMarionetterTimelineFromScene } from '@/Marionetter/buildMarionetterScene.ts';
-import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
-import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
-import { Texture } from '@/PaleGL/core/Texture.ts';
-import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
+import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 
-// for default img
-// noto sans
-import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
-// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
-import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
-// fira sans
-// import fontAtlasImgUrl from '../assets/fonts/FiraSansExtraCondensed-Bold-atlas-128_compresed.png?url';
-// import fontAtlasJson from '../assets/fonts/FiraSansExtraCondensed-Bold-atlas-128.json';
-// import fontAtlasImgUrl from '../assets/fonts/FiraSansExtraCondensed-Bold-atlas-64.png?url';
-// import fontAtlasJson from '../assets/fonts/FiraSansExtraCondensed-Bold-atlas-64.json';
-/*
-// for gpu texture
-import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.dds?url';
-import fontAtlasJson from '../assets/fonts/NotoSans-Bold/NotoSans-Bold-atlas-128_f-16_r-5.json';
-*/
-// import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
+// NEEDS_REMOVE_FROM_BUILDS
+// import { buildMarionetterTimelineFromScene } from '@/Marionetter/buildMarionetterScene.ts';
+
+import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
+
+// NEEDS_REMOVE_FROM_BUILDS
+// import { TextureFilterTypes } from '@/PaleGL/constants';
+// import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
+// import { Texture } from '@/PaleGL/core/Texture.ts';
+// import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
+// // for default img
+// // noto sans
+// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
+// // import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
+// import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
+
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
-// import { createMetaMorphActor } from './scripts/createMetaMorphActor.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
-import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import {
     createMorphFollowersActor,
@@ -96,7 +90,8 @@ import { createDofFocusTargetController } from './scripts/dofFocusTargetControll
 import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineHandShakeController.ts';
 import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
-import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
+// import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
+// import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 
 const stylesText = `
 :root {
@@ -350,28 +345,29 @@ const buildScene = (sceneJson: MarionetterScene) => {
     console.log('scene', actors);
 };
 
-// TODO: この処理はビルド時には捨てたい
-const initHotReloadAndParseScene = () => {
-    const hotReloadScene = () => {
-        console.log('hot reload scene...');
-        void fetch('./assets/data/scene-hot-reload.json').then(async (res) => {
-            const sceneJson = (await res.json()) as unknown as MarionetterScene;
-            console.log('hot reload: scene', sceneJson);
-            if (marionetterSceneStructure) {
-                console.log('hot reload: marionetterSceneStructure', marionetterSceneStructure);
-                marionetterSceneStructure.marionetterTimeline = buildMarionetterTimelineFromScene(
-                    sceneJson,
-                    marionetterSceneStructure.actors
-                );
-                marionetterSceneStructure.marionetterTimeline?.bindActors(captureScene.children);
-            }
-        });
-    };
-    marionetter.setHotReloadCallback(() => {
-        hotReloadScene();
-    });
-    // hotReloadScene();
-};
+// NOTE: NEEDS_REMOVE_FROM_BUILDS
+// // TODO: この処理はビルド時には捨てたい
+// const initHotReloadAndParseScene = () => {
+//     const hotReloadScene = () => {
+//         console.log('hot reload scene...');
+//         void fetch('./assets/data/scene-hot-reload.json').then(async (res) => {
+//             const sceneJson = (await res.json()) as unknown as MarionetterScene;
+//             console.log('hot reload: scene', sceneJson);
+//             if (marionetterSceneStructure) {
+//                 console.log('hot reload: marionetterSceneStructure', marionetterSceneStructure);
+//                 marionetterSceneStructure.marionetterTimeline = buildMarionetterTimelineFromScene(
+//                     sceneJson,
+//                     marionetterSceneStructure.actors
+//                 );
+//                 marionetterSceneStructure.marionetterTimeline?.bindActors(captureScene.children);
+//             }
+//         });
+//     };
+//     marionetter.setHotReloadCallback(() => {
+//         hotReloadScene();
+//     });
+//     // hotReloadScene();
+// };
 
 const startupWrapperElement = document.createElement('div');
 startupWrapperElement.id = 'w';
@@ -417,9 +413,8 @@ const hideStartupWrapper = () => {
 const morphFollowersActorControllerBinders: MorphFollowerActorControllerBinder[] = [];
 const attractorTargetBoxMeshes: Mesh[] = [];
 const attractorTargetSphereActors: Actor[] = [];
-// let metaMorphActor: ObjectSpaceRaymarchMesh;
 let originForgeActorController: OriginForgeActorController;
-let screenSpaceRaymarchMesh: ScreenSpaceRaymarchMesh;
+// let screenSpaceRaymarchMesh: ScreenSpaceRaymarchMesh;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 const load = async () => {
@@ -493,47 +488,47 @@ const load = async () => {
     // // screen space object
     // //
 
-    screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
-    screenSpaceRaymarchMesh.enabled = false;
-    captureScene.add(screenSpaceRaymarchMesh);
+    // screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
+    // screenSpaceRaymarchMesh.enabled = false;
+    // captureScene.add(screenSpaceRaymarchMesh);
 
     //
     // text mesh
     //
 
-    const fontAtlasImg = await loadImg(fontAtlasImgUrl);
-    // const fontAtlasImg = await loadImgArraybuffer(fontAtlasImgUrl);
-    const fontAtlasTexture = new Texture({
-        gpu,
-        // for default img
-        img: fontAtlasImg,
-        /*
-        // for gpu texture
-        img: null,
-        arraybuffer: fontAtlasImg,
-        dxt1: true
-        mipmap: false,
-        */
-        flipY: false,
-        minFilter: TextureFilterTypes.Linear,
-        magFilter: TextureFilterTypes.Linear,
-    });
-    const textMesh1 = new TextMesh({
-        gpu,
-        text: 'Flux Flow',
-        color: new Color(3, 1, 1, 1),
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: false,
-        align: TextAlignType.Center,
-        // characterSpacing: -0.2
-        characterSpacing: -0.16,
-    });
-    textMesh1.transform.position = new Vector3(0, 1, 0);
-    // textMesh1.transform.rotation.setRotationX(-90);
-    textMesh1.transform.scale = Vector3.fill(0.5);
-    // TODO: 使えないかもなので一旦消しておく
-    // captureScene.add(textMesh1);
+    // const fontAtlasImg = await loadImg(fontAtlasImgUrl);
+    // // const fontAtlasImg = await loadImgArraybuffer(fontAtlasImgUrl);
+    // const fontAtlasTexture = new Texture({
+    //     gpu,
+    //     // for default img
+    //     img: fontAtlasImg,
+    //     /*
+    //     // for gpu texture
+    //     img: null,
+    //     arraybuffer: fontAtlasImg,
+    //     dxt1: true
+    //     mipmap: false,
+    //     */
+    //     flipY: false,
+    //     minFilter: TextureFilterTypes.Linear,
+    //     magFilter: TextureFilterTypes.Linear,
+    // });
+    // const textMesh1 = new TextMesh({
+    //     gpu,
+    //     text: 'Flux Flow',
+    //     color: new Color(3, 1, 1, 1),
+    //     fontTexture: fontAtlasTexture,
+    //     fontAtlas: fontAtlasJson,
+    //     castShadow: false,
+    //     align: TextAlignType.Center,
+    //     // characterSpacing: -0.2
+    //     characterSpacing: -0.16,
+    // });
+    // textMesh1.transform.position = new Vector3(0, 1, 0);
+    // // textMesh1.transform.rotation.setRotationX(-90);
+    // textMesh1.transform.scale = Vector3.fill(0.5);
+    // // TODO: 使えないかもなので一旦消しておく
+    // // captureScene.add(textMesh1);
 
     //
     // build marionetter scene
@@ -555,7 +550,7 @@ const load = async () => {
             }
         });
         initMarionetter();
-        initHotReloadAndParseScene();
+        // initHotReloadAndParseScene();
     }
 
     //
