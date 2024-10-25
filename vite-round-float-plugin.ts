@@ -14,41 +14,6 @@ import * as t from '@babel/types';
 
 const PRECISION: number = 4;
 
-// type obj = { [k: string]: unknown };
-
-// // JSON内のデータを再帰的に処理してfloatを丸める関数
-// function roundFloatInJson(data: unknown, precision: number): unknown {
-//     console.log(`[roundFloatPlugin -> roundFloatInJson] type: ${typeof data}, data: ${data}`);
-//     // オブジェクトの場合
-//     if (typeof data === 'object' && data !== null) {
-//         if (Array.isArray(data)) {
-//             // 配列の場合
-//             return data.map((item) => roundFloatInJson(item, precision));
-//         } else {
-//             const dataObj = data as unknown as obj;
-//             // オブジェクトの場合
-//             const roundedObject: obj = {};
-//             for (const key in dataObj) {
-//                 if (Object.prototype.hasOwnProperty.call(dataObj, key)) {
-//                     // if (dataObj.hasOwnProperty(key)) {
-//                     // if (dataObj.hasOwnProperty(key)) {
-//                     roundedObject[key] = roundFloatInJson(dataObj[key], precision);
-//                     // }
-//                 }
-//                 return roundedObject;
-//             }
-//         }
-//
-//         // 数値がfloatの場合、指定した精度に丸める
-//         if (typeof data === 'number' && data % 1 !== 0) {
-//             return parseFloat((data as number).toFixed(precision));
-//         }
-//
-//         // その他のデータ型はそのまま返す
-//         return data;
-//     }
-// }
-
 // Babelを使ってASTを操作する関数
 function processAst(ast: t.File, precision: number) {
     // @ts-ignore

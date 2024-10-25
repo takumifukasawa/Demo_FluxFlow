@@ -393,6 +393,7 @@ export const UniformNames = {
     RotationOffset: 'uRotationOffset', // TODO: 名前変えたい
     // raymarch
     ObjectSpaceRaymarchBoundsScale: 'uBoundsScale',
+    // misc
 } as const;
 
 export type UniformName = (typeof UniformNames)[keyof typeof UniformNames];

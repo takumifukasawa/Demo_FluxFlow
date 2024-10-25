@@ -34,22 +34,18 @@ import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import { Marionetter, MarionetterScene, MarionetterSceneStructure } from '@/Marionetter/types';
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
-
-// NEEDS_REMOVE_FROM_BUILDS
-// import { buildMarionetterTimelineFromScene } from '@/Marionetter/buildMarionetterScene.ts';
-
 import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
 
 // NEEDS_REMOVE_FROM_BUILDS
-// import { TextureFilterTypes } from '@/PaleGL/constants';
-// import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
-// import { Texture } from '@/PaleGL/core/Texture.ts';
-// import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
-// // for default img
-// // noto sans
-// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
-// // import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
-// import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
+import { TextureFilterTypes } from '@/PaleGL/constants';
+import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
+import { Texture } from '@/PaleGL/core/Texture.ts';
+import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
+// for default img
+// noto sans
+import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
+// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
+import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
 
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
@@ -91,6 +87,7 @@ import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineH
 import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
 import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
+import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 const stylesText = `
 body {
@@ -307,11 +304,13 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     const cameraPostProcess = new PostProcess();
 
-    bufferVisualizerPass = new BufferVisualizerPass({
-        gpu,
-    });
-    bufferVisualizerPass.parameters.enabled = false;
-    cameraPostProcess.addPass(bufferVisualizerPass);
+    if (isDevelopment()) {
+        bufferVisualizerPass = new BufferVisualizerPass({
+            gpu,
+        });
+        bufferVisualizerPass.parameters.enabled = false;
+        cameraPostProcess.addPass(bufferVisualizerPass);
+    }
 
     cameraPostProcess.enabled = true;
     // TODO: set post process いらないかも
@@ -471,39 +470,39 @@ const load = async () => {
     // text mesh
     //
 
-    // const fontAtlasImg = await loadImg(fontAtlasImgUrl);
-    // // const fontAtlasImg = await loadImgArraybuffer(fontAtlasImgUrl);
-    // const fontAtlasTexture = new Texture({
-    //     gpu,
-    //     // for default img
-    //     img: fontAtlasImg,
-    //     /*
-    //     // for gpu texture
-    //     img: null,
-    //     arraybuffer: fontAtlasImg,
-    //     dxt1: true
-    //     mipmap: false,
-    //     */
-    //     flipY: false,
-    //     minFilter: TextureFilterTypes.Linear,
-    //     magFilter: TextureFilterTypes.Linear,
-    // });
-    // const textMesh1 = new TextMesh({
-    //     gpu,
-    //     text: 'Flux Flow',
-    //     color: new Color(3, 1, 1, 1),
-    //     fontTexture: fontAtlasTexture,
-    //     fontAtlas: fontAtlasJson,
-    //     castShadow: false,
-    //     align: TextAlignType.Center,
-    //     // characterSpacing: -0.2
-    //     characterSpacing: -0.16,
-    // });
-    // textMesh1.transform.position = new Vector3(0, 1, 0);
-    // // textMesh1.transform.rotation.setRotationX(-90);
-    // textMesh1.transform.scale = Vector3.fill(0.5);
-    // // TODO: 使えないかもなので一旦消しておく
-    // // captureScene.add(textMesh1);
+    const fontAtlasImg = await loadImg(fontAtlasImgUrl);
+    // const fontAtlasImg = await loadImgArraybuffer(fontAtlasImgUrl);
+    const fontAtlasTexture = new Texture({
+        gpu,
+        // for default img
+        img: fontAtlasImg,
+        /*
+        // for gpu texture
+        img: null,
+        arraybuffer: fontAtlasImg,
+        dxt1: true
+        mipmap: false,
+        */
+        flipY: false,
+        minFilter: TextureFilterTypes.Linear,
+        magFilter: TextureFilterTypes.Linear,
+    });
+    const textMesh1 = new TextMesh({
+        gpu,
+        text: 'Flux Flow',
+        color: new Color(3, 1, 1, 1),
+        fontTexture: fontAtlasTexture,
+        fontAtlas: fontAtlasJson,
+        castShadow: false,
+        align: TextAlignType.Center,
+        // characterSpacing: -0.2
+        characterSpacing: -0.16,
+    });
+    textMesh1.transform.position = new Vector3(0, 1, 0);
+    // textMesh1.transform.rotation.setRotationX(-90);
+    textMesh1.transform.scale = Vector3.fill(0.5);
+    // TODO: 使えないかもなので一旦消しておく
+    // captureScene.add(textMesh1);
 
     //
     // build marionetter scene
@@ -603,12 +602,6 @@ const load = async () => {
     // TODO: ある程度はtimelineからいじりたい
     //
 
-    captureSceneCamera!.far = 500;
-
-    // TODO: 反映されてないかも
-    renderer.fogPass.parameters.distanceFogStart = 10;
-    renderer.fogPass.parameters.distanceFogPower = 0.02;
-    renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
 
     //
     // events
@@ -683,6 +676,8 @@ const load = async () => {
 };
 
 const playDemo = () => {
+    captureSceneCamera!.far = 500;
+
     // let prevTime = -1;
     // let deltaTime = 0;
     // const tick = (time: number) => {
@@ -705,21 +700,29 @@ const playDemo = () => {
         requestAnimationFrame(tick);
     };
 
+    if (isDevelopment()) {
+        const debuggerGUI = initDebugger({
+            bufferVisualizerPass,
+            glslSound: glslSoundWrapper.glslSound!, // 存在しているとみなしちゃう
+            playSound: glslSoundWrapper.play,
+            stopSound: glslSoundWrapper.stop,
+            renderer,
+            wrapperElement,
+            // directionalLight: captureScene.find(DIRECT_LIGHT_ACTOR_NAME)! as DirectionalLight,
+            // directionalLight,
+        });
+        createPointLightDebugger(debuggerGUI, originForgeActorController.getPointLight(), 'point light');
+    }
+
+    // なぜか debugger の前だとうまくいかない
+    renderer.fogPass.parameters.distanceFogStart = 10;
+    renderer.fogPass.parameters.distanceFogPower = 0.02;
+    renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
+
     glslSoundWrapper.play();
 
     requestAnimationFrame(tick);
 
-    const debuggerGUI = initDebugger({
-        bufferVisualizerPass,
-        glslSound: glslSoundWrapper.glslSound!, // 存在しているとみなしちゃう
-        playSound: glslSoundWrapper.play,
-        stopSound: glslSoundWrapper.stop,
-        renderer,
-        wrapperElement,
-        // directionalLight: captureScene.find(DIRECT_LIGHT_ACTOR_NAME)! as DirectionalLight,
-        // directionalLight,
-    });
-    createPointLightDebugger(debuggerGUI, originForgeActorController.getPointLight(), 'point light');
 };
 
 const main = async () => {

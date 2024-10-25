@@ -24,7 +24,8 @@ import {
 } from '@/PaleGL/postprocess/PostProcessPassBase.ts';
 import { Vector2 } from '@/PaleGL/math/Vector2.ts';
 
-// import { Texture } from '@/PaleGL/core/Texture.ts';
+const UNIFORM_NAME_COC_TEXTURE = 'uCocTexture';
+const UNIFORM_NAME_DOF_TEXTURE = 'uDofTexture';
 
 //
 // ref:
@@ -181,12 +182,12 @@ export class DepthOfFieldPass implements IPostProcessPass {
                 //     value: this.focusRange,
                 // }
                 {
-                    name: 'uCocTexture',
+                    name: UNIFORM_NAME_COC_TEXTURE,
                     type: UniformTypes.Texture,
                     value: null,
                 },
                 {
-                    name: 'uTexelSize',
+                    name: UniformNames.TexelSize,
                     type: UniformTypes.Vector2,
                     value: Vector2.zero,
                 },
@@ -231,9 +232,6 @@ export class DepthOfFieldPass implements IPostProcessPass {
                     type: UniformTypes.Vector4Array,
                     value: [],
                 },
-                // uCocTexture: {
-                //     type: UniformTypes.Texture,
-                //     value: null,
                 // },
             ],
         });
@@ -273,12 +271,12 @@ export class DepthOfFieldPass implements IPostProcessPass {
             renderTargetType: RenderTargetTypes.R11F_G11F_B10F,
             uniforms: [
                 {
-                    name: 'uCocTexture',
+                    name: UNIFORM_NAME_COC_TEXTURE,
                     type: UniformTypes.Texture,
                     value: null,
                 },
                 {
-                    name: 'uDofTexture',
+                    name: UNIFORM_NAME_DOF_TEXTURE,
                     type: UniformTypes.Texture,
                     value: null,
                 },
@@ -378,10 +376,10 @@ export class DepthOfFieldPass implements IPostProcessPass {
         // 1: render prefilter pass
         //
 
-        this.preFilterPass.material.uniforms.setValue('uCocTexture', this.circleOfConfusionPass.renderTarget.texture);
+        this.preFilterPass.material.uniforms.setValue(UNIFORM_NAME_COC_TEXTURE, this.circleOfConfusionPass.renderTarget.texture);
 
         this.preFilterPass.material.uniforms.setValue(
-            'uTexelSize',
+            UniformNames.TexelSize,
             new Vector2(1 / this.preFilterPass.width, 1 / this.preFilterPass.height)
         );
 
@@ -447,17 +445,13 @@ export class DepthOfFieldPass implements IPostProcessPass {
         //
 
         // this.compositePass.material.uniforms.setValue('uCocTexture', this.preFilterPass.renderTarget.texture);
-        this.compositePass.material.uniforms.setValue('uCocTexture', this.circleOfConfusionPass.renderTarget.texture);
-        this.compositePass.material.uniforms.setValue('uDofTexture', this.bokehBlurPass.renderTarget.texture);
+        this.compositePass.material.uniforms.setValue(UNIFORM_NAME_COC_TEXTURE, this.circleOfConfusionPass.renderTarget.texture);
+        this.compositePass.material.uniforms.setValue(UNIFORM_NAME_DOF_TEXTURE, this.bokehBlurPass.renderTarget.texture);
 
         this.compositePass.render({
             gpu,
             camera,
             renderer,
-            // prevRenderTarget: this.circleOfConfusionPass.renderTarget,
-            // prevRenderTarget: this.preFilterPass.renderTarget,
-            // prevRenderTarget: this.dofBokehPass.renderTarget,
-            // prevRenderTarget: this.bokehBlurPass.renderTarget,
             prevRenderTarget,
             isLastPass,
             targetCamera,

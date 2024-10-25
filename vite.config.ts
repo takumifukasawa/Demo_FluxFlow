@@ -72,12 +72,14 @@ export default defineConfig(async (config) => {
     const isMinifyShader = env.VITE_MINIFY_SHADER === 'true';
     const isMangleProperties = env.VITE_MANGLE_PROPERTIES === 'true'; // gltf loader を使うときは必ず false
     const isDropConsole = env.VITE_DROP_CONSOLE === 'true';
+    const isCompact = env.VITE_COMPACT === 'true';
 
     console.log(`=== [env] mode: ${mode} ===`);
     console.log(`isBundle: ${isBundle}`);
     console.log(`isMinifyShader: ${isMinifyShader}`);
     console.log(`isMangleProperties: ${isMangleProperties}`);
     console.log(`isDropConsole: ${isDropConsole}`);
+    console.log(`isCompact: ${isCompact}`);
     console.log(`entryPath: ${ENTRY_PATH}`);
     console.log(`isMainEntry: ${IS_MAIN_ENTRY}`);
 
@@ -236,7 +238,7 @@ export default defineConfig(async (config) => {
                     properties: isMangleProperties,
                 },
                 compress: {
-                    drop_console: false,
+                    drop_console: isDropConsole,
                     drop_debugger: true,
                 },
             },
