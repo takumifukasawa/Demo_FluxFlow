@@ -132,7 +132,7 @@ const buildVertexAttributeLayouts = (attributeDescriptors: AttributeDescriptor[]
                         type = 'vec4';
                         break;
                     default:
-                        throw '[buildVertexAttributeLayouts] invalid attribute float';
+                        console.error('[buildVertexAttributeLayouts] invalid attribute float');
                 }
                 break;
             // TODO: signedなパターンが欲しい
@@ -151,11 +151,11 @@ const buildVertexAttributeLayouts = (attributeDescriptors: AttributeDescriptor[]
                         type = 'uvec4';
                         break;
                     default:
-                        throw '[buildVertexAttributeLayouts] invalid attribute int';
+                        console.error('[buildVertexAttributeLayouts] invalid attribute int');
                 }
                 break;
             default:
-                throw '[buildVertexAttributeLayouts] invalid attribute data type';
+                console.error('[buildVertexAttributeLayouts] invalid attribute data type');
         }
         const str = `layout(location = ${location}) in ${type} ${name};`;
         return str;

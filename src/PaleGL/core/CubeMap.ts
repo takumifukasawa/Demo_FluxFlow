@@ -82,64 +82,6 @@ export class CubeMap extends GLObject {
         gl.texImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, posZImage);
         gl.texImage2D(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE, negZImage);
 
-        // tmp
-        // Object.keys(images).forEach((key) => {
-        //     const keyIndex = key as unknown as CubeMapAxis;
-        //     let axis = null;
-        //     if (keyIndex === CubeMapAxis.PositiveX) {
-        //         axis = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
-        //     }
-        //     else if (keyIndex === CubeMapAxis.NegativeX) {
-        //         axis = gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
-        //     }
-        //     else if (keyIndex === CubeMapAxis.PositiveY) {
-        //         axis = gl.TEXTURE_CUBE_MAP_POSITIVE_Y;
-        //     }
-        //     else if (keyIndex === CubeMapAxis.NegativeY) {
-        //         axis = gl.TEXTURE_CUBE_MAP_NEGATIVE_Y;
-        //     }
-        //     else if (keyIndex === CubeMapAxis.PositiveZ) {
-        //         axis = gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
-        //     }
-        //     else if (keyIndex === CubeMapAxis.NegativeZ) {
-        //         axis = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
-        //     } else {
-        //         console.log(images, keyIndex, axis)
-        //         throw 'invalid axis';
-        //     }
-        //     // tmp
-        //     // switch (key) {
-        //     //     case CubeMapAxis.PositiveX:
-        //     //         axis = gl.TEXTURE_CUBE_MAP_POSITIVE_X;
-        //     //         break;
-        //     //     case CubeMapAxis.NegativeX:
-        //     //         axis = gl.TEXTURE_CUBE_MAP_NEGATIVE_X;
-        //     //         break;
-        //     //     case CubeMapAxis.PositiveY:
-        //     //         axis = gl.TEXTURE_CUBE_MAP_POSITIVE_Y;
-        //     //         break;
-        //     //     case CubeMapAxis.NegativeY:
-        //     //         axis = gl.TEXTURE_CUBE_MAP_NEGATIVE_Y;
-        //     //         break;
-        //     //     case CubeMapAxis.PositiveZ:
-        //     //         axis = gl.TEXTURE_CUBE_MAP_POSITIVE_Z;
-        //     //         break;
-        //     //     case CubeMapAxis.NegativeZ:
-        //     //         axis = gl.TEXTURE_CUBE_MAP_NEGATIVE_Z;
-        //     //         break;
-        //     //     default:
-        //     //         throw 'invalid axis';
-        //     // }
-        //     // if (images[key] === null) {
-        //     if (images[keyIndex] === null) {
-        //         throw `[CubeMap] invalid img: ${key}`;
-        //     }
-        //     // TODO: なんで non null assertion 必要？？
-        //     // gl.texImage2D(axis, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[key]!);
-        //     gl.texImage2D(axis, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, images[keyIndex]!);
-        // });
-
-        // gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.texParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GLTextureFilter.LINEAR_MIPMAP_LINEAR);
         gl.texParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GLTextureFilter.LINEAR);
         gl.texParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GLTextureWrap.CLAMP_TO_EDGE);

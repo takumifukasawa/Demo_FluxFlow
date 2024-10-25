@@ -83,40 +83,6 @@ export class Light extends Actor implements ILight {
         this.shadowMapProjectionMatrix = Matrix4.multiplyMatrices(
             textureMatrix,
             this.lightViewProjectionMatrix.clone()
-            // this.shadowCamera.projectionMatrix.clone(),
-            // this.shadowCamera.viewMatrix.clone()
         );
     }
-
-    // /**
-    //  *
-    //  * @param _targetMaterial
-    //  */
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // applyUniformsValues(_targetMaterial: Material) {
-    //     throw '[Light.applyUniformsValues] should implementation';
-    // }
-
-    // /**
-    //  *
-    //  * @param targetMaterial
-    //  */
-    // applyShadowUniformValues(targetMaterial: Material) {
-    //     // TODO: これはlightごとに共通化できる気がするかつ、分岐が甘い気がする（postprocessで使いたかったりする. getterが必要か？
-    //     if (
-    //         // targetMaterial.uniforms[UniformNames.ShadowMapProjectionMatrix] &&
-    //         this.shadowCamera &&
-    //         this.shadowMap
-    //     ) {
-    //         // clip coord (-1 ~ 1) to uv (0 ~ 1)
-    //         const textureMatrix = new Matrix4(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1);
-    //         this.shadowMapProjectionMatrix = Matrix4.multiplyMatrices(
-    //             textureMatrix,
-    //             this.shadowCamera.projectionMatrix.clone(),
-    //             this.shadowCamera.viewMatrix.clone()
-    //         );
-    //         targetMaterial.uniforms.setValue(UniformNames.ShadowMap, this.shadowMap.read.depthTexture);
-    //         targetMaterial.uniforms.setValue(UniformNames.ShadowMapProjectionMatrix, this.shadowMapProjectionMatrix);
-    //     }
-    // }
 }

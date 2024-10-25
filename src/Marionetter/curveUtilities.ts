@@ -76,7 +76,6 @@ export function curveUtilityEvaluateCurve(t: number, keys: MarionetterCurveKeyfr
         }
     }
 
-    // throw new Error(`invalid curve or time. t: ${t}, curve keyframe length: ${curve.keys.Length}`)
     console.error(`invalid curve or time. t: ${t}`);
     return 0;
 }

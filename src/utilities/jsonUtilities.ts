@@ -3,7 +3,7 @@ export function tryParseJsonString<T>(str: string) {
     try {
         json = JSON.parse(str) as T;
     } catch (e) {
-        throw new Error('Failed to parse JSON string');
+        console.error('Failed to parse JSON string');
     }
     return json;
 }

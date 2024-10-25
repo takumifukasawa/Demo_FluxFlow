@@ -87,7 +87,7 @@ export class Shader extends GLObject {
         const programInfo = gl.getProgramInfoLog(program);
         if (!!programInfo && programInfo.length > 0) {
             console.error('program error: ', vertexShader, fragmentShader);
-            throw programInfo;
+            console.error(programInfo);
         }
 
         this.program = program;

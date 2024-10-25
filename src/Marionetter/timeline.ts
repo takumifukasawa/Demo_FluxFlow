@@ -354,19 +354,12 @@ function createMarionetterAnimationClip(
                 case MarionetterPostProcessVignette.vignetteIntensity:
                     break;
                 default:
-                // 厳しい場合、propertyが紐づいていない場合はエラーにする
-                // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}`);
+                    // 厳しい場合、propertyが紐づいていない場合はエラーを出す
+                    // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}, value: ${value}`);
             }
 
+            // for debug
             actor.processPropertyBinder(propertyName, value);
-            // if(Object.hasOwn(actor, propertyName)) {
-            //     // オブジェクトのプロパティに無理やり追加する
-            //     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //     // @ts-ignore
-            //     actor.mapValue(propertyName, value);
-            // } else {
-            //     console.error(`[createMarionetterAnimationClip] has not property: ${propertyName}`);
-            // }
         });
 
         if (hasLocalScale) {

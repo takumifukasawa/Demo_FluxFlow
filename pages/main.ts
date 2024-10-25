@@ -319,30 +319,6 @@ const buildScene = (sceneJson: MarionetterScene) => {
     console.log('scene', actors);
 };
 
-// NOTE: NEEDS_REMOVE_FROM_BUILDS
-// TODO: この処理はビルド時には捨てたい
-// const initHotReloadAndParseScene = () => {
-//     const hotReloadScene = () => {
-//         console.log('hot reload scene...');
-//         void fetch('./assets/data/scene-hot-reload.json').then(async (res) => {
-//             const sceneJson = (await res.json()) as unknown as MarionetterScene;
-//             console.log('hot reload: scene', sceneJson);
-//             if (marionetterSceneStructure) {
-//                 console.log('hot reload: marionetterSceneStructure', marionetterSceneStructure);
-//                 marionetterSceneStructure.marionetterTimeline = buildMarionetterTimelineFromScene(
-//                     sceneJson,
-//                     marionetterSceneStructure.actors
-//                 );
-//                 marionetterSceneStructure.marionetterTimeline?.bindActors(captureScene.children);
-//             }
-//         });
-//     };
-//     marionetter.setHotReloadCallback(() => {
-//         hotReloadScene();
-//     });
-//     // hotReloadScene();
-// };
-
 const startupWrapperElement = document.createElement('div');
 startupWrapperElement.id = 'w';
 
@@ -438,17 +414,6 @@ const load = async () => {
     morphFollowersActorControllerBinders.forEach((elem) => {
         captureScene.add(elem.morphFollowersActorController.getActor());
     });
-
-    //
-    // meta morph actor object
-    //
-
-    // metaMorphActor = createMetaMorphActor({
-    //     gpu,
-    //     renderer,
-    //     // instanceNum: 12,
-    // });
-    // captureScene.add(metaMorphActor);
 
     //
     // origin forge actor object
@@ -624,6 +589,8 @@ const load = async () => {
     let timelineDeltaTime: number = 0;
 
     engine.onBeforeUpdate = () => {
+        // console.log("================")
+        // console.log(marionetterSceneStructure)
         if (glslSoundWrapper && marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
             if (glslSoundWrapper.isPlaying()) {
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
@@ -631,6 +598,8 @@ const load = async () => {
             const snapToStep = (v: number, s: number) => Math.floor(v / s) * s;
             timelineTime = snapToStep(currentTimeForTimeline, 1 / 60);
             timelineDeltaTime = timelineTime - timelinePrevTime;
+            // console.log(glslSoundWrapper.isPlaying(), glslSoundWrapper.getCurrentTime())
+            // console.log(timelineTime, currentTimeForTimeline, timelineDeltaTime, timelinePrevTime)
             timelinePrevTime = timelineTime;
             marionetterSceneStructure.marionetterTimeline.execute({
                 time: timelineTime,

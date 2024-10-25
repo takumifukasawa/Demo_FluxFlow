@@ -103,9 +103,9 @@ white-space: break-spaces;
         const passIndex = this.passes.findIndex((elem) => elem.groupLabel === groupLabel);
         const positionAttribute = geometry.getAttribute(AttributeNames.Position);
         if (!positionAttribute) {
-            throw 'invalid position attribute';
+            console.error('invalid position attribute');
         }
-        const vertexCount = positionAttribute.data.length / 3;
+        const vertexCount = positionAttribute!.data.length / 3;
         if (passIndex < 0) {
             this.addPassGroup(groupLabel, { passLabel: passLabel, vertexCount });
             return;

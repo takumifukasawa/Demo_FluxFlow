@@ -247,7 +247,7 @@ export class RenderTarget extends AbstractRenderTarget {
         if (this._texture) {
             const checkFramebufferStatus = gl.checkFramebufferStatus(GL_FRAMEBUFFER);
             if (checkFramebufferStatus !== GL_FRAMEBUFFER_COMPLETE) {
-                throw 'framebuffer not completed';
+                console.error('framebuffer not completed');
             }
             this._framebuffer.registerDrawBuffer(GLColorAttachment.COLOR_ATTACHMENT0);
         }
@@ -275,7 +275,7 @@ export class RenderTarget extends AbstractRenderTarget {
 
         // depth texture と depth render buffer は両立できないので確認のエラー
         if (this._depthTexture && this.depthRenderbuffer) {
-            throw '[RenderTarget.constructor] depth texture and depth render buffer are active.';
+            console.error('[RenderTarget.constructor] depth texture and depth render buffer are active.');
         }
 
         //

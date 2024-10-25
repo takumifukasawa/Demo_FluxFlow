@@ -1,6 +1,7 @@
 ﻿import { Vector3 } from '@/PaleGL/math/Vector3';
 import { Rotator } from '@/PaleGL/math/Rotator';
 import { Quaternion } from '@/PaleGL/math/Quaternion';
+import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 // memory layout is column order.
 // setter and getter are row order.
@@ -235,14 +236,14 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      */
     static get identity() {
         return new Matrix4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
     }
 
     /**
-     * 
+     *
      * @param v
      */
     setTranslation(v: Vector3) {
@@ -253,7 +254,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param v
      */
     static translationMatrix(v: Vector3) {
@@ -267,7 +268,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param v
      */
     static scalingMatrix(v: Vector3) {
@@ -281,7 +282,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param rad
      */
     static rotationXMatrix(rad: number) {
@@ -297,7 +298,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param rad
      */
     static rotationYMatrix(rad: number) {
@@ -313,7 +314,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param rad
      */
     static rotationZMatrix(rad: number) {
@@ -329,7 +330,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param matrices
      */
     static multiplyMatrices(...matrices: Matrix4[]) {
@@ -339,7 +340,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param m2
      */
     multiply(m2: Matrix4) {
@@ -420,7 +421,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param m
      */
     copy(m: Matrix4) {
@@ -444,7 +445,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      */
     clone() {
         const m = Matrix4.identity;
@@ -468,7 +469,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      */
     transpose() {
         const m01 = this.m01;
@@ -764,7 +765,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param eye
      * @param center
      * @param up
@@ -807,7 +808,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param q
      */
     static fromQuaternion(q: Quaternion) {
@@ -820,7 +821,7 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      * @param arr
      */
     static fromArray(arr: number[]) {
@@ -845,26 +846,30 @@ export class Matrix4 {
     }
 
     /**
-     * 
+     *
      */
     log() {
-        console.log(`--------------------
+        if (isDevelopment()) {
+            console.log(`--------------------
 ${this.m00}, ${this.m01}, ${this.m02}, ${this.m03},
 ${this.m10}, ${this.m11}, ${this.m12}, ${this.m13},
 ${this.m20}, ${this.m21}, ${this.m22}, ${this.m23},
 ${this.m30}, ${this.m31}, ${this.m32}, ${this.m33},
 --------------------`);
+        }
     }
 
     /**
-     * 
+     *
      */
     getPrettyLine() {
-        return `--------------------
+        if (isDevelopment()) {
+            return `--------------------
 ${this.m00}, ${this.m01}, ${this.m02}, ${this.m03},
 ${this.m10}, ${this.m11}, ${this.m12}, ${this.m13},
 ${this.m20}, ${this.m21}, ${this.m22}, ${this.m23},
 ${this.m30}, ${this.m31}, ${this.m32}, ${this.m33},
 --------------------`;
+        }
     }
 }

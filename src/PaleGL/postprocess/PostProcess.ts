@@ -272,7 +272,7 @@ export class PostProcess {
         lightActors,
     }: PostProcessRenderArgs) {
         // if (!sceneRenderTarget) {
-        //     throw '[PostProcess.render] scene render target is empty.';
+        //     console.error('[PostProcess.render] scene render target is empty.');
         // }
 
         this.#postProcessCamera.updateTransform();

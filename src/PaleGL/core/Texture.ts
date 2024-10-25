@@ -152,7 +152,7 @@ export class Texture extends GLObject {
 
         if (this.img === null) {
             // this.img = createWhite1x1();
-            // throw "invalid img";
+            // console.error("invalid img");
         }
 
         if (!this.img && !arraybuffer && (!width || !height)) {
@@ -518,7 +518,7 @@ export class Texture extends GLObject {
         this.height = Math.floor(height);
 
         // if (this.img === null) {
-        //     throw "[Texture.setSize] invalid img";
+        //     console.error("[Texture.setSize] invalid img");
         // }
 
         const gl = this.gpu.gl;
@@ -619,7 +619,7 @@ export class Texture extends GLObject {
         this.height = height;
 
         // if (this.img === null) {
-        //     throw "invalid img";
+        //     console.error("invalid img");
         // }
 
         const gl = this.gpu.gl;

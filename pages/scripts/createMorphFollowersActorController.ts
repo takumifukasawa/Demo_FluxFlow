@@ -1031,11 +1031,11 @@ export const createMorphFollowersActor = ({
 
         mesh.geometry.vertexArrayObject.replaceBuffer(
             AttributeNames.InstancePosition,
-            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME)
+            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME)!
         );
         mesh.geometry.vertexArrayObject.replaceBuffer(
             AttributeNames.InstanceVelocity,
-            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME)
+            transformFeedbackDoubleBuffer.read.vertexArrayObject.findBuffer(TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME)!
         );
 
         mesh.geometry.instanceCount = instancingInfo.instanceNum;

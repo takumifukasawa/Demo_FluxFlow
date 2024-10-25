@@ -29,7 +29,7 @@ export class Renderbuffer extends GLObject {
                 gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
                 break;
             default:
-                throw '[Renderbuffer.constructor] invalid render buffer type.';
+                console.error('[Renderbuffer.constructor] invalid render buffer type.');
         }
 
         // TODO: あったほうがよい？

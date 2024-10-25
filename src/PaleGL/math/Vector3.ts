@@ -1,4 +1,5 @@
 ﻿import { Matrix4 } from '@/PaleGL/math/Matrix4';
+import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 export type RawVector3 = { x: number; y: number; z: number };
 
@@ -43,13 +44,12 @@ export class Vector3 {
     constructor(x: number, y: number, z: number) {
         this.set(x, y, z);
     }
-   
+
     set(x: number, y: number, z: number) {
         this.elements = new Float32Array([x, y, z]);
         return this;
     }
-    
-   
+
     copy(v: Vector3) {
         this.x = v.x;
         this.y = v.y;
@@ -73,21 +73,21 @@ export class Vector3 {
         this.z += s;
         return this;
     }
-    
+
     addVector(v: Vector3) {
         this.x += v.x;
         this.y += v.y;
         this.z += v.z;
         return this;
     }
-    
+
     sub(s: number) {
         this.x -= s;
         this.y -= s;
         this.z -= s;
         return this;
     }
-    
+
     subVector(v: Vector3) {
         this.x -= v.x;
         this.y -= v.y;
@@ -108,7 +108,7 @@ export class Vector3 {
         this.z *= s;
         return this;
     }
-    
+
     scaleVector(v: Vector3) {
         this.x *= v.x;
         this.y *= v.y;
@@ -134,13 +134,9 @@ export class Vector3 {
         this.z = z;
         return this;
     }
-    
+
     static multiplyVectors(v1: Vector3, v2: Vector3) {
-        return new Vector3(
-            v1.x * v2.x,
-            v1.y * v2.y,
-            v1.z * v2.z
-        );
+        return new Vector3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
     }
 
     equals(v: Vector3) {
@@ -148,11 +144,11 @@ export class Vector3 {
         const flag = Math.abs(this.x - v.x) < eps && Math.abs(this.y - v.y) < eps && Math.abs(this.z - v.z) < eps;
         return flag;
     }
-    
+
     dot(v: Vector3) {
         return this.x * v.x + this.y * v.y + this.z * v.z;
     }
-    
+
     static dot(v1: Vector3, v2: Vector3) {
         return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     }
@@ -275,8 +271,10 @@ export class Vector3 {
     }
 
     log() {
-        console.log(`--------------------
+        if (isDevelopment()) {
+            console.log(`--------------------
 ${this.x}, ${this.y}, ${this.z}
 --------------------`);
+        }
     }
 }
