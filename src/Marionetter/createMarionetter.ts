@@ -16,9 +16,6 @@ export function createMarionetter({
     let currentTime: number = 0;
     let onHotReloadCallback: (() => void) | null = null;
 
-    const url = `ws://localhost:${port}`;
-    let socket: WebSocket | null = null;
-
     const getCurrentTime = () => {
         return currentTime;
     };
@@ -28,6 +25,9 @@ export function createMarionetter({
     };
 
     const connect = () => {
+        const url = `ws://localhost:${port}`;
+        let socket: WebSocket | null = null;
+
         socket = new WebSocket(url);
         socket.addEventListener('open', () => {
             console.log(`[marionetter] on open: ${url}`);

@@ -236,7 +236,7 @@ export default defineConfig(async (config) => {
                     properties: isMangleProperties,
                 },
                 compress: {
-                    drop_console: isDropConsole,
+                    drop_console: false,
                     drop_debugger: true,
                 },
             },

@@ -90,22 +90,9 @@ import { createDofFocusTargetController } from './scripts/dofFocusTargetControll
 import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineHandShakeController.ts';
 import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
-// import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
-// import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
+import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
 
 const stylesText = `
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-}
-
 body {
   overflow: hidden;
 }
@@ -188,6 +175,9 @@ document.head.appendChild(styleElement);
 let width: number, height: number;
 let bufferVisualizerPass: BufferVisualizerPass;
 let directionalLight: DirectionalLight;
+let currentTimeForTimeline = 0;
+let captureSceneCamera: PerspectiveCamera | null;
+let marionetterSceneStructure: MarionetterSceneStructure | null = null;
 
 // const wrapperElement = document.getElementById("wrapper")!;
 const wrapperElement = document.createElement('div');
@@ -207,8 +197,6 @@ if (!gl) {
 const gpu = new GPU({ gl });
 
 const glslSoundWrapper = initGLSLSound(gpu, soundVertexShader, SOUND_DURATION);
-
-let currentTimeForTimeline = 0;
 
 const marionetter: Marionetter = createMarionetter({
     showLog: false,
@@ -238,19 +226,6 @@ const renderer = new Renderer({
 const engine = new Engine({ gpu, renderer, updateFps: 60 });
 
 engine.setScene(captureScene);
-
-// const captureSceneCamera = new PerspectiveCamera(70, 1, 0.1, 50);
-// captureScene.add(captureSceneCamera);
-// // captureSceneCamera.mainCamera = true;
-// captureSceneCamera.name = "Main Camera";
-
-let captureSceneCamera: PerspectiveCamera | null;
-
-const initMarionetter = () => {
-    marionetter.connect();
-};
-
-let marionetterSceneStructure: MarionetterSceneStructure | null = null;
 
 const buildScene = (sceneJson: MarionetterScene) => {
     console.log('[buildScene] scene json', sceneJson);
@@ -346,7 +321,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
 };
 
 // NOTE: NEEDS_REMOVE_FROM_BUILDS
-// // TODO: この処理はビルド時には捨てたい
+// TODO: この処理はビルド時には捨てたい
 // const initHotReloadAndParseScene = () => {
 //     const hotReloadScene = () => {
 //         console.log('hot reload scene...');
@@ -537,20 +512,11 @@ const load = async () => {
     buildScene(sceneJsonUrl as unknown as MarionetterScene);
 
     if (import.meta.env.VITE_HOT_RELOAD === 'true') {
-        document.addEventListener('keydown', (e) => {
-            switch (e.code) {
-                case 'KeyP':
-                    console.log('===== play sound =====');
-                    glslSoundWrapper.play({ reload: true });
-                    break;
-                case 'KeyS':
-                    console.log('===== stop sound =====');
-                    glslSoundWrapper.stop();
-                    break;
-            }
-        });
-        initMarionetter();
+        marionetter.connect();
         // initHotReloadAndParseScene();
+        initHotReloadAndParseScene(marionetter, marionetterSceneStructure!, captureScene, (structure) => {
+            marionetterSceneStructure = structure;
+        });
     }
 
     //

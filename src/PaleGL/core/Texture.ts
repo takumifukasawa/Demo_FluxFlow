@@ -170,8 +170,6 @@ export class Texture extends GLObject {
         if(dxt1) {
             const extDXT1 = gl.getExtension('WEBGL_compressed_texture_s3tc');
             console.log(`[Texture.constructor] extDXT1`, extDXT1);
-            // const supportedCompressedTextureFormat = gl.getParameter(gl.COMPRESSED_TEXTURE_FORMATS);
-            // const supportsDXT1 = supportedCompressedTextureFormat.includes(extDXT1);
 
             // ref: https://mklearning.blogspot.com/2014/10/webgldds.html 
             
