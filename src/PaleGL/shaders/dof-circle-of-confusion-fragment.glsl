@@ -42,4 +42,7 @@ void main() {
     // }
     
     outColor = vec4(vec3(coc), 1.);
+    
+    // for debug
+    // outColor = sceneColor;
 }           

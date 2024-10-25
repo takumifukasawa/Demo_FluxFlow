@@ -93,6 +93,7 @@ export class FogPass extends PostProcessPassBase {
             type: PostProcessPassType.Fog,
             fragmentShader,
             renderTargetType: RenderTargetTypes.R11F_G11F_B10F,
+            // renderTargetType: RenderTargetTypes.RGBA16F,
             uniforms: [
                 {
                     name: UNIFORM_FOG_COLOR,

@@ -75,7 +75,8 @@ import {
     ATTRACTOR_TARGET_BOX_B_MESH,
     ATTRACTOR_TARGET_SPHERE_ACTOR_A_NAME,
     ATTRACTOR_TARGET_SPHERE_ACTOR_B_NAME,
-    DEPTH_OF_FIELD_TARGET_ACTOR_NAME, DIRECT_LIGHT_ACTOR_NAME,
+    DEPTH_OF_FIELD_TARGET_ACTOR_NAME,
+    DIRECT_LIGHT_ACTOR_NAME,
     // DIRECT_LIGHT_ACTOR_NAME,
     FLOOR_ACTOR_NAME,
     FOLLOWERS_ACTOR_NAME_A,
@@ -84,7 +85,8 @@ import {
     MAIN_CAMERA_ACTOR_NAME,
     ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_1,
     ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_2,
-    ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_3, ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_4,
+    ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_3,
+    ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_4,
     SPOT_LIGHT_ACTOR_NAME_A,
     SPOT_LIGHT_ACTOR_NAME_B,
 } from './scripts/demoConstants.ts';
@@ -94,7 +96,7 @@ import { createDofFocusTargetController } from './scripts/dofFocusTargetControll
 import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineHandShakeController.ts';
 import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
-import {ScreenSpaceRaymarchMesh} from "@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts";
+import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
 
 const stylesText = `
 :root {
@@ -313,7 +315,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
         directionalLight.shadowCamera.visibleFrustum = true;
         directionalLight.castShadow = true;
         directionalLight.shadowCamera.near = 1;
-        directionalLight.shadowCamera.far = 40; 
+        directionalLight.shadowCamera.far = 40;
         const size = 10;
         (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -size, size, -size, size);
         directionalLight.shadowMap = new RenderTarget({
@@ -327,7 +329,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
         // directionalLight.subscribeOnStart(({ actor }) => {
         //     actor.transform.lookAt(new Vector3(0, 0, 0));
         // });
-        
+
         // directionalLight.onUpdate = () => {
         //     directionalLight.transform.position.log()
         // }
@@ -344,7 +346,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
     cameraPostProcess.enabled = true;
     // TODO: set post process いらないかも
     captureSceneCamera.setPostProcess(cameraPostProcess);
-    
+
     console.log('scene', actors);
 };
 
@@ -595,8 +597,8 @@ const load = async () => {
             ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_1,
             ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_2,
             ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_3,
-            ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_4
-        ].map(name => captureScene.find(name) as Actor)
+            ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_4,
+        ].map((name) => captureScene.find(name) as Actor)
     );
 
     //
@@ -633,6 +635,7 @@ const load = async () => {
         captureScene.find(FLOOR_ACTOR_NAME)! as Mesh,
         engine.sharedTextures[SharedTexturesTypes.SIMPLEX_NOISE].texture
     );
+    // (captureScene.find("BG")! as Mesh).material = new GBufferMaterial();
 
     //
     // override pp

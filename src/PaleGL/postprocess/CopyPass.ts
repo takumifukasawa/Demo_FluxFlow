@@ -14,7 +14,7 @@ export function generateCopyPassParameters(params: CopyPassParametersArgs = {}):
 }
 
 export class CopyPass extends PostProcessPassBase {
-    constructor(args: { gpu: GPU; parameters: CopyPassParametersArgs }) {
+    constructor(args: { gpu: GPU; parameters?: CopyPassParametersArgs }) {
         const { gpu } = args;
         const fragmentShader = copyPassFragmentShader;
         const parameters = generateCopyPassParameters(args.parameters);

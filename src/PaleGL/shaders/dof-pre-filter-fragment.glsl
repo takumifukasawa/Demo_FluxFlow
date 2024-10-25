@@ -28,6 +28,8 @@ float maxV3(vec3 c) {
 void main() {
     vec4 sceneColor = texture(uSrcTexture, vUv);
     vec4 cocColor = texture(uCocTexture, vUv);
+    // outColor = vec4(sceneColor.xyz, 1.);
+    // return;
  
     vec4 kernel = uTexelSize.xyxy * vec2(-.5, .5).xxyy;
    

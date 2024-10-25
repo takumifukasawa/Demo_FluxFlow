@@ -122,6 +122,11 @@ export class BufferVisualizerPass implements IPostProcessPass {
                 this.toggleR = !this.toggleR;
             }
         });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'f') {
+                this.parameters.fullViewTextureEnabled = !this.parameters.fullViewTextureEnabled;
+            }
+        });
 
         this.parameters = generateBufferVisualizerPassParameters(parameters);
 

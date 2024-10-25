@@ -147,7 +147,7 @@ export class DepthOfFieldPass implements IPostProcessPass {
                 // UniformBlockNames.Transformations,
                 UniformBlockNames.Camera,
             ],
-            // TODO: r11f_g11f_b10fだとunsignedなのでr16fにする
+            // NOTE: r11f_g11f_b10fだとunsignedなのでr16fにする
             // renderTargetType: RenderTargetTypes.R11F_G11F_B10F,
             // renderTargetType: RenderTargetTypes.RGBA16F
             renderTargetType: RenderTargetTypes.R16F,
@@ -303,21 +303,20 @@ export class DepthOfFieldPass implements IPostProcessPass {
      * @param height
      */
     setSize(width: number, height: number) {
-        this.width = width;
-        this.height = height;
+        const w = Math.floor(width);
+        const h = Math.floor(height);
 
-        // tmp
-        // this.circleOfConfusionPass.setSize(width, height);
-        // kthis.preFilterPass.setSize(width / 2, height / 2);
-        // kthis.dofBokehPass.setSize(width / 2, height / 2);
-        // kthis.bokehBlurPass.setSize(width / 2, height / 2);
+        this.width = w;
+        this.height = h;
         
         const downResolution = 2.;
-        
-        this.circleOfConfusionPass.setSize(width / downResolution, height / downResolution);
-        this.preFilterPass.setSize(width / downResolution, height / downResolution);
-        this.dofBokehPass.setSize(width / downResolution, height / downResolution);
-        this.bokehBlurPass.setSize(width / downResolution, height / downResolution);
+        const rw = Math.floor(w / downResolution);
+        const rh = Math.floor(h / downResolution);
+
+        this.circleOfConfusionPass.setSize(rw, rh);
+        this.preFilterPass.setSize(rw, rh);
+        this.dofBokehPass.setSize(rw, rh);
+        this.bokehBlurPass.setSize(rw, rh);
 
         this.compositePass.setSize(width, height);
     }
@@ -383,7 +382,7 @@ export class DepthOfFieldPass implements IPostProcessPass {
 
         this.preFilterPass.material.uniforms.setValue(
             'uTexelSize',
-            new Vector2(1 / this.circleOfConfusionPass.width, 1 / this.circleOfConfusionPass.height)
+            new Vector2(1 / this.preFilterPass.width, 1 / this.preFilterPass.height)
         );
 
         this.preFilterPass.render({

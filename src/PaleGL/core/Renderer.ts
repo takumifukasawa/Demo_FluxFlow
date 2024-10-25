@@ -198,13 +198,11 @@ export class Renderer {
         this._fogPass = new FogPass({ gpu });
 
         this._depthOfFieldPass = new DepthOfFieldPass({ gpu });
-        // this._depthOfFieldPass.enabled = false;
         this._scenePostProcess.addPass(this._depthOfFieldPass);
 
         this._bloomPass = new BloomPass({
             gpu,
         });
-        // this._bloomPass.enabled = false;
         this._scenePostProcess.addPass(this._bloomPass);
 
         this._streakPass = new StreakPass({ gpu });
@@ -224,7 +222,7 @@ export class Renderer {
 
         this._fxaaPass = new FXAAPass({ gpu });
         this._scenePostProcess.addPass(this._fxaaPass);
-
+        
         //
         // initialize global uniform buffer objects
         //
@@ -686,35 +684,37 @@ export class Renderer {
      * @param realHeight
      */
     setSize(realWidth: number, realHeight: number) {
-        this.realWidth = realWidth;
-        this.realHeight = realHeight;
-        this.canvas.width = this.realWidth;
-        this.canvas.height = this.realHeight;
+        const w = Math.floor(realWidth);
+        const h = Math.floor(realHeight);
+        this.realWidth = w;
+        this.realHeight = h;
+        this.canvas.width = w;
+        this.canvas.height = h;
 
-        this.gpu.setSize(0, 0, this.realWidth, this.realHeight);
+        this.gpu.setSize(0, 0, w, h);
 
         // render targets
-        this._depthPrePassRenderTarget.setSize(realWidth, realHeight);
-        this._gBufferRenderTargets.setSize(realWidth, realHeight);
-        this._afterDeferredShadingRenderTarget.setSize(realWidth, realHeight);
-        this._copyDepthSourceRenderTarget.setSize(realWidth, realHeight);
-        this._copyDepthDestRenderTarget.setSize(realWidth, realHeight);
+        this._depthPrePassRenderTarget.setSize(w, h);
+        this._gBufferRenderTargets.setSize(w, h);
+        this._afterDeferredShadingRenderTarget.setSize(w, h);
+        this._copyDepthSourceRenderTarget.setSize(w, h);
+        this._copyDepthDestRenderTarget.setSize(w, h);
         // passes
-        this._screenSpaceShadowPass.setSize(realWidth, realHeight);
-        this._ambientOcclusionPass.setSize(realWidth, realHeight);
-        this._deferredShadingPass.setSize(realWidth, realHeight);
-        this._ssrPass.setSize(realWidth, realHeight);
-        this._lightShaftPass.setSize(realWidth, realHeight);
-        this._volumetricLightPass.setSize(realWidth, realHeight);
-        this._fogPass.setSize(realWidth, realHeight);
-        this._depthOfFieldPass.setSize(realWidth, realHeight);
-        this._bloomPass.setSize(realWidth, realHeight);
-        this._streakPass.setSize(realWidth, realHeight);
-        this._toneMappingPass.setSize(realWidth, realHeight);
-        this._chromaticAberrationPass.setSize(realWidth, realHeight);
-        this._glitchPass.setSize(realWidth, realHeight);
-        this._vignettePass.setSize(realWidth, realHeight);
-        this._fxaaPass.setSize(realWidth, realHeight);
+        this._screenSpaceShadowPass.setSize(w, h);
+        this._ambientOcclusionPass.setSize(w, h);
+        this._deferredShadingPass.setSize(w, h);
+        this._ssrPass.setSize(w, h);
+        this._lightShaftPass.setSize(w, h);
+        this._volumetricLightPass.setSize(w, h);
+        this._fogPass.setSize(w, h);
+        this._depthOfFieldPass.setSize(w, h);
+        this._bloomPass.setSize(w, h);
+        this._streakPass.setSize(w, h);
+        this._toneMappingPass.setSize(w, h);
+        this._chromaticAberrationPass.setSize(w, h);
+        this._glitchPass.setSize(w, h);
+        this._vignettePass.setSize(w, h);
+        this._fxaaPass.setSize(w, h);
     }
 
     renderTarget: CameraRenderTargetType | null = null;
@@ -1135,20 +1135,11 @@ export class Renderer {
         } else {
             // TODO: spot light ないときの対応。黒く塗りたい
         }
-
         // return;
 
         // ------------------------------------------------------------------------------
         // height fog pass
         // ------------------------------------------------------------------------------
-
-        // PostProcess.updatePassMaterial({
-        //     pass: this._fogPass,
-        //     renderer: this,
-        //     targetCamera: this._scenePostProcess.postProcessCamera,
-        //     time,
-        //     lightActors,
-        // });
 
         this._fogPass.setLightShaftMap(this._lightShaftPass.renderTarget);
         this._fogPass.setVolumetricLightMap(this._volumetricLightPass.renderTarget);
@@ -1165,9 +1156,8 @@ export class Renderer {
             time, // TODO: engineから渡したい
             // lightActors,
         });
-
         // return;
-
+        
         // ------------------------------------------------------------------------------
         // transparent pass
         // ------------------------------------------------------------------------------
@@ -1176,7 +1166,7 @@ export class Renderer {
         this._afterDeferredShadingRenderTarget.setTexture(this._fogPass.renderTarget.read.texture!);
 
         // pattern1: g-buffer depth
-        // this._afterDeferredShadingRenderTarget.setDepthTexture(this._gBufferRenderTargets.depthTexture);
+        // this._afterDeferredShadingRenderTarget.setDepthTexture(this._gBufferRenderTargets.depthTexture!);
         // pattern2: depth prepass
         this._afterDeferredShadingRenderTarget.setDepthTexture(this._depthPrePassRenderTarget.depthTexture!);
 
@@ -1191,8 +1181,9 @@ export class Renderer {
         });
 
         this.setRenderTarget(this._afterDeferredShadingRenderTarget.write);
-
+        
         this.transparentPass(sortedTransparentRenderMeshInfos, camera, lightActors);
+
 
         // ------------------------------------------------------------------------------
         // full screen pass
@@ -1344,7 +1335,7 @@ export class Renderer {
     private _glitchPass: GlitchPass;
     private _vignettePass: VignettePass;
     private _fxaaPass: FXAAPass;
-
+    
     /**
      *
      * @param actor

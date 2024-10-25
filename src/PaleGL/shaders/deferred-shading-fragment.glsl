@@ -340,8 +340,8 @@ void main() {
         uDirectionalLight.shadowMapProjectionMatrix,
         uDirectionalLightShadowMap,
         uShadowBias,
-        vec4(0., 0., 0., 1.),
-        0.5
+        vec4(0., 0., 0., 1.), // TODO: pass color
+        0.5 // TODO: pass parameter
     );
     RE_Direct(directLight, geometry, material, reflectedLight, shadow);
     
@@ -360,8 +360,8 @@ void main() {
             uSpotLight[UNROLL_i].shadowMapProjectionMatrix,
             uSpotLightShadowMap[UNROLL_i], // constantな必要がある
             uShadowBias,
-            vec4(0., 0., 0., 1.),
-            .5
+            vec4(0., 0., 0., 1.), // TODO: pass color
+            0.5 // TODO: pass parameter
         );
         RE_Direct(directLight, geometry, material, reflectedLight, shadow);
     }
@@ -399,12 +399,13 @@ void main() {
     // calc render equations
     //
 
-vec3 outgoingLight =
-    reflectedLight.directDiffuse +
-    reflectedLight.directSpecular +
-    reflectedLight.indirectDiffuse +
-    reflectedLight.indirectSpecular;
-resultColor = vec4(outgoingLight, opacity);
+    vec3 outgoingLight =
+        reflectedLight.directDiffuse
+        + reflectedLight.directSpecular
+        + reflectedLight.indirectDiffuse
+        + reflectedLight.indirectSpecular
+        ;
+    resultColor = vec4(outgoingLight, opacity);
 
     // 遮蔽はそのまま色にかけてしまう
     resultColor.xyz *= aoRate;

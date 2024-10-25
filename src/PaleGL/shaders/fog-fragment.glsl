@@ -84,6 +84,7 @@ void main() {
     vec4 destColor = sceneColor;
     vec4 lightShaftColor = texture(uLightShaftTexture, uv);
     vec4 volumetricLightColor = texture(uVolumetricLightTexture, uv);
+    
     // 高ければ高いほど遮蔽されてる
     float occlusion = saturate(lightShaftColor.x);
 
@@ -117,7 +118,7 @@ void main() {
     // TODO: しかし、どう混ぜるかという問題がある。手前と奥をどう判断するか
     // patter1: add
     outColor += vec4(volumetricLightColor.xyz, 0.);
-    outColor = vec4(mix(sceneColor.xyz, outColor.xyz, 1.), 1.);
+    // outColor = vec4(mix(sceneColor.xyz, outColor.xyz, 1.), 1.);
     
     // pattern2: mix
     // outColor = vec4(mix(
@@ -131,6 +132,7 @@ void main() {
     // outColor = vec4(vec3(occlusion), 1.);
     // outColor = vec4(vec3(sceneDepth), 1.);
     // outColor = vec4(mix(sceneColor.xyz, fogColor.xyz, rate), 1.);
+    // outColor = vec4(applyOcclusionColor.xyz, 1.);
     // outColor = vec4(vec3(fogRate), 1.);
     // outColor = vec4(vec3(worldPositionFromDepth.y), 1.);
     // outColor = vec4(worldPositionFromDepth, 1.);
