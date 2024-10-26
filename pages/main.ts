@@ -466,7 +466,7 @@ const load = async () => {
     // textMesh1.transform.rotation.setRotationX(-90);
     textMesh1.transform.scale = Vector3.fill(0.5);
     // TODO: 使えないかもなので一旦消しておく
-    // captureScene.add(textMesh1);
+    captureScene.add(textMesh1);
 
     //
     // build marionetter scene

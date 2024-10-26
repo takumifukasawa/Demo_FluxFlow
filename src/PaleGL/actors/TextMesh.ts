@@ -21,21 +21,20 @@ import { Actor } from '@/PaleGL/actors/Actor.ts';
 // import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 
 type FontAtlasData = {
-    pages: string[];
-    chars: {
-        char: string;
-        width: number;
-        height: number;
-        xoffset: number;
-        yoffset: number;
+    cs: {
+        c: string;
+        w: number;
+        h: number;
+        xo: number;
+        yo: number;
         x: number;
         y: number;
     }[];
     common: {
-        lineHeight: number;
-        base: number;
-        scaleW: number;
-        scaleH: number;
+        lh: number;
+        b: number;
+        sw: number;
+        sh: number;
     };
 };
 
@@ -85,13 +84,13 @@ export class TextMesh extends Actor {
 
         for (let i = 0; i < charArray.length; i++) {
             const char = charArray[i];
-            const charInfo = fontAtlas.chars.find((charData) => charData.char === char);
+            const charInfo = fontAtlas.cs.find((charData) => charData.c === char);
             if (!charInfo) {
                 continue;
             }
             
             // TODO: 任意のスペースのサイズを指定したい
-            const additionalOffsetX = (i > 0 && charArray[i - 1] === " " ? fontAtlas.common.base * .5 : 0);
+            const additionalOffsetX = (i > 0 && charArray[i - 1] === " " ? fontAtlas.common.b * .5 : 0);
 
             const mesh = new CharMesh({
                 gpu,
@@ -99,19 +98,19 @@ export class TextMesh extends Actor {
                 fontTexture: fontTexture,
                 color,
                 atlasInfo: {
-                    width: fontAtlas.common.scaleW,
-                    height: fontAtlas.common.scaleH,
-                    lineHeight: fontAtlas.common.lineHeight,
-                    base: fontAtlas.common.base,
+                    width: fontAtlas.common.sw,
+                    height: fontAtlas.common.sh,
+                    lh: fontAtlas.common.lh,
+                    b: fontAtlas.common.b,
                 },
                 charInfo: {
                     char,
                     x: charInfo.x,
                     y: charInfo.y,
-                    width: charInfo.width,
-                    height: charInfo.height,
-                    xOffset: charInfo.xoffset + additionalOffsetX,
-                    yOffset: charInfo.yoffset,
+                    width: charInfo.w,
+                    height: charInfo.h,
+                    xOffset: charInfo.xo + additionalOffsetX,
+                    yOffset: charInfo.yo,
                 },
                 castShadow,
             });
@@ -147,8 +146,8 @@ type CharMeshArgs = {
     atlasInfo: {
         width: number;
         height: number;
-        lineHeight: number;
-        base: number;
+        lh: number;
+        b: number;
     };
     charInfo: {
         char: string;
@@ -177,7 +176,7 @@ class CharMesh extends Mesh {
         const sx = charInfo.x / w;
         const sy = charInfo.y / h;
 
-        const baseUniforms: UniformsData = [
+        const bUniforms: UniformsData = [
             {
                 name: 'uColor',
                 type: UniformTypes.Color,
@@ -202,16 +201,16 @@ class CharMesh extends Mesh {
                 type: UniformTypes.Int,
                 value: ShadingModelIds.Unlit,
             },
-            ...baseUniforms,
+            ...bUniforms,
             ...uniforms,
         ];
 
-        const depthUniforms: UniformsData = [...baseUniforms, ...uniforms];
+        const depthUniforms: UniformsData = [...bUniforms, ...uniforms];
 
         const maxWidth = 2;
         const maxHeight = 2;
-        const pixelSizeW = maxWidth / atlasInfo.lineHeight;
-        const pixelSizeH = maxHeight / atlasInfo.lineHeight;
+        const pixelSizeW = maxWidth / atlasInfo.lh;
+        const pixelSizeH = maxHeight / atlasInfo.lh;
         const planeHeight = charInfo.height * pixelSizeH;
         const planeWidth = charInfo.width * pixelSizeW;
         const topPadding = (maxHeight - planeHeight) * 0.5;
