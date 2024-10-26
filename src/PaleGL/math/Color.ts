@@ -89,6 +89,14 @@
         // console.log(rgb, str, this.r, this.g, this.b)
         return str;
     }
+    
+    copy(color : Color) {
+        this.r = color.r;
+        this.g = color.g;
+        this.b = color.b;
+        this.a = color.a;
+        return this;
+    }
 
     static get white() {
         return new Color(1, 1, 1, 1);

@@ -32,7 +32,7 @@ import { MarionetterScene} from '@/Marionetter/types';
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
 
-// NEEDS_REMOVE_FROM_BUILDS
+// textを使う場合
 import { TextureFilterTypes } from '@/PaleGL/constants';
 import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
@@ -57,8 +57,8 @@ import {
     ATTRACTOR_ORBIT_MOVER_A,
     ATTRACTOR_ORBIT_MOVER_B,
     ATTRACTOR_ORBIT_MOVER_C,
-    ATTRACTOR_TARGET_BOX_A_MESH,
-    ATTRACTOR_TARGET_BOX_B_MESH,
+    ATTRACTOR_TARGET_BOX_ROOT_ACTOR_A,
+    ATTRACTOR_TARGET_BOX_ROOT_ACTOR_B,
     ATTRACTOR_TARGET_SPHERE_ACTOR_A_NAME,
     ATTRACTOR_TARGET_SPHERE_ACTOR_B_NAME,
     DEPTH_OF_FIELD_TARGET_ACTOR_NAME,
@@ -84,7 +84,9 @@ import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
 import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
-import {createBufferVisualizerPass} from "./scripts/createBufferVisualizerPass.ts";
+import {ScreenSpaceRaymarchMesh} from "@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts";
+import {createScreenSpaceRaymarchMesh} from "./scripts/createScreenSpaceRaymarchMesh.ts";
+import {BufferVisualizerPass} from "@/PaleGL/postprocess/BufferVisualizerPass.ts";
 
 
 const stylesText = `
@@ -173,6 +175,7 @@ let currentTimeForTimeline = 0;
 let captureSceneCamera: PerspectiveCamera | null;
 let marionetterSceneStructure: MarionetterSceneStructure | null = null;
 let cameraPostProcess: PostProcess;
+let bufferVisualizerPass: BufferVisualizerPass;
 
 // const wrapperElement = document.getElementById("wrapper")!;
 const wrapperElement = document.createElement('div');
@@ -301,20 +304,17 @@ const buildScene = (sceneJson: MarionetterScene) => {
         // }
     }
 
-    cameraPostProcess = new PostProcess();
-
-    // if (isDevelopment()) {
-    //     bufferVisualizerPass = new BufferVisualizerPass({
-    //         gpu,
-    //     });
-    //     bufferVisualizerPass.parameters.enabled = false;
-    //     cameraPostProcess.addPass(bufferVisualizerPass);
-    // }
-
-    cameraPostProcess.enabled = true;
-    // TODO: set post process いらないかも
-    captureSceneCamera.setPostProcess(cameraPostProcess);
-
+    if (isDevelopment()) {
+        cameraPostProcess = new PostProcess();
+        bufferVisualizerPass = new BufferVisualizerPass({
+            gpu,
+        });
+        bufferVisualizerPass.parameters.enabled = false;
+        cameraPostProcess.addPass(bufferVisualizerPass);
+        cameraPostProcess.enabled = true;
+        // TODO: set post process いらないかも
+        captureSceneCamera.setPostProcess(cameraPostProcess);
+    }
     console.log('scene', actors);
 };
 
@@ -360,10 +360,10 @@ const hideStartupWrapper = () => {
 };
 
 const morphFollowersActorControllerBinders: MorphFollowerActorControllerBinder[] = [];
-const attractorTargetBoxMeshes: Mesh[] = [];
+const attractorTargetBoxActors: Actor[] = [];
 const attractorTargetSphereActors: Actor[] = [];
 let originForgeActorController: OriginForgeActorController;
-// let screenSpaceRaymarchMesh: ScreenSpaceRaymarchMesh;
+let screenSpaceRaymarchMesh: ScreenSpaceRaymarchMesh;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 const load = async () => {
@@ -426,9 +426,9 @@ const load = async () => {
     // // screen space object
     // //
 
-    // screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
-    // screenSpaceRaymarchMesh.enabled = false;
-    // captureScene.add(screenSpaceRaymarchMesh);
+    screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
+    screenSpaceRaymarchMesh.enabled = false;
+    captureScene.add(screenSpaceRaymarchMesh);
 
     //
     // text mesh
@@ -466,7 +466,8 @@ const load = async () => {
     // textMesh1.transform.rotation.setRotationX(-90);
     textMesh1.transform.scale = Vector3.fill(0.5);
     // TODO: 使えないかもなので一旦消しておく
-    captureScene.add(textMesh1);
+    textMesh1.enabled = false;
+    // captureScene.add(textMesh1);
 
     //
     // build marionetter scene
@@ -488,10 +489,9 @@ const load = async () => {
 
     const morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
 
-    [ATTRACTOR_TARGET_BOX_A_MESH, ATTRACTOR_TARGET_BOX_B_MESH].forEach((name) => {
-        const mesh = captureScene.find(name) as Mesh;
-        attractorTargetBoxMeshes.push(mesh);
-        mesh.renderEnabled = false;
+    [ATTRACTOR_TARGET_BOX_ROOT_ACTOR_A, ATTRACTOR_TARGET_BOX_ROOT_ACTOR_B].forEach((name) => {
+        const actor = captureScene.find(name) as Actor;
+        attractorTargetBoxActors.push(actor);
     });
     [ATTRACTOR_TARGET_SPHERE_ACTOR_A_NAME, ATTRACTOR_TARGET_SPHERE_ACTOR_B_NAME].forEach((name) => {
         const actor = captureScene.find(name) as Actor;
@@ -509,8 +509,9 @@ const load = async () => {
         elem.morphFollowersActorController.initialize(
             i,
             i * 2048,
+            // originForgeActorController.getDefaultSurfaceParameters(),
             orbitActor,
-            attractorTargetBoxMeshes,
+            attractorTargetBoxActors,
             attractorTargetSphereActors
         );
     });
@@ -665,8 +666,8 @@ const playDemo = () => {
     };
 
     if (isDevelopment()) {
-        const bufferVisualizerPass = createBufferVisualizerPass({ gpu})
-        cameraPostProcess.addPass(bufferVisualizerPass);
+        // const bufferVisualizerPass = createBufferVisualizerPass({ gpu})
+        // cameraPostProcess.addPass(bufferVisualizerPass);
         const debuggerGUI = initDebugger({
             bufferVisualizerPass,
             glslSound: glslSoundWrapper.glslSound!, // 存在しているとみなしちゃう

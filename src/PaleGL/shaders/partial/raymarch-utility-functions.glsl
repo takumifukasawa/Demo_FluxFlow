@@ -15,25 +15,55 @@ vec2 blendSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale, float blendRate) {
 }
 
 vec3 getNormalObjectSpaceDfScene(vec3 p, mat4 WtoO, vec3 scale) {
-    // scale = vec3(1.);
-    const float eps = .0001;
-    vec3 n = vec3(
-        objectSpaceDfScene(p + vec3(eps, 0, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(-eps, 0, 0), WtoO, scale).x,
-        objectSpaceDfScene(p + vec3(0, eps, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(0, -eps, 0), WtoO, scale).x,
-        objectSpaceDfScene(p + vec3(0, 0, eps), WtoO, scale).x - objectSpaceDfScene(p + vec3(0, 0, -eps), WtoO, scale).x
-    );
+    // tmp
+    // const float eps = .0001;
+    // vec3 n = vec3(
+    //     objectSpaceDfScene(p + vec3(eps, 0, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(-eps, 0, 0), WtoO, scale).x,
+    //     objectSpaceDfScene(p + vec3(0, eps, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(0, -eps, 0), WtoO, scale).x,
+    //     objectSpaceDfScene(p + vec3(0, 0, eps), WtoO, scale).x - objectSpaceDfScene(p + vec3(0, 0, -eps), WtoO, scale).x
+    // );
+    // return normalize(n);
+
+    // 軽量版
+    // ref: https://x.com/Shiranui_Isuzu_/status/1074492632179474432?s=20
+    const float d = .0001;
+    vec3 n = vec3(0., 0., 0.);
+    for (int i = 0; i < 4; i++)
+    {
+        vec3 e = .5773 * (2. * vec3(
+            (((i + 3) >> 1) & 1),
+            ((i >> 1) & 1),
+            (i & 1)) - 1.
+        );
+        n += e * objectSpaceDfScene(p + e * d, WtoO, scale).x;
+    }
     return normalize(n);
 }
 
 vec3 getNormalDfScene(vec3 p) {
-    const float eps = .0001;
-    vec3 n = vec3(
-        dfScene(p + vec3(eps, 0, 0)).x - dfScene(p + vec3(-eps, 0, 0)).x,
-        dfScene(p + vec3(0, eps, 0)).x - dfScene(p + vec3(0, -eps, 0)).x,
-        dfScene(p + vec3(0, 0, eps)).x - dfScene(p + vec3(0, 0, -eps)).x
-    );
-    return normalize(n);
-    
+    // tmp
+    // const float eps = .0001;
+    // vec3 n = vec3(
+    //     dfScene(p + vec3(eps, 0, 0)).x - dfScene(p + vec3(-eps, 0, 0)).x,
+    //     dfScene(p + vec3(0, eps, 0)).x - dfScene(p + vec3(0, -eps, 0)).x,
+    //     dfScene(p + vec3(0, 0, eps)).x - dfScene(p + vec3(0, 0, -eps)).x
+    // );
+    // return normalize(n);
+
+    // 軽量版
+    // ref: https://x.com/Shiranui_Isuzu_/status/1074492632179474432?s=20
+    const float d = .0001;
+    vec3 n = vec3(0., 0., 0.);
+    for (int i = 0; i < 4; i++)
+    {
+        vec3 e = .5773 * (2. * vec3(
+        (((i + 3) >> 1) & 1),
+        ((i >> 1) & 1),
+        (i & 1)) - 1.
+        );
+        n += e * dfScene(p + e * d).x;
+    }
+    return normalize(n);   
 }
 
 bool isDfInnerBox(vec3 p, vec3 scale) {

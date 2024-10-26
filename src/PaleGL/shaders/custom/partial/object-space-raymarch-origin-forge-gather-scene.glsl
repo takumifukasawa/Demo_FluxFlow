@@ -29,30 +29,12 @@ vec2 dfScene(vec3 p) {
     float db3 = mix(dfSp(q3, CS), opBu(q3, 0.).x, state3.x);
     float db4 = mix(dfSp(q4, CS), opBu(q4, 0.).x, state4.x);
 
-    // float cs = dfSp(opTr(p, uCP), FS * uGS);
-    // cs += diMB(p) * diMAt(p) * uGS;
-    // // cs += diMB(p);
     float cs = dfMBs(p);
    
     float gd = min(min(min(db1, db2), db3), db4);
     
     float d = opSm(cs, gd, MS);
-    
+
     return vec2(d, 0.);
-    
-    // vec2 b0 = opBu(opTr(p, vec3(-1., 0., 0.), 0.));
 
-    // vec3 q = p / 4.;
-
-    // p = opTr(p, vec3(0., 0., 0.));
-
-    // // 真ん中
-    // float s = dfSp(opTr(p, uCP), FS);
-    // 
-    // // 子供を含めたmetaball
-    // s = dfMB(p, s);
-    // 
-    // d = mix(s, butterflyR.x, 1.);
-    // 
-    // return vec2(d, 0.);
 }

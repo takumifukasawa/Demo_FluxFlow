@@ -800,9 +800,9 @@ export class Renderer {
                         return;
                     }
                     (actor as Mesh).materials.forEach((material, i) => {
-                        if (!material.canRender) {
-                            return;
-                        }
+                        // if (!material.canRender) {
+                        //     return;
+                        // }
                         if (material.alphaTest) {
                             renderMeshInfoEachQueue[RenderQueueType.AlphaTest].push(
                                 this.buildRenderMeshInfo(actor as Mesh, RenderQueueType.AlphaTest, i)
@@ -1610,8 +1610,12 @@ export class Renderer {
                     actor.updateTransform(camera);
                     break;
             }
-
+            
             const targetMaterial = actor.materials[materialIndex];
+            
+            if(!targetMaterial.canRender) {
+                return;
+            }
 
             // pr-epassしてないmaterialの場合はdepthをcopy.
             // pr-epassしてないmaterialが存在する度にdepthをcopyする必要があるので、使用は最小限にとどめる（raymarch以外では使わないなど）

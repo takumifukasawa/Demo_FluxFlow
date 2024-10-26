@@ -7,7 +7,7 @@ import gBufferObjectSpaceRaymarchFragOriginForgeDepthContent from '@/PaleGL/shad
 import litObjectSpaceRaymarchFragOriginForgeButterflyContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-origin-forge-butterfly.glsl';
 import gBufferObjectSpaceRaymarchFragOriginForgeButterflyDepthContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-origin-forge-butterfly.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
-import {DEG_TO_RAD, FaceSide, UniformBlockNames, UniformNames, UniformTypes} from '@/PaleGL/constants.ts';
+import { DEG_TO_RAD, FaceSide, UniformBlockNames, UniformNames, UniformTypes } from '@/PaleGL/constants.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
@@ -26,6 +26,13 @@ import {
     buildTimelinePropertyB,
 } from '@/Marionetter/timelineUtilities.ts';
 
+export type MorphSurfaceParameters = {
+    metallic?: number;
+    roughness?: number;
+    diffuseColor?: Color;
+    emissiveColor?: Color;
+};
+
 export type OriginForgeActorController = {
     getActor: () => Actor;
     getPointLight: () => PointLight;
@@ -40,9 +47,12 @@ const UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS = 'uGPs';
 const UNIFORM_NAME_METABALL_GATHER_SCALE_RATE = 'uGS';
 const UNIFORM_NAME_METABALL_GATHER_MORPH_STATES = 'uGSs';
 // const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR = 'uGEC';
-const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE = 'gec';
+// const UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE = 'gec';
 const UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE = 'uOMR';
 const UNIFORM_NAME_METABALL_ORIGIN_ROT = 'uORo';
+
+const SURFACE_DIFFUSE_PROPERTY_BASE = 'sdc';
+const SURFACE_EMISSIVE_PROPERTY_BASE = 'sec';
 
 const GATHER_PHASE_MATERIAL_INDEX = 0;
 
@@ -51,7 +61,7 @@ const gatherChildPositions: Vector3[] = maton.range(4).map(() => Vector3.zero);
 // [morph rate, rot x, rot y, ,]
 const gatherChildMorphStates: Vector4[] = maton.range(4).map(() => Vector4.zero);
 
-const originForgeRotationRad: Vector3 = Vector3.zero;
+
 
 const shaderContentPairs: {
     fragment: string;
@@ -140,7 +150,7 @@ occurrenceSequenceBaseData.forEach((d) => {
     occurrenceSequenceTimestamps.push(result);
 });
 
-console.log("hogehoge", occurrenceSequenceTimestamps)
+console.log('hogehoge', occurrenceSequenceTimestamps);
 
 // // 16回やりたいが・・・
 // // TODO: targetとなるfollowerを指定できるようにする
@@ -195,11 +205,18 @@ function isOverOccurrenceSequence(time: number): boolean {
 }
 
 export function createOriginForgeActorController(gpu: GPU): OriginForgeActorController {
-    // let childPositionRadius = 0;
+    const statesParameters = {
+        gatherScale: 0,
+        originForgeRotationRad: new Vector3(0, 0, 0),
+        originMorphRate: 0,
+    };
 
-    // const orbitFollowTargets: Actor[] = [];
-
-    // let occuranceRadius = 2;
+    const surfaceParameters: Required<MorphSurfaceParameters> = {
+        metallic: 0,
+        roughness: 0,
+        diffuseColor: new Color(1, 1, 1, 1),
+        emissiveColor: new Color(0.1, 0.1, 0.1, 1),
+    };
 
     let morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
     let gatherChildlenActors: Actor[] = [];
@@ -208,14 +225,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         return new Vector3(0, 0, 0);
     });
 
-    const gatherPhaseEmissiveColor = new Color(0, 0, 0, 0);
-
-    const defaultSurfaceParameters = {
-        metallic: 0,
-        roughness: 0,
-        diffuseColor: new Color(1, 1, 1, 1),
-        emissiveColor: new Color(0.1, 0.1, 0.1, 1),
-    };
+    // const gatherPhaseEmissiveColor = new Color(0, 0, 0, 0);
 
     const materials: Material[] = [];
 
@@ -224,7 +234,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             fragmentShaderContent: shaderContent.fragment,
             depthFragmentShaderContent: shaderContent.depth,
             materialArgs: {
-                ...defaultSurfaceParameters,
+                ...surfaceParameters,
                 receiveShadow: true,
                 uniforms: [
                     ...shaderContent.uniforms,
@@ -252,11 +262,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     {
                         name: UNIFORM_NAME_METABALL_ORIGIN_ROT,
                         type: UniformTypes.Vector3,
-                        value: originForgeRotationRad,
+                        value: statesParameters.originForgeRotationRad,
                     },
                 ],
                 uniformBlockNames: [UniformBlockNames.Timeline],
-                faceSide: FaceSide.Double
+                faceSide: FaceSide.Double,
             },
         });
         materials.push(material);
@@ -316,6 +326,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     gatherChildMorphStates[i].x = value;
                     return;
                 }
+
                 // // rotation x
                 // if(key === 'rx') {
                 //     gatherChildMorphStates[i].y = value;
@@ -347,61 +358,106 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         }
         // gather scale rate
         if (key === 'gs') {
-            mesh.materials.forEach((material) => {
-                material.uniforms.setValue(
-                    UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
-                    value
-                );
-            });
+            statesParameters.gatherScale = value;
             return;
         }
-        // gather emissive color
-        if (key === buildTimelinePropertyR(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
-            gatherPhaseEmissiveColor.r = value;
-            return;
-        }
-        if (key === buildTimelinePropertyG(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
-            gatherPhaseEmissiveColor.g = value;
-            return;
-        }
-        if (key === buildTimelinePropertyB(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
-            gatherPhaseEmissiveColor.b = value;
-            return;
-        }
+        // // gather emissive color
+        // if (key === buildTimelinePropertyR(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
+        //     gatherPhaseEmissiveColor.r = value;
+        //     return;
+        // }
+        // if (key === buildTimelinePropertyG(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
+        //     gatherPhaseEmissiveColor.g = value;
+        //     return;
+        // }
+        // if (key === buildTimelinePropertyB(UNIFORM_NAME_METABALL_GATHER_EMISSIVE_COLOR_PROPERTY_BASE)) {
+        //     gatherPhaseEmissiveColor.b = value;
+        //     return;
+        // }
         // origin morph rate
         if (key === 'mr') {
-            mesh.materials.forEach((material) => {
-                material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, value);
-            });
+            statesParameters.originMorphRate = value;
             return;
         }
         // origin forge: rot x
         if (key === 'rx') {
-            originForgeRotationRad.x = value * DEG_TO_RAD;
+            statesParameters.originForgeRotationRad.x = value * DEG_TO_RAD;
             return;
         }
         // origin forge: rot y
         if (key === 'ry') {
-            originForgeRotationRad.y = value * DEG_TO_RAD
+            statesParameters.originForgeRotationRad.y = value * DEG_TO_RAD;
             return;
         }
 
-        // if (key === 'cpr') {
-        //     metaballPositions = maton.range(METABALL_NUM, true).map((i) => {
-        //         const pd = 360 / METABALL_NUM;
-        //         const rad = i * pd * DEG_TO_RAD;
-        //         const x = Math.cos(rad) * value;
-        //         const y = Math.sin(rad) * value;
-        //         const v = new Vector3(x, y, 0);
-        //         return v;
-        //     });
-        //     mesh.mainMaterial.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
-        //     return;
-        // }
-        // // if(key === "or") {
-        // //     occuranceRadius = value;
-        // //     return;
-        // // }
+        // point light intensity
+        if (key === 'pi') {
+            pointLight.intensity = value;
+            return;
+        }
+
+        // point light color.r
+        if (key === 'pc.r') {
+            pointLight.color.r = value;
+            return;
+        }
+
+        // point light color.g
+        if (key === 'pc.g') {
+            pointLight.color.g = value;
+            return;
+        }
+
+        // point light color.a
+        if (key === 'pc.b') {
+            pointLight.color.b = value;
+            return;
+        }
+
+        // metallic
+        if (key === 'sm') {
+            surfaceParameters.metallic = value;
+            return;
+        }
+
+        // roughness
+        if (key === 'sr') {
+            surfaceParameters.roughness = value;
+            return;
+        }
+        
+
+        // diffuse r
+        if (key === buildTimelinePropertyR(SURFACE_DIFFUSE_PROPERTY_BASE)) {
+            surfaceParameters.diffuseColor.r = value;
+            return;
+        }
+        // diffuse g
+        if (key === buildTimelinePropertyG(SURFACE_DIFFUSE_PROPERTY_BASE)) {
+            surfaceParameters.diffuseColor.g = value;
+            return;
+        }
+        // diffuse b
+        if (key === buildTimelinePropertyB(SURFACE_DIFFUSE_PROPERTY_BASE)) {
+            surfaceParameters.diffuseColor.b = value;
+            return;
+        }
+
+        // emissive r
+        if (key === buildTimelinePropertyR(SURFACE_EMISSIVE_PROPERTY_BASE)) {
+            surfaceParameters.emissiveColor.r = value;
+            return;
+        }
+        // emissive g
+        if (key === buildTimelinePropertyG(SURFACE_EMISSIVE_PROPERTY_BASE)) {
+            surfaceParameters.emissiveColor.g = value;
+            return;
+        }
+        // emissive b
+        if (key === buildTimelinePropertyB(SURFACE_EMISSIVE_PROPERTY_BASE)) {
+            surfaceParameters.emissiveColor.b = value;
+            return;
+        }
     };
 
     const calcEmitInstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
@@ -465,11 +521,10 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             } else {
                 // NOTE: 明後日の方向に飛ばす
                 // TODO: ここパラメーター化したい
-                morphFollowersActorController.setInstancePosition(i, new Vector3(
-                    Math.cos(i) * 50,
-                    Math.sin(i) * 40,
-                    0
-                ));
+                morphFollowersActorController.setInstancePosition(
+                    i,
+                    new Vector3(Math.cos(i) * 50, Math.sin(i) * 40, 0)
+                );
                 morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                 morphFollowersActorController.setInstanceState(i, { morphRate: rate });
             }
@@ -521,18 +576,44 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             UNIFORM_NAME_METABALL_GATHER_MORPH_STATES,
             gatherChildMorphStates
         );
-        mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
-            UniformNames.EmissiveColor,
-            gatherPhaseEmissiveColor
-        )
+        // mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
+        //     UniformNames.EmissiveColor,
+        //     surfaceParameters.emissiveColor
+        // );
 
         mesh.materials.forEach((material) => {
-            material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_ROT, originForgeRotationRad);
+            material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, statesParameters.originMorphRate);
+        });
+
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_ROT, statesParameters.originForgeRotationRad);
+        });
+
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UNIFORM_NAME_METABALL_GATHER_SCALE_RATE, statesParameters.gatherScale);
         });
 
         //
+        // surface
+        //
+
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.Metallic, surfaceParameters.metallic);
+        });
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.Roughness, surfaceParameters.roughness);
+        });
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.DiffuseColor, surfaceParameters.diffuseColor);
+        });
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.EmissiveColor, surfaceParameters.emissiveColor);
+        });
+       
+        //
         // シーケンスの処理
         //
+
         const sequenceData = findOccurrenceSequenceData(time);
         if (sequenceData !== null) {
             // 一番最初のシーケンスは空とみなす
@@ -550,10 +631,14 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             hideMetaballChildren();
         }
 
+        // 発生フェーズかどうかでcontroll可能かを切り分ける
         const followerControlled = !isOverOccurrenceSequence(time);
-        // TODO: followerごとに分けたくない？
+        // TODO: followerごとに分けたくない？ 96,80,80のコントロールのために
         morphFollowersActorControllerEntities.forEach((entity) => {
             entity.morphFollowersActorController.setControlled(followerControlled);
+            if (followerControlled) {
+                entity.morphFollowersActorController.setSurfaceParameters(surfaceParameters);
+            }
             entity.morphFollowersActorController.updateStatesAndBuffers();
         });
     };

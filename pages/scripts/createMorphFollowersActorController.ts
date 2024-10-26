@@ -1,7 +1,14 @@
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { TransformFeedbackDoubleBuffer } from '@/PaleGL/core/TransformFeedbackDoubleBuffer.ts';
 import { Attribute } from '@/PaleGL/core/Attribute.ts';
-import { AttributeNames, AttributeUsageType, FaceSide, UniformBlockNames, UniformTypes } from '@/PaleGL/constants.ts';
+import {
+    AttributeNames,
+    AttributeUsageType,
+    FaceSide,
+    UniformBlockNames,
+    UniformNames,
+    UniformTypes,
+} from '@/PaleGL/constants.ts';
 import transformFeedbackVertexFollower from '@/PaleGL/shaders/custom/entry/transform-feedback-vertex-demo-follower.glsl';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
@@ -26,9 +33,17 @@ import {
 import { Material } from '@/PaleGL/materials/Material.ts';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import { OrbitMoverBinder } from './orbitMoverBinder.ts';
-import {clipRate, isTimeInClip} from '@/Marionetter/timelineUtilities.ts';
-import {easeInOutQuad, easeOutQuad} from "@/PaleGL/utilities/easingUtilities.ts";
-import {BoxGeometry} from "@/PaleGL/geometries/BoxGeometry.ts";
+import {
+    buildTimelinePropertyB,
+    buildTimelinePropertyG,
+    buildTimelinePropertyR,
+    clipRate,
+    isTimeInClip,
+} from '@/Marionetter/timelineUtilities.ts';
+import { easeInOutQuad, easeOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
+import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
+import { MorphSurfaceParameters } from './originForgeActorController.ts';
+// import {DefaultForgeSurfaceParameters} from "./originForgeActorController.ts";
 
 const updateBufferSubDataEnabled = false;
 
@@ -53,6 +68,9 @@ const TRANSFORM_FEEDBACK_VARYINGS_VELOCITY = 'vVelocity';
 const UNIFORM_DIFFUSE_MIXER_NAME = 'uDiffuseMixer';
 const UNIFORM_EMISSIVE_MIXER_NAME = 'uEmissiveMixer';
 const UNIFORM_ROT_MODE_NAME = 'uRotMode';
+
+const SURFACE_DIFFUSE_PROPERTY_BASE = 'sdc';
+const SURFACE_EMISSIVE_PROPERTY_BASE = 'sec';
 
 const rotRateForVelocityValue = 0;
 const rotRateForLookDirectionValue = 1;
@@ -163,6 +181,7 @@ export type MorphFollowersActorController = {
     initialize: (
         followerIndex: number,
         followerSeed: number,
+        // defaultForgeSurfaceParameters: DefaultForgeSurfaceParameters,
         orbitFollowTargetActor: Actor,
         attractorTargetBoxActors: Actor[],
         attractorTargetSphereActors: Actor[]
@@ -187,6 +206,7 @@ export type MorphFollowersActorController = {
     setInstanceNum: (instanceNum: number) => void;
     getCurrentTransformFeedbackState: (index: number) => number[];
     setControlled: (flag: boolean) => void;
+    setSurfaceParameters: (surfaceParameters: MorphSurfaceParameters) => void;
     isControlled: () => boolean;
     setFollowAttractMode: (mode: FollowerAttractMode) => void;
 };
@@ -333,9 +353,22 @@ export const createMorphFollowersActor = ({
     let _attractorTargetSphereActors: Actor[] = [];
     let _refBoxGeometry: BoxGeometry;
 
+    const stateParameters = {
+        diffuseMixer: 0,
+        emissionMixer: 0,
+    }
+
+    const surfaceParameters: Required<MorphSurfaceParameters> = {
+        metallic: 0,
+        roughness: 0,
+        diffuseColor: new Color(1, 1, 1, 1),
+        emissiveColor: new Color(0.1, 0.1, 0.1, 1),
+    };
+
     const initialize = (
         followerIndex: number,
         followerSeed: number,
+        // defaultForgeSurfaceParameters: DefaultForgeSurfaceParameters,
         orbitFollowTargetActor: Actor,
         attractorTargetBoxActors: Actor[],
         attractorTargetSphereActors: Actor[]
@@ -597,11 +630,7 @@ export const createMorphFollowersActor = ({
         instancingInfo.position[index * 3 + 2] = p.z;
         // if (updateBufferSubDataEnabled) {
         // TODO: ここはupdateBufferSubDataせざるを得ないが、dirtyFragでもいいかもしれない
-        transformFeedbackDoubleBuffer.updateBufferSubData(
-            TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME,
-            index,
-            p.e
-        );
+        transformFeedbackDoubleBuffer.updateBufferSubData(TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME, index, p.e);
         // }
 
         // TODO: attractTypeを更新する
@@ -653,11 +682,7 @@ export const createMorphFollowersActor = ({
         instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 2] = c.b;
         instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 3] = c.a;
         if (updateBufferSubDataEnabled) {
-            mesh.geometry.vertexArrayObject.updateBufferSubData(
-                AttributeNames.InstanceEmissiveColor,
-                index,
-                c.e
-            );
+            mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceEmissiveColor, index, c.e);
         }
     };
 
@@ -667,15 +692,22 @@ export const createMorphFollowersActor = ({
         instancingInfo.lookDirection[index * ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM + 1] = lookDirection.y;
         instancingInfo.lookDirection[index * ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM + 2] = lookDirection.z;
         if (updateBufferSubDataEnabled) {
-            mesh.geometry.vertexArrayObject.updateBufferSubData(
-                AttributeNames.InstanceState,
-                index,
-                lookDirection.e
-            );
+            mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceState, index, lookDirection.e);
         }
     };
 
-    const setInstanceState = (index: number, { morphRate, delayRate, scale }: { morphRate?: number; delayRate?: number; scale?: number }) => {
+    const setInstanceState = (
+        index: number,
+        {
+            morphRate,
+            delayRate,
+            scale,
+        }: {
+            morphRate?: number;
+            delayRate?: number;
+            scale?: number;
+        }
+    ) => {
         // js側のデータとbufferのデータを更新
         if (morphRate !== undefined) {
             instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 0] = morphRate;
@@ -901,78 +933,55 @@ export const createMorphFollowersActor = ({
                 });
                 setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
             }
-
-            // tmp
-            // const attractType = instancingInfo.attractType[i];
-            // // TODO: follow cube edge から違うmodeに戻った時の処理
-            // if (_currentFollowMode === FollowerAttractMode.FollowCubeEdge && !!_attractorTargetBox) {
-            //     // set edge
-            //     const lp = _attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
-            //         generateRandomValue(0, i),
-            //         generateRandomValue(0, i + 1)
-            //     );
-            //     const wp = _attractorTargetBox.transform.localPointToWorld(lp);
-            //     setInstanceAttractTargetPosition(i, wp, FollowerAttractMode.FollowCubeEdge);
-            //     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-            //     continue;
-            // }
-
-            // if (_currentFollowMode === FollowerAttractMode.FollowSphereSurface && !!_attractorTargetSphereActor) {
-            //     // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
-            //     const lp = randomOnUnitSphere(i).scale(0.5);
-            //     const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
-            //     // for debug
-            //     // console.log(i, randomOnUnitSphere(i).e, randomOnUnitSphere(i).e, lp.e, wp.e, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.e)
-            //     setInstanceAttractTargetPosition(i, wp, FollowerAttractMode.FollowSphereSurface);
-            //     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-            //     continue;
-            // }
-
-            // //
-            // // 先にuniformなfollowModeを確認してからinstanceごとのattractTypeを確認する
-            // //
-
-            // if (attractType === FollowerAttractMode.Attractor) {
-            //     // attractTypeならTargetは必ずあるはず
-            //     setInstanceAttractTargetPosition(i, attractTarget!.transform.position, FollowerAttractMode.Attractor);
-            //     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
-            //     continue;
-            // }
         }
     };
 
-    // let attractorTargetBox: Actor | null;
-
-    // mesh.subscribeOnStart((args) => {
-    //     attractorTargetBox = args.scene.find("AB_1")
-    // });
+    const setSurfaceParameters = (_surfaceParameters: Partial<MorphSurfaceParameters>) => {
+        if (_surfaceParameters.metallic !== undefined) {
+            surfaceParameters.metallic = _surfaceParameters.metallic;
+        }
+        if (_surfaceParameters.roughness !== undefined) {
+            surfaceParameters.roughness = _surfaceParameters.roughness;
+        }
+        if (_surfaceParameters.diffuseColor !== undefined) {
+            surfaceParameters.diffuseColor.copy(_surfaceParameters.diffuseColor);
+        }
+        if (_surfaceParameters.emissiveColor !== undefined) {
+            surfaceParameters.emissiveColor.copy(_surfaceParameters.emissiveColor);
+        }
+    };
 
     // transform feedback の更新とかをするだけ
     // states準拠な更新をする
     mesh.beforeRender = () => {
-        // tmp
-        // for (let i = 0; i < instanceNum; i++) {
-        //     switch (i % 4) {
-        //         case 0:
-        //             // setInstanceAttractTargetPosition(i, new Vector3(4, 2, 0));
-        //             updateInstanceState(i, { attractEnabled: true });
-        //             break;
-        //         case 1:
-        //             setInstanceAttractTargetPosition(i, new Vector3(4, 2, 0));
-        //             updateInstanceState(i, { attractEnabled: false });
-        //             break;
-        //         case 2:
-        //             setInstanceAttractTargetPosition(i, new Vector3(-4, 2, 0));
-        //             updateInstanceState(i, { attractEnabled: true });
-        //             break;
-        //         case 3:
-        //             setInstanceAttractTargetPosition(i, new Vector3(-4, 2, 0));
-        //             updateInstanceState(i, { attractEnabled: false });
-        //             break;
-        //     }
-        // }
+        //
+        // surfaces
+        //
 
-        // 一括更新する場合
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UNIFORM_DIFFUSE_MIXER_NAME, stateParameters.diffuseMixer);
+        });
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UNIFORM_EMISSIVE_MIXER_NAME, stateParameters.emissionMixer);
+        });
+        
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.Metallic, surfaceParameters.metallic);
+        });
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.Roughness, surfaceParameters.roughness);
+        });
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.DiffuseColor, surfaceParameters.diffuseColor);
+        });
+        mesh.materials.forEach((material) => {
+            material.uniforms.setValue(UniformNames.EmissiveColor, surfaceParameters.emissiveColor);
+        });
+
+        //
+        // buffers
+        //
+        // tmp: 一括更新する場合
         // for(let i = 0; i < instanceNum; i++) {
         //     setInstancePosition(i, new Vector3(
         //         Math.random() * 5 - 2.5, Math.random() * 5 - 2.5, Math.random() * 5 - 2.5)
@@ -997,19 +1006,10 @@ export const createMorphFollowersActor = ({
                 instancingInfo.emissiveColor
             );
 
-            // transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferData(
-            //     TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME,
-            //     instancingInfo.position
-            // );
-            // transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferData(
-            //     TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME,
-            //     instancingInfo.velocity
-            // );
             transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferData(
                 TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
                 instancingInfo.attractPosition
             );
-
             transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferData(
                 TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
                 instancingInfo.transformFeedbackStates
@@ -1047,16 +1047,12 @@ export const createMorphFollowersActor = ({
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
         // diffuse mixer
         if (key === 'dm') {
-            mesh.materials.forEach((material) => {
-                material.uniforms.setValue(UNIFORM_DIFFUSE_MIXER_NAME, value);
-            });
+            stateParameters.diffuseMixer = value;
             return;
         }
         // emission mixer
         if (key === 'em') {
-            mesh.materials.forEach((material) => {
-                material.uniforms.setValue(UNIFORM_EMISSIVE_MIXER_NAME, value);
-            });
+            stateParameters.emissionMixer = value;
             return;
         }
         // material index
@@ -1099,6 +1095,50 @@ export const createMorphFollowersActor = ({
             setInstanceNum(value);
             return;
         }
+
+        // metallic
+        if (key === 'sm') {
+            surfaceParameters.metallic = value;
+            return;
+        }
+
+        // roughness
+        if (key === 'sr') {
+            surfaceParameters.roughness = value;
+            return;
+        }
+
+        // diffuse r
+        if (key === buildTimelinePropertyR(SURFACE_DIFFUSE_PROPERTY_BASE)) {
+            surfaceParameters.diffuseColor.r = value;
+            return;
+        }
+        // diffuse g
+        if (key === buildTimelinePropertyG(SURFACE_DIFFUSE_PROPERTY_BASE)) {
+            surfaceParameters.diffuseColor.g = value;
+            return;
+        }
+        // diffuse b
+        if (key === buildTimelinePropertyB(SURFACE_DIFFUSE_PROPERTY_BASE)) {
+            surfaceParameters.diffuseColor.b = value;
+            return;
+        }
+
+        // emissive r
+        if (key === buildTimelinePropertyR(SURFACE_EMISSIVE_PROPERTY_BASE)) {
+            surfaceParameters.emissiveColor.r = value;
+            return;
+        }
+        // emissive g
+        if (key === buildTimelinePropertyG(SURFACE_EMISSIVE_PROPERTY_BASE)) {
+            surfaceParameters.emissiveColor.g = value;
+            return;
+        }
+        // emissive b
+        if (key === buildTimelinePropertyB(SURFACE_EMISSIVE_PROPERTY_BASE)) {
+            surfaceParameters.emissiveColor.b = value;
+            return;
+        }
     };
 
     mesh.onPostProcessTimeline = (time: number) => {
@@ -1113,7 +1153,7 @@ export const createMorphFollowersActor = ({
             }
         }
     };
-   
+
     // mesh.onLastUpdate = () => {
     //     mesh.geometry.instanceCount = MAX_INSTANCE_NUM;
     // }
@@ -1137,6 +1177,7 @@ export const createMorphFollowersActor = ({
         setInstanceNum,
         getCurrentTransformFeedbackState,
         updateStatesAndBuffers,
+        setSurfaceParameters,
         setControlled: (flag: boolean) => (_isControlled = flag),
         isControlled: () => _isControlled,
         setFollowAttractMode: (mode: FollowerAttractMode) => (_currentFollowMode = mode),

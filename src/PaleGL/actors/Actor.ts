@@ -23,6 +23,7 @@ type OnFixedUpdateCallback = (args: {
 }) => void;
 type OnUpdateCallback = (args: { scene: Scene; actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
 type OnLastUpdateCallback = (args: { scene: Scene; actor: Actor; gpu: GPU; time: number; deltaTime: number }) => void;
+type OnBeforeRenderCallback = (actor: Actor) => void;
 // type OnProcessClipFrame = (time: number, prevTime: number, deltaTime: number) => void;
 type OnProcessPropertyBinder = (key: string, value: number) => void;
 type OnProcessTimeline = (timelineTime: number) => void;
@@ -46,6 +47,7 @@ export class Actor {
     private _onUpdate: OnUpdateCallback | null = null;
     private _onLastUpdate: OnLastUpdateCallback | null = null;
     // private _onProcessClipFrame: OnProcessPropertyBinder | null = null;
+    private _onBeforeRender: OnBeforeRenderCallback | null = null;
     private _onProcessPropertyBinder: OnProcessPropertyBinder | null = null;
     private _onPreProcessTimeline: OnProcessTimeline | null = null;
     private _onPostProcessTimeline: OnProcessTimeline | null = null;
@@ -83,6 +85,10 @@ export class Actor {
 
     set onLastUpdate(value: OnLastUpdateCallback) {
         this._onLastUpdate = value;
+    }
+    
+    set onBeforeRender(value: OnBeforeRenderCallback) {
+        this._onBeforeRender = value
     }
 
     set onProcessPropertyBinder(value: OnProcessPropertyBinder) {
@@ -196,7 +202,11 @@ export class Actor {
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     beforeRender({ gpu }: { gpu: GPU }) {
-        // TODO: 必要になったら実装する。component関連の処理とかで。
+        if(this._onBeforeRender) {
+            this._onBeforeRender(this);
+        }
+        
+        // TODO: componentで必要になったら呼ぶ
     }
 
     processPropertyBinder(key: string, value: number) {

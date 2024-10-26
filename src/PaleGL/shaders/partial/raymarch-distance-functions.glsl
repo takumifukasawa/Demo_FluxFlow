@@ -281,16 +281,17 @@ float opTb(float x, float A, float B, float C) {
 #define MS .25 // メタボールのsmooth
 uniform vec3 uCP;
 uniform vec3 uBPs[BN];
-uniform vec3 uGPs[4];
+uniform vec3 uGPs[4]; // gather children positions
 uniform float uGS; // gather scale rate
 uniform vec4 uGSs[4]; // gather states [morph rate, state x, state y, ,]
 uniform float uOMR; // origin forge morph rate
 uniform vec3 uORo; // rot x for origin forge
 
+// displacement metaball
 float diMB(vec3 p) {
-    return sin(p.x * 4. + uTimelineTime * 3.4) * .07 +
-        cos(p.y * 3. + uTimelineTime * 3.2) * .07 +
-        sin(p.z * 3.5 + uTimelineTime * 3.0) * .07;
+    return sin(p.x * 4. + uTimelineTime * 3.4) * .02 +
+        cos(p.y * 3. + uTimelineTime * 3.2) * .02 +
+        sin(p.z * 3.5 + uTimelineTime * 3.0) * .02;
 }
 
 // 真ん中のメタボール
@@ -310,33 +311,21 @@ float diMAt(vec3 p) {
 
 float dfMB(vec3 p, float d) {
     for(int i = 0; i < BN; i++) {
-        float cd = dfSp(opTr(p, uBPs[i].xyz), CS);
+        vec3 q = opTr(p, uBPs[i].xyz);
+        float cd = dfSp(q, CS * uGS);
         d = opSm(d, cd, MS);
     }
 
-    // #pragma UNROLL_START
-    // for(int i = 0; UNROLL_i < 16; UNROLL_i++) {
-    //     float cd = dfSp(opTr(p, uBPs[UNROLL_i].xyz), CS);
-    //     dd = opSm(dd, cd, .25);
-    // }
-    // #pragma UNROLL_END
-
-
+    // default use
     d += diMB(p) * diMAt(p) * uGS;
     return d;
 }
 
 float dfMBs(vec3 p) {
     // 真ん中
-    float s = dfSp(opTr(p, uCP), FS * uGS);
+    float d = dfSp(opTr(p, uCP), FS * uGS);
     // 子供を含めたmetaball
-    float mb = dfMB(p, s);
-
-    // // 真ん中
-    // float s = dfSp(opTr(p, uCP), FS);
-    // // 子供を含めたmetaball
-    // float mb = dfMB(p, s);
-    
+    float mb = dfMB(p, d);
     return mb;
 }
 

@@ -322,7 +322,7 @@ export class PostProcessPassBase implements IPostProcessPass {
         this.materials.forEach((material) => {
             if (!material.isCompiledShader) {
                 material.start({ gpu, attributeDescriptors: this.geometry.getAttributeDescriptors() });
-                renderer.checkNeedsBindUniformBufferObjectToMaterial(material);
+                renderer.$checkNeedsBindUniformBufferObjectToMaterial(material);
             }
         });
 
