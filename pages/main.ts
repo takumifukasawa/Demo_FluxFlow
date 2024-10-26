@@ -23,7 +23,7 @@ import { RenderTargetTypes, TextureDepthPrecisionType } from '@/PaleGL/constants
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import sceneJsonUrl from '../assets/data/scene.json';
+import sceneJsonUrl from './data/scene.json';
 
 import { Camera } from '@/PaleGL/actors/Camera';
 import { OrthographicCamera } from '@/PaleGL/actors/OrthographicCamera';
