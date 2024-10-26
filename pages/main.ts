@@ -21,8 +21,6 @@ import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass'
 // others
 import { RenderTargetTypes, TextureDepthPrecisionType } from '@/PaleGL/constants';
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import sceneJsonUrl from './data/scene.json';
 
 import { Camera } from '@/PaleGL/actors/Camera';
@@ -32,7 +30,8 @@ import soundVertexShader from '@/PaleGL/shaders/sound-vertex-demo.glsl';
 import { wait } from '@/utilities/wait.ts';
 import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
-import { Marionetter, MarionetterScene, MarionetterSceneStructure } from '@/Marionetter/types';
+import { Marionetter, MarionetterSceneStructure } from '@/Marionetter/types';
+import { MarionetterScene} from '@/Marionetter/types';
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
 
@@ -88,6 +87,7 @@ import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
 import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
+
 
 const stylesText = `
 body {
@@ -225,9 +225,10 @@ const engine = new Engine({ gpu, renderer, updateFps: 60 });
 engine.setScene(captureScene);
 
 const buildScene = (sceneJson: MarionetterScene) => {
-    console.log('[buildScene] scene json', sceneJson);
+    // console.log('[buildScene] scene json', sceneJson);
     // marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson, captureScene);
     marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson);
+    
     // timeline生成したらscene内のactorをbind
     const { actors } = marionetterSceneStructure;
 
@@ -380,7 +381,7 @@ const load = async () => {
     // parseScene(sceneJsonUrl as unknown as MarionetterScene);
     console.log('====== main ======');
     console.log(import.meta.env);
-    console.log(sceneJsonUrl);
+    // console.log(sceneJsonUrl);
 
     //
     // morph follower actor controller
@@ -589,8 +590,8 @@ const load = async () => {
     let timelineDeltaTime: number = 0;
 
     engine.onBeforeUpdate = () => {
-        // console.log("================")
-        // console.log(marionetterSceneStructure)
+        console.log("================")
+        console.log(marionetterSceneStructure)
         if (glslSoundWrapper && marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
             if (glslSoundWrapper.isPlaying()) {
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
@@ -598,8 +599,9 @@ const load = async () => {
             const snapToStep = (v: number, s: number) => Math.floor(v / s) * s;
             timelineTime = snapToStep(currentTimeForTimeline, 1 / 60);
             timelineDeltaTime = timelineTime - timelinePrevTime;
-            // console.log(glslSoundWrapper.isPlaying(), glslSoundWrapper.getCurrentTime())
-            // console.log(timelineTime, currentTimeForTimeline, timelineDeltaTime, timelinePrevTime)
+            console.log(glslSoundWrapper.isPlaying(), glslSoundWrapper.getCurrentTime())
+            console.log(timelineTime, currentTimeForTimeline, timelineDeltaTime, timelinePrevTime)
+            console.log(marionetterSceneStructure.marionetterTimeline.tracks)
             timelinePrevTime = timelineTime;
             marionetterSceneStructure.marionetterTimeline.execute({
                 time: timelineTime,

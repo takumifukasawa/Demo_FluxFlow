@@ -55,11 +55,11 @@ export type MarionetterArgs = {
 
 export type MarionetterScene = NeedsShorten extends true
     ? {
-          n: string;
+          // n: string;
           o: MarionetterObjectInfo[];
       }
     : {
-          name: string;
+          // name: string;
           objects: MarionetterObjectInfo[];
       };
 
@@ -100,6 +100,7 @@ export const enum MarionetterTrackInfoType {
     LightControlTrack = 2,
     ActivationControlTrack = 3,
     MarkerTrack = 4,
+    ObjectMoveAndLookAtTrack = 5,
 }
 
 export type MarionetterTrackInfoBase = NeedsShorten extends true
@@ -285,6 +286,8 @@ export type MarionetterComponentType = (typeof MarionetterComponentType)[keyof t
 export type MarionetterComponentInfoKinds =
     | MarionetterPlayableDirectorComponentInfo
     | MarionetterLightComponentInfo
+    | MarionetterSpotLightComponentInfo
+    | MarionetterDirectionalLightComponentInfo
     | MarionetterCameraComponentInfo
     | MarionetterMeshRendererComponentInfo
     | MarionetterMeshFilterComponentInfo
@@ -449,17 +452,19 @@ export type MarionetterLitMaterialInfo = (NeedsShorten extends true
       }) &
     MarionetterMaterialInfo;
 
+export type MarionetterMaterialKinds = MarionetterLitMaterialInfo;
+
 // mesh renderer
 
 export type MarionetterMeshRendererComponentInfo = MarionetterComponentInfoBase &
     (NeedsShorten extends true
         ? {
               mn: string;
-              m: MarionetterMaterialInfo;
+              m: MarionetterMaterialKinds;
           }
         : {
               materialName: string;
-              material: MarionetterMaterialInfo;
+              material: MarionetterMaterialKinds;
           });
 
 // mesh filter

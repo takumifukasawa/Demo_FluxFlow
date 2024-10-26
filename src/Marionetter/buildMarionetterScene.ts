@@ -18,7 +18,6 @@ import {
     MarionetterComponentType,
     MarionetterDirectionalLightComponentInfo,
     MarionetterLightComponentInfo,
-    MarionetterLitMaterialInfo,
     MarionetterMeshFilterComponentInfo,
     MarionetterMeshRendererComponentInfo,
     MarionetterObjectInfo,
@@ -40,6 +39,7 @@ import { maton } from '@/PaleGL/utilities/maton.ts';
 import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
 import { generateDepthOfFieldPassParameters } from '@/PaleGL/postprocess/DepthOfFieldPass.ts';
 import { createObjectMoveAndLookAtController } from '@/PaleGL/components/objectMoveAndLookAtController.ts';
+
 
 export function tryParseJsonString<T>(str: string) {
     let json: T | null = null;
@@ -195,7 +195,7 @@ export function buildMarionetterScene(
             // build material
             switch (meshRenderer.mn) {
                 case 'Lit':
-                    const m = meshRenderer.m as MarionetterLitMaterialInfo;
+                    const m = meshRenderer.m;
                     material = new GBufferMaterial({
                         diffuseColor: Color.fromHex(m.c),
                         metallic: m.m,

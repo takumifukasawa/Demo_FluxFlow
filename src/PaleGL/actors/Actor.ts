@@ -124,7 +124,7 @@ export class Actor {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setSize(width: number, height: number) {}
 
-    #tryStart({ gpu, scene }: ActorStartArgs) {
+    $tryStart({ gpu, scene }: ActorStartArgs) {
         if (this.isStarted) {
             return;
         }
@@ -154,7 +154,7 @@ export class Actor {
 
     // fixedUpdate({gpu, fixedTime, fixedDeltaTime}: { gpu: GPU, fixedTime: number, fixedDeltaTime: number } = {}) {
     fixedUpdate({ gpu, scene, fixedTime, fixedDeltaTime }: ActorFixedUpdateArgs) {
-        this.#tryStart({ gpu, scene });
+        this.$tryStart({ gpu, scene });
         this.components.forEach((component) => {
             component.fixedUpdate({ actor: this, gpu, fixedTime, fixedDeltaTime });
         });
@@ -168,7 +168,7 @@ export class Actor {
 
     // update({gpu, time, deltaTime}: { gpu: GPU, time: number, deltaTime: number } = {}) {
     update({ gpu, scene, time, deltaTime }: ActorUpdateArgs) {
-        this.#tryStart({ gpu, scene });
+        this.$tryStart({ gpu, scene });
         this.components.forEach((component) => {
             component.update({ actor: this, gpu, time, deltaTime });
         });
@@ -178,7 +178,7 @@ export class Actor {
     }
 
     lastUpdate({ gpu, scene, time, deltaTime }: ActorLastUpdateArgs) {
-        this.#tryStart({ gpu, scene });
+        this.$tryStart({ gpu, scene });
         this.components.forEach((component) => {
             component.lastUpdate({ actor: this, gpu, time, deltaTime });
         });

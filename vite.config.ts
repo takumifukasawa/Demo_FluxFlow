@@ -241,7 +241,7 @@ export default defineConfig(async (config) => {
             terserOptions: {
                 mangle: {
                     // toplevel: true,
-                    // properties: isMangleProperties,
+                    // properties: true,
                     properties: {
                         regex: /^(_|\$)/,
                     },
