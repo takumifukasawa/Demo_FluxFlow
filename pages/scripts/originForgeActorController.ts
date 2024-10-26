@@ -231,6 +231,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     {
                         name: UNIFORM_NAME_METABALL_CENTER_POSITION,
                         type: UniformTypes.Vector3,
+                        // value: Vector3.zero,
                         value: Vector3.zero,
                     },
                     {
@@ -404,6 +405,9 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     };
 
     const calcEmitInstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
+        // TODO: パラメーター化したい
+        // TODO: ちょっと回転とかさせたい
+        // TODO: 出す速度調整したい
         const range = lerp(0, 2, r);
         const p = maton.range(METABALL_NUM, true).map((i) => {
             const pd = 360 / METABALL_NUM;
@@ -459,7 +463,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     morphFollowersActorController.setInstanceState(i, { morphRate });
                 }
             } else {
-                // morphFollowersActorController.setInstancePosition(i, Vector3.zero);
+                // NOTE: 明後日の方向に飛ばす
+                // TODO: ここパラメーター化したい
                 morphFollowersActorController.setInstancePosition(i, new Vector3(
                     Math.cos(i) * 50,
                     Math.sin(i) * 40,

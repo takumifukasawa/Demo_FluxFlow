@@ -28,6 +28,7 @@ import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 import { OrbitMoverBinder } from './orbitMoverBinder.ts';
 import {clipRate, isTimeInClip} from '@/Marionetter/timelineUtilities.ts';
 import {easeInOutQuad, easeOutQuad} from "@/PaleGL/utilities/easingUtilities.ts";
+import {BoxGeometry} from "@/PaleGL/geometries/BoxGeometry.ts";
 
 const updateBufferSubDataEnabled = false;
 
@@ -163,7 +164,7 @@ export type MorphFollowersActorController = {
         followerIndex: number,
         followerSeed: number,
         orbitFollowTargetActor: Actor,
-        attractorTargetBoxMeshes: Mesh[],
+        attractorTargetBoxActors: Actor[],
         attractorTargetSphereActors: Actor[]
     ) => void;
     updateStatesAndBuffers: () => void;
@@ -328,21 +329,23 @@ export const createMorphFollowersActor = ({
     let _currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
     let _isControlled = false;
     let _orbitFollowTargetActor: Actor;
-    let _attractorTargetBoxMeshes: Mesh[] = [];
+    let _attractorTargetBoxActors: Actor[] = [];
     let _attractorTargetSphereActors: Actor[] = [];
+    let _refBoxGeometry: BoxGeometry;
 
     const initialize = (
         followerIndex: number,
         followerSeed: number,
         orbitFollowTargetActor: Actor,
-        attractorTargetBoxMeshes: Mesh[],
+        attractorTargetBoxActors: Actor[],
         attractorTargetSphereActors: Actor[]
     ) => {
         _followerIndex = followerIndex;
         _followerSeed = followerSeed;
         _orbitFollowTargetActor = orbitFollowTargetActor;
-        _attractorTargetBoxMeshes = attractorTargetBoxMeshes;
+        _attractorTargetBoxActors = attractorTargetBoxActors;
         _attractorTargetSphereActors = attractorTargetSphereActors;
+        _refBoxGeometry = new BoxGeometry({ gpu, size: 1 });
     };
 
     const instanceNum = INITIAL_INSTANCE_NUM;
@@ -841,14 +844,14 @@ export const createMorphFollowersActor = ({
 
             switch (_currentFollowMode) {
                 case FollowerAttractMode.FollowCubeEdge:
-                    const attractorTargetBox = _attractorTargetBoxMeshes[i % _attractorTargetBoxMeshes.length];
-                    if (attractorTargetBox) {
+                    const attractorTargetBoxActor = _attractorTargetBoxActors[i % _attractorTargetBoxActors.length];
+                    if (attractorTargetBoxActor) {
                         // set edge
-                        const lp = attractorTargetBox.geometry.getRandomLocalPositionOnEdge(
+                        const lp = _refBoxGeometry.getRandomLocalPositionOnEdge(
                             generateRandomValue(_followerSeed, i + _followerIndex),
                             generateRandomValue(_followerSeed, i + 1)
                         );
-                        const wp = attractorTargetBox.transform.localPointToWorld(lp);
+                        const wp = attractorTargetBoxActor.transform.localPointToWorld(lp);
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
                             p: wp,
                             attractAmplitude: 0.1,
