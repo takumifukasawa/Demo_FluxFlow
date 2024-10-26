@@ -228,7 +228,27 @@ export type MarionetterClipBinding = NeedsShorten extends true
           keyframes: MarionetterAnimationClipKeyframe[];
       };
 
-export type MarionetterAnimationClipKeyframe = NeedsShorten extends true
+// // for obj
+// export type MarionetterAnimationClipKeyframe = NeedsShorten extends true
+//     ? {
+//           t: number;
+//           v: number;
+//           i: number;
+//           o: number;
+//       }
+//     : {
+//           time: number;
+//           value: number;
+//           inTangent: number;
+//           outTangent: number;
+//       };
+
+
+// for arr
+export type MarionetterAnimationClipKeyframe = number[];
+
+// for obj
+export type MarionetterCurveKeyframe = NeedsShorten extends true
     ? {
           t: number;
           v: number;
@@ -242,20 +262,8 @@ export type MarionetterAnimationClipKeyframe = NeedsShorten extends true
           outTangent: number;
       };
 
-// TODO: 短縮系への対応
-export type MarionetterCurveKeyframe = NeedsShorten extends true
-    ? {
-          t: number;
-          v: number;
-          i: number;
-          o: number;
-      }
-    : {
-          t: number;
-          v: number;
-          i: number;
-          o: number;
-      };
+// for arr
+// export type MarionetterCurveKeyframe = number[];
 
 //
 // components

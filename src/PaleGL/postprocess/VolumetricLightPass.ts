@@ -19,15 +19,17 @@ import {
     PostProcessPassRenderArgs,
 } from '@/PaleGL/postprocess/PostProcessPassBase.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
-// import { Matrix4 } from '@/PaleGL/math/Matrix4.ts';
-// import spotLightFrustumVertex from '@/PaleGL/shaders/spotlight-frustum-vertex.glsl';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import { Material } from '@/PaleGL/materials/Material.ts';
 import { RenderTarget } from '@/PaleGL/core/RenderTarget.ts';
 import { AttributeDescriptor } from '@/PaleGL/core/Attribute.ts';
 import { Override } from '@/PaleGL/palegl';
-// import { Vector3 } from '@/PaleGL/math/Vector3.ts';
-// import { Color } from '@/PaleGL/math/Color.ts';
+
+const UNIFORM_VOLUME_DEPTH_TEXTURE = 'uVolumetricDepthTexture';
+const UNIFORM_NAME_RAY_STEP = 'uRayStep';
+const UNIFORM_NAME_DENSITY_MULTIPLIER = 'uDensityMultiplier';
+const UNIFORM_NAME_RAY_JITTER_SIZE_X = 'uRayJitterSizeX';
+const UNIFORM_NAME_RAY_JITTER_SIZE_Y = 'uRayJitterSizeY';
 
 export type VolumetricLightPassParametersBase = {
     rayStep: number;
@@ -93,22 +95,22 @@ export class VolumetricLightPass extends PostProcessPassBase {
                     value: maton.range(MAX_SPOT_LIGHT_COUNT).map(() => null),
                 },
                 {
-                    name: 'uRayStep',
+                    name: UNIFORM_NAME_RAY_STEP,
                     type: UniformTypes.Float,
                     value: 0,
                 },
                 {
-                    name: 'uDensityMultiplier',
+                    name: UNIFORM_NAME_DENSITY_MULTIPLIER,
                     type: UniformTypes.Float,
                     value: 0,
                 },
                 {
-                    name: 'uRayJitterSizeX',
+                    name: UNIFORM_NAME_RAY_JITTER_SIZE_X,
                     type: UniformTypes.Float,
                     value: 0,
                 },
                 {
-                    name: 'uRayJitterSizeY',
+                    name: UNIFORM_NAME_RAY_JITTER_SIZE_Y,
                     type: UniformTypes.Float,
                     value: 0,
                 },
@@ -123,12 +125,12 @@ export class VolumetricLightPass extends PostProcessPassBase {
                     value: null,
                 },
                 {
-                    name: 'uVolumetricDepthTexture',
+                    name: UNIFORM_VOLUME_DEPTH_TEXTURE,
                     type: UniformTypes.Texture,
                     value: null,
                 },
                 {
-                    name: 'uBlendRate',
+                    name: UniformNames.BlendRate,
                     type: UniformTypes.Float,
                     value: 1,
                 },
@@ -163,33 +165,15 @@ export class VolumetricLightPass extends PostProcessPassBase {
 
         this.spotLightFrustumMaterial = new Material({
             vertexShader: `#version 300 es
-                    
-                    layout (location = 0) in vec3 ${AttributeNames.Position};
-
-uniform mat4 uWorldMatrix;
-uniform mat4 uViewMatrix;
-uniform mat4 uProjectionMatrix;
-                    
-                    // out vec4 vWorldPosition;
-                   
-                    void main() {
-                        vec4 worldPosition = ${UniformNames.WorldMatrix} * vec4(${AttributeNames.Position}, 1.);
-                        // vWorldPosition = worldPosition;
-                        gl_Position = ${UniformNames.ProjectionMatrix} * ${UniformNames.ViewMatrix} * worldPosition;
-                    }
-                    `,
+layout (location = 0) in vec3 ${AttributeNames.Position};
+uniform mat4 ${UniformNames.WorldMatrix};
+uniform mat4 ${UniformNames.ViewMatrix};
+uniform mat4 ${UniformNames.ProjectionMatrix};
+void main() {vec4 wp=${UniformNames.WorldMatrix}*vec4(${AttributeNames.Position},1.);gl_Position=${UniformNames.ProjectionMatrix}*${UniformNames.ViewMatrix}*wp;}
+`,
             fragmentShader: `#version 300 es
-                   
-                    precision mediump float;
-
-                    // in vec4 vWorldPosition; 
-                    out vec4 outColor;
-                 
-                    void main() {
-                        outColor = vec4(1., 0., 0., 1.);
-                        // outColor = vec4(vWorldPosition.xyz, 1.);
-                    }
-                    `,
+precision mediump float;
+out vec4 o; void main(){o=vec4(1.,0.,0.,1.);}`,
             primitiveType: PrimitiveTypes.Triangles,
             blendType: BlendTypes.Opaque,
             // blendType: BlendTypes.Additive,
@@ -232,7 +216,6 @@ uniform mat4 uProjectionMatrix;
 
         super.setSize(this.width, this.height);
 
-        // this.renderTargetSpotLightFrustum.setSize(this.width, this.height);
         this.renderTargetSpotLightFrustum.setSize(this.rawWidth, this.rawHeight);
 
         this.material.uniforms.setValue(UniformNames.TargetWidth, this.width);
@@ -277,11 +260,11 @@ uniform mat4 uProjectionMatrix;
             UniformNames.SpotLightShadowMap,
             this.#spotLights.map((spotLight) => (spotLight.shadowMap ? spotLight.shadowMap?.read.depthTexture : null))
         );
-        this.material.uniforms.setValue('uVolumetricDepthTexture', this.renderTargetSpotLightFrustum.depthTexture);
-        this.material.uniforms.setValue('uRayStep', this.parameters.rayStep);
-        this.material.uniforms.setValue('uDensityMultiplier', this.parameters.densityMultiplier);
-        this.material.uniforms.setValue('uRayJitterSizeX', this.parameters.rayJitterSizeX);
-        this.material.uniforms.setValue('uRayJitterSizeY', this.parameters.rayJitterSizeY);
+        this.material.uniforms.setValue(UNIFORM_VOLUME_DEPTH_TEXTURE, this.renderTargetSpotLightFrustum.depthTexture);
+        this.material.uniforms.setValue(UNIFORM_NAME_RAY_STEP, this.parameters.rayStep);
+        this.material.uniforms.setValue(UNIFORM_NAME_DENSITY_MULTIPLIER, this.parameters.densityMultiplier);
+        this.material.uniforms.setValue(UNIFORM_NAME_RAY_JITTER_SIZE_X, this.parameters.rayJitterSizeX);
+        this.material.uniforms.setValue(UNIFORM_NAME_RAY_JITTER_SIZE_Y, this.parameters.rayJitterSizeY);
         this.material.uniforms.setValue(UniformNames.BlendRate, this.parameters.blendRate);
         
         // console.log(this.material.uniforms)

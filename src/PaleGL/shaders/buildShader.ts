@@ -21,6 +21,7 @@ import uniformBlockCommon from '@/PaleGL/shaders/partial/uniform-block-common.gl
 import uniformBlockTransformations from '@/PaleGL/shaders/partial/uniform-block-transformations.glsl';
 import uniformBlockCamera from '@/PaleGL/shaders/partial/uniform-block-camera.glsl';
 import pseudoHDR from '@/PaleGL/shaders/partial/pseudo-hdr.glsl';
+import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 export type ShaderDefines = {
     receiveShadow: boolean;
@@ -38,16 +39,15 @@ export type ShaderDefines = {
 const insertShaderPairs: {
     [key in ShaderPartialPragmas]: string;
 } = {
-    [ShaderPartialPragmas.DEPTH_FUNCTIONS]: depthFunctions,
-    // [ShaderPartialPragmas.ENGINE_UNIFORMS]: engineUniforms,
-    [ShaderPartialPragmas.ENGINE_UNIFORMS]: uniformBlockCommon,
+    [ShaderPartialPragmas.DEPTH_FUNCTIONS]: isDevelopment() ? depthFunctions : '',
+    [ShaderPartialPragmas.ENGINE_UNIFORMS]: isDevelopment() ? uniformBlockCommon : '',
     [ShaderPartialPragmas.TRANSFORM_VERTEX_UNIFORMS]: uniformBlockTransformations,
     [ShaderPartialPragmas.CAMERA_UNIFORMS]: uniformBlockCamera,
-    [ShaderPartialPragmas.PSEUDO_HDR]: pseudoHDR
+    [ShaderPartialPragmas.PSEUDO_HDR]: pseudoHDR,
 };
 
 /**
- * 
+ *
  * @param receiveShadow
  * @param isSkinning
  * @param gpuSkinning
@@ -68,7 +68,7 @@ const buildShaderDefines = ({
     useVertexColor,
     useAlphaTest,
     isInstancing,
-    useInstanceLookDirection
+    useInstanceLookDirection,
 }: ShaderDefines): string[] => {
     const arr: string[] = [];
     if (receiveShadow) {
@@ -84,7 +84,7 @@ const buildShaderDefines = ({
     if (useNormalMap) {
         arr.push('#define USE_NORMAL_MAP');
     }
-    if(useEnvMap) {
+    if (useEnvMap) {
         arr.push('#define USE_ENV_MAP');
     }
     // if (useReceiveShadow) {
@@ -99,7 +99,7 @@ const buildShaderDefines = ({
     if (isInstancing) {
         arr.push('#define USE_INSTANCING');
     }
-    if(useInstanceLookDirection) {
+    if (useInstanceLookDirection) {
         arr.push('#define USE_INSTANCE_LOOK_DIRECTION');
     }
 
@@ -107,7 +107,7 @@ const buildShaderDefines = ({
 };
 
 /**
- * 
+ *
  * @param attributeDescriptors
  */
 const buildVertexAttributeLayouts = (attributeDescriptors: AttributeDescriptor[]): string[] => {
@@ -165,7 +165,7 @@ const buildVertexAttributeLayouts = (attributeDescriptors: AttributeDescriptor[]
 };
 
 /**
- * 
+ *
  * @param shader
  * @param attributeDescriptors
  * @param defineOptions
@@ -190,7 +190,6 @@ export const buildVertexShader = (
         const attributes = buildVertexAttributeLayouts(attributeDescriptors);
         return attributes.join('\n');
     });
-    
 
     // replace shader block
     Object.values(VertexShaderModifierPragmas).forEach((value) => {
@@ -218,7 +217,7 @@ export const buildVertexShader = (
 };
 
 /**
- * 
+ *
  * @param shader
  * @param defineOptions
  * @param fragmentShaderModifier
@@ -235,7 +234,7 @@ export const buildFragmentShader = (
         const defines = buildShaderDefines(defineOptions);
         return defines.join('\n');
     });
-   
+
     // replace shader block
     Object.values(FragmentShaderModifierPragmas).forEach((value) => {
         const pragma = value as FragmentShaderModifierPragmas;

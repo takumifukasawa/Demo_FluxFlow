@@ -15,9 +15,6 @@ import { Scene } from '@/PaleGL/core/Scene';
 import { Vector3 } from '@/PaleGL/math/Vector3';
 import { Vector4 } from '@/PaleGL/math/Vector4';
 
-// postprocess
-import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass';
-
 // others
 import { RenderTargetTypes, TextureDepthPrecisionType } from '@/PaleGL/constants';
 
@@ -87,6 +84,7 @@ import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
 import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
+import {createBufferVisualizerPass} from "./scripts/createBufferVisualizerPass.ts";
 
 
 const stylesText = `
@@ -170,11 +168,11 @@ styleElement.innerText = stylesText;
 document.head.appendChild(styleElement);
 
 let width: number, height: number;
-let bufferVisualizerPass: BufferVisualizerPass;
 let directionalLight: DirectionalLight;
 let currentTimeForTimeline = 0;
 let captureSceneCamera: PerspectiveCamera | null;
 let marionetterSceneStructure: MarionetterSceneStructure | null = null;
+let cameraPostProcess: PostProcess;
 
 // const wrapperElement = document.getElementById("wrapper")!;
 const wrapperElement = document.createElement('div');
@@ -303,15 +301,15 @@ const buildScene = (sceneJson: MarionetterScene) => {
         // }
     }
 
-    const cameraPostProcess = new PostProcess();
+    cameraPostProcess = new PostProcess();
 
-    if (isDevelopment()) {
-        bufferVisualizerPass = new BufferVisualizerPass({
-            gpu,
-        });
-        bufferVisualizerPass.parameters.enabled = false;
-        cameraPostProcess.addPass(bufferVisualizerPass);
-    }
+    // if (isDevelopment()) {
+    //     bufferVisualizerPass = new BufferVisualizerPass({
+    //         gpu,
+    //     });
+    //     bufferVisualizerPass.parameters.enabled = false;
+    //     cameraPostProcess.addPass(bufferVisualizerPass);
+    // }
 
     cameraPostProcess.enabled = true;
     // TODO: set post process いらないかも
@@ -590,8 +588,6 @@ const load = async () => {
     let timelineDeltaTime: number = 0;
 
     engine.onBeforeUpdate = () => {
-        console.log("================")
-        console.log(marionetterSceneStructure)
         if (glslSoundWrapper && marionetterSceneStructure && marionetterSceneStructure.marionetterTimeline) {
             if (glslSoundWrapper.isPlaying()) {
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
@@ -599,9 +595,6 @@ const load = async () => {
             const snapToStep = (v: number, s: number) => Math.floor(v / s) * s;
             timelineTime = snapToStep(currentTimeForTimeline, 1 / 60);
             timelineDeltaTime = timelineTime - timelinePrevTime;
-            console.log(glslSoundWrapper.isPlaying(), glslSoundWrapper.getCurrentTime())
-            console.log(timelineTime, currentTimeForTimeline, timelineDeltaTime, timelinePrevTime)
-            console.log(marionetterSceneStructure.marionetterTimeline.tracks)
             timelinePrevTime = timelineTime;
             marionetterSceneStructure.marionetterTimeline.execute({
                 time: timelineTime,
@@ -672,6 +665,8 @@ const playDemo = () => {
     };
 
     if (isDevelopment()) {
+        const bufferVisualizerPass = createBufferVisualizerPass({ gpu})
+        cameraPostProcess.addPass(bufferVisualizerPass);
         const debuggerGUI = initDebugger({
             bufferVisualizerPass,
             glslSound: glslSoundWrapper.glslSound!, // 存在しているとみなしちゃう

@@ -1,4 +1,4 @@
-import { MarionetterCurveKeyframe } from '@/Marionetter/types';
+import { MarionetterAnimationClipKeyframe, MarionetterCurveKeyframe } from '@/Marionetter/types';
 
 /**
  *
@@ -37,13 +37,25 @@ function curveUtilityEvaluate(t: number, k0: MarionetterCurveKeyframe, k1: Mario
     return curveUtilityEvaluateRaw(rt, k0, k1);
 }
 
+export function buildKeyframe(keyframe: MarionetterAnimationClipKeyframe): MarionetterCurveKeyframe {
+    return {
+        t: keyframe[0],
+        v: keyframe[1],
+        i: keyframe[2],
+        o: keyframe[3],
+    };
+}
+
 /**
  *
  * @param t
  * @param keys
  */
-export function curveUtilityEvaluateCurve(t: number, keys: MarionetterCurveKeyframe[]): number {
+export function curveUtilityEvaluateCurve(t: number, keys: MarionetterAnimationClipKeyframe[]): number {
     // TODO: infinite前提の場合はt自体をclampしてもよいかもしれない
+
+    const firstK = buildKeyframe(keys[0]);
+    const lastK = buildKeyframe(keys[keys.length - 1]);
 
     // const keys = curve.keys;
 
@@ -53,21 +65,21 @@ export function curveUtilityEvaluateCurve(t: number, keys: MarionetterCurveKeyfr
     }
 
     if (keys.length === 1) {
-        return keys[0].v;
+        return firstK.v;
     }
 
-    if (t < keys[0].t) {
-        return keys[0].v;
+    if (t < firstK.t) {
+        return firstK.v;
     }
 
-    if (t >= keys[keys.length - 1].t) {
-        return keys[keys.length - 1].v;
+    if (t >= lastK.t) {
+        return lastK.v;
     }
 
     // TODO: keyframeが多いとループ数が増えるのでtimeをbinarysearchかけるとよい
     for (let i = 0; i < keys.length - 1; i++) {
-        const k0 = keys[i];
-        const k1 = keys[i + 1];
+        const k0 = buildKeyframe(keys[i]);
+        const k1 = buildKeyframe(keys[i + 1]);
         if (k0.t <= t && t < k1.t) {
             // for debug
             //Debug.Log($"time: {t}, k0.time: {k0.time}");
