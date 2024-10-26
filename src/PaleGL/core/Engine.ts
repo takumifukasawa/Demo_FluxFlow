@@ -120,7 +120,7 @@ export class Engine {
 
         if (isDevelopment()) {
             this.#stats = new Stats({ showStats, showPipeline: false }); // 一旦手動で
-            this.#renderer.setStats(this.#stats);
+            this.#renderer.stats = this.#stats;
         }
 
         // TODO: 外からfps変えられるようにしたい
@@ -239,10 +239,10 @@ export class Engine {
                     actor.beforeRender({ gpu: this.#gpu });
                     const mesh = actor as Mesh;
                     mesh.materials.forEach((mat) => {
-                        this.renderer.checkNeedsBindUniformBufferObjectToMaterial(mat);
+                        this.renderer.$checkNeedsBindUniformBufferObjectToMaterial(mat);
                     });
                     mesh.depthMaterials.forEach((mat) => {
-                        this.renderer.checkNeedsBindUniformBufferObjectToMaterial(mat);
+                        this.renderer.$checkNeedsBindUniformBufferObjectToMaterial(mat);
                     });
                     break;
                 default:

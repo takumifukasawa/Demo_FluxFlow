@@ -214,24 +214,7 @@ export class Matrix4 {
         n32: number,
         n33: number
     ) {
-        this.e = new Float32Array([
-            n00,
-            n10,
-            n20,
-            n30,
-            n01,
-            n11,
-            n21,
-            n31,
-            n02,
-            n12,
-            n22,
-            n32,
-            n03,
-            n13,
-            n23,
-            n33,
-        ]);
+        this.e = new Float32Array([n00, n10, n20, n30, n01, n11, n21, n31, n02, n12, n22, n32, n03, n13, n23, n33]);
         return this;
     }
 
@@ -425,22 +408,26 @@ export class Matrix4 {
      * @param m
      */
     copy(m: Matrix4) {
-        this.m00 = m.m00;
-        this.m01 = m.m01;
-        this.m02 = m.m02;
-        this.m03 = m.m03;
-        this.m10 = m.m10;
-        this.m11 = m.m11;
-        this.m12 = m.m12;
-        this.m13 = m.m13;
-        this.m20 = m.m20;
-        this.m21 = m.m21;
-        this.m22 = m.m22;
-        this.m23 = m.m23;
-        this.m30 = m.m30;
-        this.m31 = m.m31;
-        this.m32 = m.m32;
-        this.m33 = m.m33;
+        // tmp
+        // this.m00 = m.m00;
+        // this.m01 = m.m01;
+        // this.m02 = m.m02;
+        // this.m03 = m.m03;
+        // this.m10 = m.m10;
+        // this.m11 = m.m11;
+        // this.m12 = m.m12;
+        // this.m13 = m.m13;
+        // this.m20 = m.m20;
+        // this.m21 = m.m21;
+        // this.m22 = m.m22;
+        // this.m23 = m.m23;
+        // this.m30 = m.m30;
+        // this.m31 = m.m31;
+        // this.m32 = m.m32;
+        // this.m33 = m.m33;
+
+        this.e = new Float32Array([...m.e]);
+       
         return this;
     }
 

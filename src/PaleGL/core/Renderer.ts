@@ -65,6 +65,7 @@ import { PointLight } from '@/PaleGL/actors/PointLight.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
 import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
 import { GlitchPass } from '@/PaleGL/postprocess/GlitchPass.ts';
+import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 type RenderMeshInfo = { actor: Mesh; materialIndex: number; queue: RenderQueueType };
 
@@ -222,7 +223,7 @@ export class Renderer {
 
         this._fxaaPass = new FXAAPass({ gpu });
         this._scenePostProcess.addPass(this._fxaaPass);
-        
+
         //
         // initialize global uniform buffer objects
         //
@@ -530,36 +531,15 @@ export class Renderer {
         console.log('=========================================');
     }
 
-    // registerUniformBufferObjectToMaterial(material: Material) {
-    //     if (!material.shader) {
-    //         return;
-    //     }
-    //     material.uniformBlockNames.forEach((blockName) => {
-    //         const targetUniformBufferObject = this.globalUniformBufferObjects.find(
-    //             (ubo) => ubo.blockName === blockName
-    //         );
-    //         if (!targetUniformBufferObject) {
-    //             return;
-    //         }
-    //         const blockIndex = this.gpu.bindUniformBlockAndGetBlockIndex(
-    //             targetUniformBufferObject,
-    //             material.shader!,
-    //             blockName,
-    //         );
-    //         // material.addUniformBufferObject(targetUniformBufferObject, blockIndex);
-    //         material.uniforms.addUniformBlock(targetUniformBufferObject, blockIndex);
-    //     });
-    // }
-
     // TODO: materialのstartの中でやりたい
-    checkNeedsBindUniformBufferObjectToMaterial(material: Material) {
+    $checkNeedsBindUniformBufferObjectToMaterial(material: Material) {
         // mesh.materials.forEach((material) => {
         if (material.boundUniformBufferObjects) {
             return;
         }
         material.boundUniformBufferObjects = true;
         // for debug
-        // console.log("[Renderer.checkNeedsBindUniformBufferObjectToMaterial]", material.name)
+        // console.log("[Renderer.$checkNeedsBindUniformBufferObjectToMaterial]", material.name)
         material.uniformBlockNames.forEach((blockName) => {
             const targetGlobalUniformBufferObject = this.globalUniformBufferObjects.find(
                 ({ uniformBufferObject }) => uniformBufferObject.blockName === blockName
@@ -600,19 +580,6 @@ export class Renderer {
     get gBufferRenderTargets() {
         return this._gBufferRenderTargets;
     }
-
-    // get scenePostProcess() {
-    //     return this._scenePostProcess;
-    // }
-
-    // get ambientOcclusionRenderTarget() {
-    //     // return this._ambientOcclusionRenderTarget;
-    //     return this._ambientOcclusionPass.renderTarget;
-    // }
-
-    // get deferredShadingPass() {
-    //     return this._deferredShadingPass;
-    // }
 
     get screenSpaceShadowPass() {
         return this._screenSpaceShadowPass;
@@ -668,14 +635,6 @@ export class Renderer {
 
     get fxaaPass() {
         return this._fxaaPass;
-    }
-
-    /**
-     *
-     * @param stats
-     */
-    setStats(stats: Stats) {
-        this.stats = stats;
     }
 
     /**
@@ -1157,7 +1116,7 @@ export class Renderer {
             // lightActors,
         });
         // return;
-        
+
         // ------------------------------------------------------------------------------
         // transparent pass
         // ------------------------------------------------------------------------------
@@ -1181,9 +1140,8 @@ export class Renderer {
         });
 
         this.setRenderTarget(this._afterDeferredShadingRenderTarget.write);
-        
-        this.$transparentPass(sortedTransparentRenderMeshInfos, camera, lightActors);
 
+        this.$transparentPass(sortedTransparentRenderMeshInfos, camera, lightActors);
 
         // ------------------------------------------------------------------------------
         // full screen pass
@@ -1246,9 +1204,11 @@ export class Renderer {
     renderMesh(geometry: Geometry, material: Material) {
         geometry.update();
 
-        if (this.stats) {
-            this.stats.addDrawVertexCount(geometry);
-            this.stats.incrementDrawCall();
+        if (isDevelopment()) {
+            if (this.stats) {
+                this.stats.addDrawVertexCount(geometry);
+                this.stats.incrementDrawCall();
+            }
         }
 
         // vertex
@@ -1307,7 +1267,7 @@ export class Renderer {
     private gpu;
     realWidth: number = 1;
     realHeight: number = 1;
-    private stats: Stats | null = null;
+    stats: Stats | null = null;
     private _scenePostProcess: PostProcess;
     // internal cmmera
     private screenQuadCamera: Camera = OrthographicCamera.CreateFullQuadOrthographicCamera();
@@ -1335,7 +1295,7 @@ export class Renderer {
     private _glitchPass: GlitchPass;
     private _vignettePass: VignettePass;
     private _fxaaPass: FXAAPass;
-    
+
     /**
      *
      * @param actor
@@ -1517,8 +1477,8 @@ export class Renderer {
                     console.error('[Renderer.depthPrePass] invalid depth material');
                     return;
                 }
-                
-                if(!depthMaterial.canRender) {
+
+                if (!depthMaterial.canRender) {
                     return;
                 }
 
@@ -1528,8 +1488,10 @@ export class Renderer {
 
                 this.renderMesh(actor.geometry, depthMaterial);
 
-                if (this.stats) {
-                    this.stats.addPassInfo('depth pre pass', actor.name, actor.geometry);
+                if (isDevelopment()) {
+                    if (this.stats) {
+                        this.stats.addPassInfo('depth pre pass', actor.name, actor.geometry);
+                    }
                 }
             });
         });
@@ -1591,7 +1553,7 @@ export class Renderer {
                         return;
                     }
 
-                    if(!depthMaterial.canRender) {
+                    if (!depthMaterial.canRender) {
                         return;
                     }
 
@@ -1601,8 +1563,10 @@ export class Renderer {
                     );
 
                     this.renderMesh(actor.geometry, depthMaterial);
-                    if (this.stats) {
-                        this.stats.addPassInfo('shadow pass', actor.name, actor.geometry);
+                    if (isDevelopment()) {
+                        if (this.stats) {
+                            this.stats.addPassInfo('shadow pass', actor.name, actor.geometry);
+                        }
                     }
                 });
             });
@@ -1676,8 +1640,10 @@ export class Renderer {
 
             this.renderMesh(actor.geometry, targetMaterial);
 
-            if (this.stats) {
-                this.stats.addPassInfo('scene pass', actor.name, actor.geometry);
+            if (isDevelopment()) {
+                if (this.stats) {
+                    this.stats.addPassInfo('scene pass', actor.name, actor.geometry);
+                }
             }
         });
     }
@@ -2079,35 +2045,7 @@ export class Renderer {
 
         sortedRenderMeshInfos.forEach(({ actor, materialIndex }) => {
             const targetMaterial = actor.materials[materialIndex];
-
-            // // targetMaterial.uniforms.setValue(UniformNames.WorldMatrix, actor.transform.worldMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.WorldMatrix, actor.transform.worldMatrix.e);
-            // // targetMaterial.uniforms.setValue(UniformNames.ViewMatrix, camera.viewMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.ViewMatrix, camera.viewMatrix.e);
-            // // targetMaterial.uniforms.setValue(UniformNames.ProjectionMatrix, camera.projectionMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.ProjectionMatrix, camera.projectionMatrix.e);
-            // this.updateUniformBlockTransformations(actor, camera);
-            // this.setUniformBlockValue(
-            //     UniformBlockNames.Transformations,
-            //     UniformNames.WorldMatrix,
-            //     actor.transform.worldMatrix
-            // );
-            // this.setUniformBlockValue(
-            //     UniformBlockNames.Transformations,
-            //     UniformNames.InverseWorldMatrix,
-            //     actor.transform.inverseWorldMatrix
-            // );
-            // this.setUniformBlockValue(
-            //     UniformBlockNames.Transformations,
-            //     UniformNames.NormalMatrix,
-            //     actor.transform.normalMatrix
-            // );
             this.updateActorTransformUniforms(actor);
-            // targetMaterial.uniforms.setValue(
-            //     UniformNames.NormalMatrix,
-            //     actor.transform.worldMatrix.clone().invert().transpose()
-            // );
-            // targetMaterial.uniforms.setValue(UniformNames.ViewPosition, camera.transform.worldMatrix.position);
 
             // TODO:
             // - light actor の中で lightの種類別に処理を分ける
@@ -2121,8 +2059,10 @@ export class Renderer {
 
             this.renderMesh(actor.geometry, targetMaterial);
 
-            if (this.stats) {
-                this.stats.addPassInfo('transparent pass', actor.name, actor.geometry);
+            if (isDevelopment()) {
+                if (this.stats) {
+                    this.stats.addPassInfo('transparent pass', actor.name, actor.geometry);
+                }
             }
         });
     }
