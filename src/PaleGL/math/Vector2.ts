@@ -1,22 +1,22 @@
 ﻿import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 export class Vector2 {
-    elements: Float32Array = new Float32Array(2);
+    e: Float32Array = new Float32Array(2);
 
     get x() {
-        return this.elements[0];
+        return this.e[0];
     }
 
     get y() {
-        return this.elements[1];
+        return this.e[1];
     }
 
     set x(value) {
-        this.elements[0] = value;
+        this.e[0] = value;
     }
 
     set y(value) {
-        this.elements[1] = value;
+        this.e[1] = value;
     }
 
     constructor(x: number, y: number) {
@@ -24,7 +24,7 @@ export class Vector2 {
     }
 
     set(x: number, y: number) {
-        this.elements = new Float32Array([x, y]);
+        this.e = new Float32Array([x, y]);
         return this;
     }
 

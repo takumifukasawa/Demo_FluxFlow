@@ -1,36 +1,36 @@
 ﻿export class Color {
-    elements: Float32Array = new Float32Array(4); // each 0~1
+    e: Float32Array = new Float32Array(4); // each 0~1
 
     get r() {
-        return this.elements[0];
+        return this.e[0];
     }
 
     get g() {
-        return this.elements[1];
+        return this.e[1];
     }
 
     get b() {
-        return this.elements[2];
+        return this.e[2];
     }
 
     get a() {
-        return this.elements[3];
+        return this.e[3];
     }
 
     get r255() {
-        return this.elements[0] * 255;
+        return this.e[0] * 255;
     }
 
     get g255() {
-        return this.elements[1] * 255;
+        return this.e[1] * 255;
     }
 
     get b255() {
-        return this.elements[2] * 255;
+        return this.e[2] * 255;
     }
 
     get a255() {
-        return this.elements[3] * 255;
+        return this.e[3] * 255;
     }
 
     get rgbArray() {
@@ -38,19 +38,19 @@
     }
 
     set r(value) {
-        this.elements[0] = value;
+        this.e[0] = value;
     }
 
     set g(value) {
-        this.elements[1] = value;
+        this.e[1] = value;
     }
 
     set b(value) {
-        this.elements[2] = value;
+        this.e[2] = value;
     }
 
     set a(value) {
-        this.elements[3] = value;
+        this.e[3] = value;
     }
 
     constructor(r: number = 0, g: number = 0, b: number = 0, a: number = 1) {
@@ -58,15 +58,15 @@
     }
 
     set(r: number, g: number, b: number, a: number) {
-        this.elements = new Float32Array([r, g, b, a]);
+        this.e = new Float32Array([r, g, b, a]);
     }
 
     multiplyScalar(s: number, withAlpha: boolean = false) {
-        this.elements[0] *= s;
-        this.elements[1] *= s;
-        this.elements[2] *= s;
+        this.e[0] *= s;
+        this.e[1] *= s;
+        this.e[2] *= s;
         if (withAlpha) {
-            this.elements[3] *= s;
+            this.e[3] *= s;
         }
         return this;
     }

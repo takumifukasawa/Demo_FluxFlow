@@ -1423,7 +1423,7 @@ export class Renderer {
         //                 data.push(0);
         //                 break;
         //             default:
-        //                 data.push(...(v.value as Vector2 | Vector3 | Vector4 | Matrix4 | Color).elements);
+        //                 data.push(...(v.value as Vector2 | Vector3 | Vector4 | Matrix4 | Color).e);
         //         }
         //     });
         //     return data;
@@ -1458,7 +1458,7 @@ export class Renderer {
         //                     data.push(0);
         //                     data.push(0);
         //                 } else {
-        //                     data.push(...(v as Vector2 | Vector3 | Vector4 | Matrix4 | Color).elements);
+        //                     data.push(...(v as Vector2 | Vector3 | Vector4 | Matrix4 | Color).e);
         //                 }
         //             });
         //             targetUbo.updateBufferData(uniformName, new Float32Array(data));
@@ -1467,7 +1467,7 @@ export class Renderer {
         //                 uniformName,
         //                 typeof value === 'number'
         //                     ? new Float32Array([value])
-        //                     : (value as Vector2 | Vector3 | Vector4 | Matrix4 | Color).elements
+        //                     : (value as Vector2 | Vector3 | Vector4 | Matrix4 | Color).e
         //             );
         //         }
         //         break;
@@ -1828,21 +1828,21 @@ export class Renderer {
                     data.push(0);
                     break;
                 case UniformTypes.Vector2:
-                    data.push(...(value as Vector2).elements);
+                    data.push(...(value as Vector2).e);
                     data.push(0);
                     break;
                 case UniformTypes.Vector3:
-                    data.push(...(value as Vector3).elements);
+                    data.push(...(value as Vector3).e);
                     data.push(0);
                     break;
                 case UniformTypes.Vector4:
-                    data.push(...(value as Vector4).elements);
+                    data.push(...(value as Vector4).e);
                     break;
                 case UniformTypes.Matrix4:
-                    data.push(...(value as Matrix4).elements);
+                    data.push(...(value as Matrix4).e);
                     break;
                 case UniformTypes.Color:
-                    data.push(...(value as Color).elements);
+                    data.push(...(value as Color).e);
                     break;
                 default:
                     console.error(`invalid uniform type: ${type}`);
@@ -1886,7 +1886,7 @@ export class Renderer {
                             data.push(0);
                             data.push(0);
                         } else {
-                            data.push(...(v as UniformBufferObjectElementValueNoNeedsPadding).elements);
+                            data.push(...(v as UniformBufferObjectElementValueNoNeedsPadding).e);
                         }
                     });
                     targetUbo.updateBufferData(uniformName, new Float32Array(data));
@@ -1895,7 +1895,7 @@ export class Renderer {
                         uniformName,
                         typeof value === 'number'
                             ? new Float32Array([value])
-                            : (value as Vector2 | Vector3 | Vector4 | Matrix4 | Color).elements
+                            : (value as Vector2 | Vector3 | Vector4 | Matrix4 | Color).e
                     );
                 }
                 break;
@@ -2088,11 +2088,11 @@ export class Renderer {
             const targetMaterial = actor.materials[materialIndex];
 
             // // targetMaterial.uniforms.setValue(UniformNames.WorldMatrix, actor.transform.worldMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.WorldMatrix, actor.transform.worldMatrix.elements);
+            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.WorldMatrix, actor.transform.worldMatrix.e);
             // // targetMaterial.uniforms.setValue(UniformNames.ViewMatrix, camera.viewMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.ViewMatrix, camera.viewMatrix.elements);
+            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.ViewMatrix, camera.viewMatrix.e);
             // // targetMaterial.uniforms.setValue(UniformNames.ProjectionMatrix, camera.projectionMatrix);
-            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.ProjectionMatrix, camera.projectionMatrix.elements);
+            // this.globalUniformBufferObjects.find((ubo) => ubo.blockName === UniformBlockNames.Transformations)?.updateBufferData(UniformNames.ProjectionMatrix, camera.projectionMatrix.e);
             // this.updateUniformBlockTransformations(actor, camera);
             // this.setUniformBlockValue(
             //     UniformBlockNames.Transformations,

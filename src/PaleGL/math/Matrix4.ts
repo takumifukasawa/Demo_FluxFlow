@@ -12,134 +12,134 @@ import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 // m30(3), m31(7), m32(11), m33(15),
 
 export class Matrix4 {
-    elements: Float32Array = new Float32Array(16);
+    e: Float32Array = new Float32Array(16);
 
     get m00() {
-        return this.elements[0];
+        return this.e[0];
     }
 
     get m01() {
-        return this.elements[4];
+        return this.e[4];
     }
 
     get m02() {
-        return this.elements[8];
+        return this.e[8];
     }
 
     get m03() {
-        return this.elements[12];
+        return this.e[12];
     }
 
     get m10() {
-        return this.elements[1];
+        return this.e[1];
     }
 
     get m11() {
-        return this.elements[5];
+        return this.e[5];
     }
 
     get m12() {
-        return this.elements[9];
+        return this.e[9];
     }
 
     get m13() {
-        return this.elements[13];
+        return this.e[13];
     }
 
     get m20() {
-        return this.elements[2];
+        return this.e[2];
     }
 
     get m21() {
-        return this.elements[6];
+        return this.e[6];
     }
 
     get m22() {
-        return this.elements[10];
+        return this.e[10];
     }
 
     get m23() {
-        return this.elements[14];
+        return this.e[14];
     }
 
     get m30() {
-        return this.elements[3];
+        return this.e[3];
     }
 
     get m31() {
-        return this.elements[7];
+        return this.e[7];
     }
 
     get m32() {
-        return this.elements[11];
+        return this.e[11];
     }
 
     get m33() {
-        return this.elements[15];
+        return this.e[15];
     }
 
     set m00(value: number) {
-        this.elements[0] = value;
+        this.e[0] = value;
     }
 
     set m01(value: number) {
-        this.elements[4] = value;
+        this.e[4] = value;
     }
 
     set m02(value: number) {
-        this.elements[8] = value;
+        this.e[8] = value;
     }
 
     set m03(value: number) {
-        this.elements[12] = value;
+        this.e[12] = value;
     }
 
     set m10(value: number) {
-        this.elements[1] = value;
+        this.e[1] = value;
     }
 
     set m11(value: number) {
-        this.elements[5] = value;
+        this.e[5] = value;
     }
 
     set m12(value: number) {
-        this.elements[9] = value;
+        this.e[9] = value;
     }
 
     set m13(value: number) {
-        this.elements[13] = value;
+        this.e[13] = value;
     }
 
     set m20(value: number) {
-        this.elements[2] = value;
+        this.e[2] = value;
     }
 
     set m21(value: number) {
-        this.elements[6] = value;
+        this.e[6] = value;
     }
 
     set m22(value: number) {
-        this.elements[10] = value;
+        this.e[10] = value;
     }
 
     set m23(value: number) {
-        this.elements[14] = value;
+        this.e[14] = value;
     }
 
     set m30(value: number) {
-        this.elements[3] = value;
+        this.e[3] = value;
     }
 
     set m31(value: number) {
-        this.elements[7] = value;
+        this.e[7] = value;
     }
 
     set m32(value: number) {
-        this.elements[11] = value;
+        this.e[11] = value;
     }
 
     set m33(value: number) {
-        this.elements[15] = value;
+        this.e[15] = value;
     }
 
     get position() {
@@ -214,7 +214,7 @@ export class Matrix4 {
         n32: number,
         n33: number
     ) {
-        this.elements = new Float32Array([
+        this.e = new Float32Array([
             n00,
             n10,
             n20,
@@ -346,8 +346,8 @@ export class Matrix4 {
     multiply(m2: Matrix4) {
         // const m1 = this;
 
-        const e1 = this.elements;
-        const e2 = m2.elements;
+        const e1 = this.e;
+        const e2 = m2.e;
 
         const ma00 = e1[0],
             ma01 = e1[4],
@@ -511,7 +511,7 @@ export class Matrix4 {
      */
     invert() {
         // based on http://www.euclideanspace.com/maths/algebra/matrix/functions/inverse/fourD/index.htm
-        const te = this.elements,
+        const te = this.e,
             n11 = te[0],
             n21 = te[1],
             n31 = te[2],
@@ -738,27 +738,27 @@ export class Matrix4 {
 
         // row-order
         // // https://github.com/toji/gl-matrix/blob/master/src/mat4.js
-        // pjm.elements[0]= f / aspect; // m00
-        // pjm.elements[1]= 0; // m10
-        // pjm.elements[2]= 0; // m20
-        // pjm.elements[3]= 0; // m30
-        // pjm.elements[4]= 0; // m01
-        // pjm.elements[5]= f; // m11
-        // pjm.elements[6]= 0; // m21
-        // pjm.elements[7]= 0; // m31
-        // pjm.elements[8]= 0; // m02
-        // pjm.elements[9]= 0; // m12
-        // pjm.elements[11]= -1; // m32
-        // pjm.elements[12]= 0; // m03
-        // pjm.elements[13]= 0; // m13
-        // pjm.elements[15]= 0; // m33
+        // pjm.e[0]= f / aspect; // m00
+        // pjm.e[1]= 0; // m10
+        // pjm.e[2]= 0; // m20
+        // pjm.e[3]= 0; // m30
+        // pjm.e[4]= 0; // m01
+        // pjm.e[5]= f; // m11
+        // pjm.e[6]= 0; // m21
+        // pjm.e[7]= 0; // m31
+        // pjm.e[8]= 0; // m02
+        // pjm.e[9]= 0; // m12
+        // pjm.e[11]= -1; // m32
+        // pjm.e[12]= 0; // m03
+        // pjm.e[13]= 0; // m13
+        // pjm.e[15]= 0; // m33
         // if (far != null && far !== Infinity) {
         //     const nf = 1 / (near - far);
-        //     pjm.elements[10]= (far + near) * nf; // m22
-        //     pjm.elements[14]= 2 * far * near * nf; // m23
+        //     pjm.e[10]= (far + near) * nf; // m22
+        //     pjm.e[14]= 2 * far * near * nf; // m23
         // } else {
-        //     pjm.elements[10]= -1; // m22
-        //     pjm.elements[14]= -2 * near; // m23
+        //     pjm.e[10]= -1; // m22
+        //     pjm.e[14]= -2 * near; // m23
         // }
 
         return pjm;

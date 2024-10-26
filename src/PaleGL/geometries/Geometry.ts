@@ -151,8 +151,8 @@ export class Geometry {
             const n = new Vector3(x, y, z);
             const t = Vector3.getTangent(n);
             const b = Vector3.getBinormalFromTangent(t, n);
-            tangents.push(...t.elements);
-            binormals.push(...b.elements);
+            tangents.push(...t.e);
+            binormals.push(...b.e);
         }
         return {
             tangents,
@@ -171,7 +171,7 @@ export class Geometry {
             const n = new Vector3(normals[i * 3 + 0], normals[i * 3 + 1], normals[i * 3 + 2]);
             const t = new Vector3(tangents[i * 3 + 0], tangents[i * 3 + 1], tangents[i * 3 + 2]);
             const b = Vector3.getBinormalFromTangent(t, n);
-            binormals.push(...b.elements);
+            binormals.push(...b.e);
         }
         return binormals;
     }

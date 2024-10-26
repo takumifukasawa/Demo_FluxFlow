@@ -1,7 +1,7 @@
 ﻿import {Matrix4} from "@/PaleGL/math/Matrix4.ts";
 
 export class Vector4 {
-    elements: Float32Array = new Float32Array(4);
+    e: Float32Array = new Float32Array(4);
 
     constructor(x: number, y: number, z: number, w: number) {
         this.set(x, y, z, w);
@@ -16,39 +16,39 @@ export class Vector4 {
     }
 
     get x() {
-        return this.elements[0];
+        return this.e[0];
     }
 
     get y() {
-        return this.elements[1];
+        return this.e[1];
     }
 
     get z() {
-        return this.elements[2];
+        return this.e[2];
     }
 
     get w() {
-        return this.elements[3];
+        return this.e[3];
     }
 
     set x(value) {
-        this.elements[0] = value;
+        this.e[0] = value;
     }
 
     set y(value) {
-        this.elements[1] = value;
+        this.e[1] = value;
     }
 
     set z(value) {
-        this.elements[2] = value;
+        this.e[2] = value;
     }
 
     set w(value) {
-        this.elements[3] = value;
+        this.e[3] = value;
     }
 
     set(x: number, y: number, z: number, w: number) {
-        this.elements = new Float32Array([x, y, z, w]);
+        this.e = new Float32Array([x, y, z, w]);
     }
 
 

@@ -229,7 +229,7 @@ export class SkinnedMesh extends Mesh {
                     ...jointMatricesAllFramesFlatten,
                     ...new Array(fillNum).fill(0).map(() => Matrix4.identity),
                 ]
-                    .map((m) => [...m.elements])
+                    .map((m) => [...m.e])
                     .flat()
             );
 
@@ -256,8 +256,8 @@ row num: ${rowNum},
 col pixels: ${colNum * matrixColNum},
 row pixels: ${rowNum},
 total pixels: ${colNum * matrixColNum * rowNum},
-all elements: ${colNum * matrixColNum * rowNum * 4},
-matrix elements: ${jointData.length}`);
+all e: ${colNum * matrixColNum * rowNum * 4},
+matrix e: ${jointData.length}`);
         }
     }
 
@@ -272,8 +272,8 @@ matrix elements: ${jointData.length}`);
         if (this.boneLines && this.bonePoints) {
             // console.log("--------")
             const boneLinePositions: number[][] = this.#boneOrderedIndex.map((bone) => {
-                // console.log(bone.jointMatrix.position.elements)
-                return [...bone.jointMatrix.position.elements];
+                // console.log(bone.jointMatrix.position.e)
+                return [...bone.jointMatrix.position.e];
             });
             // this.boneLines.geometry.updateAttribute(AttributeNames.Position, boneLinePositions.flat())
             // this.bonePoints.geometry.updateAttribute(AttributeNames.Position, boneLinePositions.flat())
@@ -312,7 +312,7 @@ matrix elements: ${jointData.length}`);
             const fillNum = colNum * rowNum - this.boneCount;
             const jointData = new Float32Array(
                 [...jointMatrices, ...new Array(fillNum).fill(0).map(() => Matrix4.identity)]
-                    .map((m) => [...m.elements])
+                    .map((m) => [...m.e])
                     .flat()
             );
 

@@ -263,15 +263,15 @@ out vec4 o; void main() {o=vec4(0,1.,0,1.);}
                     AttributeNames.Position,
                     new Float32Array([
                         // near clip
-                        ...frustumPositions.nearLeftTop.elements,
-                        ...frustumPositions.nearLeftBottom.elements,
-                        ...frustumPositions.nearRightTop.elements,
-                        ...frustumPositions.nearRightBottom.elements,
+                        ...frustumPositions.nearLeftTop.e,
+                        ...frustumPositions.nearLeftBottom.e,
+                        ...frustumPositions.nearRightTop.e,
+                        ...frustumPositions.nearRightBottom.e,
                         // far clip
-                        ...frustumPositions.farLeftTop.elements,
-                        ...frustumPositions.farLeftBottom.elements,
-                        ...frustumPositions.farRightTop.elements,
-                        ...frustumPositions.farRightBottom.elements,
+                        ...frustumPositions.farLeftTop.e,
+                        ...frustumPositions.farLeftBottom.e,
+                        ...frustumPositions.farRightTop.e,
+                        ...frustumPositions.farRightBottom.e,
                     ])
                 );
                 this.visibleFrustumMesh.enabled = this.visibleFrustum;

@@ -328,40 +328,40 @@ export class GPU {
                     gl.uniform1fv(location, value as Float32Array);
                     break;
                 case UniformTypes.Vector2:
-                    gl.uniform2fv(location, (value as Vector2).elements);
+                    gl.uniform2fv(location, (value as Vector2).e);
                     break;
                 case UniformTypes.Vector2Array:
-                    gl.uniform2fv(location, (value as Vector2[]).map((v) => [...v.elements]).flat());
+                    gl.uniform2fv(location, (value as Vector2[]).map((v) => [...v.e]).flat());
                     break;
                 case UniformTypes.Vector3:
-                    gl.uniform3fv(location, (value as Vector3).elements);
+                    gl.uniform3fv(location, (value as Vector3).e);
                     break;
                 case UniformTypes.Vector3Array:
-                    gl.uniform3fv(location, (value as Vector3[]).map((v) => [...v.elements]).flat());
+                    gl.uniform3fv(location, (value as Vector3[]).map((v) => [...v.e]).flat());
                     break;
                 case UniformTypes.Vector4:
-                    gl.uniform4fv(location, (value as Vector4).elements);
+                    gl.uniform4fv(location, (value as Vector4).e);
                     break;
                 case UniformTypes.Vector4Array:
-                    gl.uniform4fv(location, (value as Vector4[]).map((v) => [...v.elements]).flat());
+                    gl.uniform4fv(location, (value as Vector4[]).map((v) => [...v.e]).flat());
                     break;
                 case UniformTypes.Matrix4:
                     // arg[1] ... use transpose.
-                    gl.uniformMatrix4fv(location, false, (value as Matrix4).elements);
+                    gl.uniformMatrix4fv(location, false, (value as Matrix4).e);
                     break;
                 case UniformTypes.Matrix4Array:
                     if (value) {
                         // arg[1] ... use transpose.
-                        gl.uniformMatrix4fv(location, false, (value as Matrix4[]).map((v) => [...v.elements]).flat());
+                        gl.uniformMatrix4fv(location, false, (value as Matrix4[]).map((v) => [...v.e]).flat());
                     }
                     break;
                 case UniformTypes.Color:
-                    gl.uniform4fv(location, (value as Color).elements);
+                    gl.uniform4fv(location, (value as Color).e);
                     break;
                 case UniformTypes.ColorArray:
                     if (value) {
                         // arg[1] ... use transpose.
-                        gl.uniform4fv(location, (value as Color[]).map((v) => [...v.elements]).flat());
+                        gl.uniform4fv(location, (value as Color[]).map((v) => [...v.e]).flat());
                     }
                     break;
                 case UniformTypes.Texture:

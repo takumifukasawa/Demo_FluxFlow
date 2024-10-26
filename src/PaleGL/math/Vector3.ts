@@ -10,30 +10,30 @@ export function createVector3FromRaw(raw: RawVector3) {
 // export const createVector3Zero = () => new Vector3(0, 0, 0);
 
 export class Vector3 {
-    elements: Float32Array = new Float32Array(3);
+    e: Float32Array = new Float32Array(3);
 
     get x() {
-        return this.elements[0];
+        return this.e[0];
     }
 
     get y() {
-        return this.elements[1];
+        return this.e[1];
     }
 
     get z() {
-        return this.elements[2];
+        return this.e[2];
     }
 
     set x(value) {
-        this.elements[0] = value;
+        this.e[0] = value;
     }
 
     set y(value) {
-        this.elements[1] = value;
+        this.e[1] = value;
     }
 
     set z(value) {
-        this.elements[2] = value;
+        this.e[2] = value;
     }
 
     get magnitude() {
@@ -46,7 +46,7 @@ export class Vector3 {
     }
 
     set(x: number, y: number, z: number) {
-        this.elements = new Float32Array([x, y, z]);
+        this.e = new Float32Array([x, y, z]);
         return this;
     }
 

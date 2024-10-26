@@ -450,7 +450,7 @@ export const createMorphFollowersActor = ({
             lerp(20, 40, generateRandomValue(1, i)),
             lerp(20, 200, generateRandomValue(2, i))
         );
-        tmpInstanceInfo.color.push([...c.elements]);
+        tmpInstanceInfo.color.push([...c.e]);
 
         // emissive color
         const ec = Color.fromRGB(
@@ -458,7 +458,7 @@ export const createMorphFollowersActor = ({
             lerp(20, 40, generateRandomValue(1, i)),
             lerp(20, 200, generateRandomValue(2, i)) * 4
         );
-        tmpInstanceInfo.emissiveColor.push([...ec.elements]);
+        tmpInstanceInfo.emissiveColor.push([...ec.e]);
 
         // look direction
         tmpInstanceInfo.lookDirection.push([0, 0, 1]);
@@ -597,7 +597,7 @@ export const createMorphFollowersActor = ({
         transformFeedbackDoubleBuffer.updateBufferSubData(
             TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME,
             index,
-            p.elements
+            p.e
         );
         // }
 
@@ -628,7 +628,7 @@ export const createMorphFollowersActor = ({
         instancingInfo.scale[index * 3 + 1] = s.y;
         instancingInfo.scale[index * 3 + 2] = s.z;
         if (updateBufferSubDataEnabled) {
-            mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceScale, index, s.elements);
+            mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceScale, index, s.e);
         }
     };
 
@@ -639,7 +639,7 @@ export const createMorphFollowersActor = ({
         instancingInfo.color[index * 4 + 2] = c.b;
         instancingInfo.color[index * 4 + 3] = c.a;
         if (updateBufferSubDataEnabled) {
-            mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceVertexColor, index, c.elements);
+            mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceVertexColor, index, c.e);
         }
     };
 
@@ -653,7 +653,7 @@ export const createMorphFollowersActor = ({
             mesh.geometry.vertexArrayObject.updateBufferSubData(
                 AttributeNames.InstanceEmissiveColor,
                 index,
-                c.elements
+                c.e
             );
         }
     };
@@ -667,7 +667,7 @@ export const createMorphFollowersActor = ({
             mesh.geometry.vertexArrayObject.updateBufferSubData(
                 AttributeNames.InstanceState,
                 index,
-                lookDirection.elements
+                lookDirection.e
             );
         }
     };
@@ -866,7 +866,7 @@ export const createMorphFollowersActor = ({
                                 i % _attractorTargetSphereActors.length
                             ].transform.localPointToWorld(lp); // TODO: timelineの後でやるべき
                         // for debug
-                        // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
+                        // console.log(i, randomOnUnitSphere(i).e, randomOnUnitSphere(i).e, lp.e, wp.e, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.e)
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                             p: wp,
                             attractAmplitude: 0.1,
@@ -919,7 +919,7 @@ export const createMorphFollowersActor = ({
             //     const lp = randomOnUnitSphere(i).scale(0.5);
             //     const wp = _attractorTargetSphereActor.transform.localPointToWorld(lp);
             //     // for debug
-            //     // console.log(i, randomOnUnitSphere(i).elements, randomOnUnitSphere(i).elements, lp.elements, wp.elements, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.elements)
+            //     // console.log(i, randomOnUnitSphere(i).e, randomOnUnitSphere(i).e, lp.e, wp.e, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.e)
             //     setInstanceAttractTargetPosition(i, wp, FollowerAttractMode.FollowSphereSurface);
             //     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
             //     continue;
