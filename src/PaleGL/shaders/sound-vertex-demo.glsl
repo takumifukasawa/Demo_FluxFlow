@@ -690,7 +690,7 @@ vec2 epiano(float note, float t)
 
 
 // ------------------------------------------------------------------------------------
-// SEQUENCER_BEGIN
+// SEQ_BEGIN
 // ------------------------------------------------------------------------------------
 
 // オリジナルのシーケンサー. vite経由だとなぜかminifyがエラーになる。手動cliだとうまくいく
@@ -698,7 +698,7 @@ vec2 epiano(float note, float t)
 // measureCount ... 小節数. 4拍で1小節とする
 // TODO: little-endian, big-endian 考慮する必要がある？
 // ref: https://github.com/equinor/glsl-float-to-rgba/blob/master/README.md
-// #define SEQUENCER(rawBeat, time, beatTempo, totalBeatCount, notes, noteCount, toneFunc) \
+// #define SEQ(rawBeat, time, beatTempo, totalBeatCount, notes, noteCount, toneFunc) \
 //     float tempoScale = beatTempo / 4.; /* 4拍が基本 */ \
 //     float fLocalBeatIndex = mod(rawBeat * tempoScale, float(totalBeatCount)); /* シーケンス内でのビート番号 */ \
 //     int accRawBeatPrevLength = 0; \
@@ -759,12 +759,13 @@ vec2 epiano(float note, float t)
 //     res /= max(1., acc - gainAcc); \
 
 // なぜかvite経由だとminifyがうまくいかないので手動cliでminifyを走らせたコードを貼り付ける
-// #define SEQUENCER(rawBeat,time,beatTempo,totalBeatCount,notes,noteCount,toneFunc)float tempoScale=beatTempo/4.;float fLocalBeatIndex=mod(rawBeat*tempoScale,float(totalBeatCount));int accRawBeatPrevLength=0;int accRawBeatLength=0;int targetNoteIndex=-1;for(int i=0;i<noteCount;i++){if(i==0){int rawNoteLength=notes[i*2+1];if(0.<fLocalBeatIndex&&fLocalBeatIndex<float(rawNoteLength)){targetNoteIndex=0;accRawBeatLength+=rawNoteLength;break;}accRawBeatLength+=rawNoteLength;}else{int rawNoteLength=notes[(i-1)*2+1];int nextRawNoteNumber=notes[i*2];int nextRawNoteLength=notes[i*2+1];if( float(accRawBeatLength)<fLocalBeatIndex&&fLocalBeatIndex<(float(accRawBeatLength)+float(nextRawNoteLength))){targetNoteIndex=i;accRawBeatPrevLength=accRawBeatLength;accRawBeatLength+=nextRawNoteLength;break;}accRawBeatPrevLength=accRawBeatLength;accRawBeatLength+=nextRawNoteLength;}}int currentNoteNumber=notes[targetNoteIndex*2];int currentNoteLength=notes[targetNoteIndex*2+1];int[4]noteNumbers=int[4]( (int(currentNoteNumber)&255),((int(currentNoteNumber)>>8)&255),((int(currentNoteNumber)>>16)&255),((int(currentNoteNumber)>>24)&255));if(targetNoteIndex==-1){return vec2(0.);}float fLocalBeatIndexInNote=fLocalBeatIndex-float(accRawBeatPrevLength);float localTime=BEAT_TO_TIME(mod(fLocalBeatIndexInNote,float(currentNoteLength))/tempoScale);float fallbackAmp=1.-smoothstep(.1,.2,fLocalBeatIndexInNote/float(currentNoteLength));fallbackAmp=1.;vec2 res=vec2(0.);float acc=0.;for(int i=0;i<4;i++){float fNoteNumber=float(noteNumbers[i]);float isNoteOn=(fNoteNumber>0.?1.:0.);res+=vec2(toneFunc(fNoteNumber,localTime))*isNoteOn*fallbackAmp;acc+=isNoteOn;}float gainAcc=1.5;res/=max(1.,acc-gainAcc);
+// #define SEQ(rawBeat,time,beatTempo,totalBeatCount,notes,noteCount,toneFunc)float tempoScale=beatTempo/4.;float fLocalBeatIndex=mod(rawBeat*tempoScale,float(totalBeatCount));int accRawBeatPrevLength=0;int accRawBeatLength=0;int targetNoteIndex=-1;for(int i=0;i<noteCount;i++){if(i==0){int rawNoteLength=notes[i*2+1];if(0.<fLocalBeatIndex&&fLocalBeatIndex<float(rawNoteLength)){targetNoteIndex=0;accRawBeatLength+=rawNoteLength;break;}accRawBeatLength+=rawNoteLength;}else{int rawNoteLength=notes[(i-1)*2+1];int nextRawNoteNumber=notes[i*2];int nextRawNoteLength=notes[i*2+1];if( float(accRawBeatLength)<fLocalBeatIndex&&fLocalBeatIndex<(float(accRawBeatLength)+float(nextRawNoteLength))){targetNoteIndex=i;accRawBeatPrevLength=accRawBeatLength;accRawBeatLength+=nextRawNoteLength;break;}accRawBeatPrevLength=accRawBeatLength;accRawBeatLength+=nextRawNoteLength;}}int currentNoteNumber=notes[targetNoteIndex*2];int currentNoteLength=notes[targetNoteIndex*2+1];int[4]noteNumbers=int[4]( (int(currentNoteNumber)&255),((int(currentNoteNumber)>>8)&255),((int(currentNoteNumber)>>16)&255),((int(currentNoteNumber)>>24)&255));if(targetNoteIndex==-1){return vec2(0.);}float fLocalBeatIndexInNote=fLocalBeatIndex-float(accRawBeatPrevLength);float localTime=BEAT_TO_TIME(mod(fLocalBeatIndexInNote,float(currentNoteLength))/tempoScale);float fallbackAmp=1.-smoothstep(.1,.2,fLocalBeatIndexInNote/float(currentNoteLength));fallbackAmp=1.;vec2 res=vec2(0.);float acc=0.;for(int i=0;i<4;i++){float fNoteNumber=float(noteNumbers[i]);float isNoteOn=(fNoteNumber>0.?1.:0.);res+=vec2(toneFunc(fNoteNumber,localTime))*isNoteOn*fallbackAmp;acc+=isNoteOn;}float gainAcc=1.5;res/=max(1.,acc-gainAcc);
 
-#define SEQUENCER(rb,time,bt,tbc,ns,nc,tf)float ts=bt/4.;float flbi=mod(rb*ts,float(tbc));int arbpl=0;int arbl=0;int tni=-1;for(int i=0;i<nc;i++){if(i==0){int rnl=ns[i*2+1];if(0.<flbi&&flbi<float(rnl)){tni=0;arbl+=rnl;break;}arbl+=rnl;}else{int rnl=ns[(i-1)*2+1];int nrnn=ns[i*2];int nrnl=ns[i*2+1];if( float(arbl)<flbi&&flbi<(float(arbl)+float(nrnl))){tni=i;arbpl=arbl;arbl+=nrnl;break;}arbpl=arbl;arbl+=nrnl;}}int cnn=ns[tni*2];int cnl=ns[tni*2+1];int[4]nns=int[4]( (int(cnn)&255),((int(cnn)>>8)&255),((int(cnn)>>16)&255),((int(cnn)>>24)&255));if(tni==-1){return vec2(0.);}float flbiin=flbi-float(arbpl);float lt=BEAT_TO_TIME(mod(flbiin,float(cnl))/ts);float fa=1.-smoothstep(.1,.2,flbiin/float(cnl));fa=1.;vec2 res=vec2(0.);float acc=0.;for(int i=0;i<4;i++){float fnn=float(nns[i]);float ino=(fnn>0.?1.:0.);res+=vec2(tf(fnn,lt))*ino*fa;acc+=ino;}float ga=1.5;res/=max(1.,acc-ga);
+// さらに圧縮
+#define SEQ(rb,time,bt,tbc,ns,nc,tf)float ts=bt/4.;float flbi=mod(rb*ts,float(tbc));int arbpl=0;int arbl=0;int tni=-1;for(int i=0;i<nc;i++){if(i==0){int rnl=ns[i*2+1];if(0.<flbi&&flbi<float(rnl)){tni=0;arbl+=rnl;break;}arbl+=rnl;}else{int rnl=ns[(i-1)*2+1];int nrnn=ns[i*2];int nrnl=ns[i*2+1];if( float(arbl)<flbi&&flbi<(float(arbl)+float(nrnl))){tni=i;arbpl=arbl;arbl+=nrnl;break;}arbpl=arbl;arbl+=nrnl;}}int cnn=ns[tni*2];int cnl=ns[tni*2+1];int[4]nns=int[4]( (int(cnn)&255),((int(cnn)>>8)&255),((int(cnn)>>16)&255),((int(cnn)>>24)&255));if(tni==-1){return vec2(0.);}float flbiin=flbi-float(arbpl);float lt=BEAT_TO_TIME(mod(flbiin,float(cnl))/ts);float fa=1.-smoothstep(.1,.2,flbiin/float(cnl));fa=1.;vec2 res=vec2(0.);float acc=0.;for(int i=0;i<4;i++){float fnn=float(nns[i]);float ino=(fnn>0.?1.:0.);res+=vec2(tf(fnn,lt))*ino*fa;acc+=ino;}float ga=1.5;res/=max(1.,acc-ga);
 
 // ------------------------------------------------------------------------------------
-// SEQUENCER_END
+// SEQ_END
 // ------------------------------------------------------------------------------------
 
 // melodies ----------------------------
@@ -777,7 +778,7 @@ vec2 epianoHarmonySeqBase(float rawBeat, float time) {
         Dsh3(6), G3(2), F3(6)
     );
 
-    SEQUENCER(rawBeat, time, T16, 64., notes, 12, epiano);
+    SEQ(rawBeat, time, T16, 64., notes, 12, epiano);
 
     return res * 3.;
 }
@@ -790,8 +791,8 @@ vec2 epianoHarmonySeqHook(float rawBeat, float time) {
         F3(2), Dsh3(4), Ash3(2), G3(2), F3(2), FM3I2(4)
     );
 
-    // SEQUENCER(rawBeat, time, T8, 16., notes, 5, epiano);
-    SEQUENCER(rawBeat, time, T16, 64., notes, 21, epiano);
+    // SEQ(rawBeat, time, T8, 16., notes, 5, epiano);
+    SEQ(rawBeat, time, T16, 64., notes, 21, epiano);
 
     return res * 3.;
 }
@@ -801,7 +802,7 @@ vec2 synthHarmonySeqBase(float rawBeat, float time) {
         G3(12), O(4)
     );
 
-    SEQUENCER(rawBeat, time * .1, T8, 8., notes, 2, synth);
+    SEQ(rawBeat, time * .1, T8, 8., notes, 2, synth);
 
 return res * 1.;
 }
@@ -812,7 +813,7 @@ vec2 snareFillIntroSeq(float rawBeat, float time) {
         S(1), S(1), S(1), S(1)
     );
     
-    SEQUENCER(rawBeat, time, T4, 8., notes, 8, snareFill);
+    SEQ(rawBeat, time, T4, 8., notes, 8, snareFill);
 
     return res * .1;
 }
@@ -826,7 +827,7 @@ vec2 arpBaseLoopSeqBase(float rawBeat, float time) {
     // );
 
     // // pattern2
-    // SEQUENCER(rawBeat, time, T8, 32., notes, 28, arp);
+    // SEQ(rawBeat, time, T8, 32., notes, 28, arp);
 
     int[32] notes = int[32](
         G3(1), G3(1), O(1),
@@ -837,7 +838,7 @@ vec2 arpBaseLoopSeqBase(float rawBeat, float time) {
     );
 
     // pattern2
-    SEQUENCER(rawBeat, time, T8, 16., notes, 16, arp);
+    SEQ(rawBeat, time, T8, 16., notes, 16, arp);
 
 
 return res * .2;
@@ -851,7 +852,7 @@ vec2 kickSeqBase(float rawBeat, float time) {
         S(1), O(1), S(1), O(1)
     );
     
-    SEQUENCER(rawBeat, time, T8, 16., notes, 16, kick);
+    SEQ(rawBeat, time, T8, 16., notes, 16, kick);
 
     return res * .05;
 }
@@ -865,38 +866,33 @@ vec2 bassSeqBase(float rawBeat, float time) {
     G3(3), G3(1), O(1), G3(2), O(1),
     G3(3), A3(2), G3(2), O(1)
     );
-    SEQUENCER(rawBeat, time, T8, 32., notes, 19, bass);
+    SEQ(rawBeat, time, T8, 32., notes, 19, bass);
 
     return vec2(res) * .05;
     // return vec2(res) * .05 * lowPassFilter(res.x, 100., 1.);
 }
-
 
 vec2 bassLowSeqBase(float rawBeat, float time) {
     int[8] notes = int[8](
     G2(8), F2(8),
     Ash2(8), A2(8)
     );
-    SEQUENCER(rawBeat, time, T8, 32., notes, 4, bass);
+    SEQ(rawBeat, time, T8, 32., notes, 4, bass);
 
 return vec2(res) * .05;
 // return vec2(res) * .05 * lowPassFilter(res.x, 100., 1.);
 }
-
 
 vec2 bassHighSeqBase(float rawBeat, float time) {
     int[8] notes = int[8](
     G4(8), F4(8),
     Ash4(8), A4(8)
     );
-    SEQUENCER(rawBeat, time, T8, 32., notes, 4, bass);
+    SEQ(rawBeat, time, T8, 32., notes, 4, bass);
 
 return vec2(res) * .05;
 // return vec2(res) * .05 * lowPassFilter(res.x, 100., 1.);
 }
-
-
-
 
 vec2 hihat1BaseLoopSeq(float rawBeat, float time) {
     int[24] notes = int[24](
@@ -905,279 +901,9 @@ vec2 hihat1BaseLoopSeq(float rawBeat, float time) {
         S(1), O(1), S(1), S(1),
         O(1), S(1), O(2)
     );
-    SEQUENCER(rawBeat, time, T16, 16., notes, 12, hihat1);
+    SEQ(rawBeat, time, T16, 16., notes, 12, hihat1);
 return res * .2;
 }
-
-// ------- tmp -------
-
-// vec2 epianoSeqBase(float rawBeat, float time) {
-//     // int[] notes = int[](
-//     //     G2m7, 65, 65, 0,
-//     //     G2m7, 65, 65, 0
-//     //     
-//     // );
-//     // SEQUENCER(rawBeat, time, T8, 2., notes, arp);
-// 
-//     int[10] notes = int[10](
-//     // pattern9 
-//     // 上下
-//     G3(3), E3(3), A3(3), G3(5), O(2)
-//     );
-// 
-//     // pattern9 
-//     SEQUENCER(rawBeat, time, T8, 16., notes, 5, epiano);
-// 
-// return res * 3.;
-// }
-// 
-// 
-// vec2 epianoMelodyMainSeq(float rawBeat, float time) {
-//     int[40] notes = int[40](
-//     G4(3), E3(3), A3(3), G3(5), O(2),
-//     G3(3), E3(3), A3(3), G3(5), O(2),
-//     G3(3), E3(3), B3(3), A3(3), B3(2), D4(1),
-//     C4(3), B3(3), G3(5), O(5)
-//     );
-//     SEQUENCER(rawBeat, time, T8, 64., notes, 20, epiano);
-// return res * 1.;
-// }
-// 
-// vec2 arpSeqBase(float rawBeat, float time) {
-//     int[8] notes = int[8](
-//     // 4小節アルペジオ: 砂漠っぽい感じ？
-//     E4(2), G4(2), A4(2), G4(2)
-//     );
-//     SEQUENCER(rawBeat, time, T8, 8., notes, 4, arp);
-// float volume = .5;
-// return res * volume;
-// }
-// 
-// 
-// vec2 kickSeqBase(float rawBeat, float time) {
-//     int[32] notes = int[32](
-//     S(1), O(1), S(1), O(1),
-//     S(1), S(1), S(1), O(1),
-//     S(1), O(1), S(1), O(1),
-//     S(1), S(1), S(1), O(1)
-//     );
-//     SEQUENCER(rawBeat, time, T8, 16., notes, 16, kick);
-// return res * .5;
-// }
-// 
-// vec2 bassSeqBase(float rawBeat, float time) {
-//     int[38] notes = int[38](
-//     // pattern7
-//     // E4(6), B4(2)
-//     E4(3), E4(1), O(1), G4(2), O(1),
-//     E4(3), E4(1), O(1), B4(2), O(1),
-//     E4(3), E4(1), O(1), G4(2), O(1),
-//     E4(3), B4(2), G4(2), O(1)
-//     );
-//     // SEQUENCER(rawBeat, time, T8, 8., notes, 2, bass);
-//     SEQUENCER(rawBeat, time, T8, 32., notes, 19, bass);
-// return vec2(res) * .1;
-// }
-// 
-// vec2 snareSeqBase(float rawBeat, float time) {
-//     int[16] notes = int[16](
-//     S(1), S(1), S(1), S(1),
-//     S(1), S(1), S(1), S(1)
-//     );
-//     SEQUENCER(rawBeat, time, T4, 8., notes, 8, snare);
-// float volume = .2;
-// return vec2(res) * volume;
-// }
-// 
-// vec2 snareFillSeqBase(float rawBeat, float time) {
-//     int[16] notes = int[16](
-//     S(1), S(1), S(1), S(1),
-//     S(1), S(1), S(1), S(1)
-//     );
-//     SEQUENCER(rawBeat, time, T4, 8., notes, 8, snareFill);
-// float volume = .5;
-// return vec2(res) * volume;
-// }
-// 
-// float phase(float beat, float inBeat, float outBeat) {
-//     return step(inBeat, beat) * (1. - step(outBeat, beat));
-// }
-// 
-// 
-// // 最低限のメロディループ
-// vec2 epianoMelodyLoopBaseSeq(float rawBeat, float time) {
-//     int[20] notes = int[20](
-//     G4(3), E4(3), A4(3), G4(5), O(2),
-//     G4(3), E4(3), A4(3), G4(5), O(2)
-//     );
-//     SEQUENCER(rawBeat, time, T8, 16., notes, 10, epiano);
-// return res * 3.;
-// }
-// 
-// vec2 epianoHarmonyBaseSeq(float rawBeat, float time) {
-//     int[16] notes = int[16](
-//     // ダウナーな感じ
-//     // E4(2), C4(2), D4(3), O(1)
-// 
-//     // Em3(3), Em3(4), O(1),
-//     // Em3(3), Em3(4), O(1),
-//     // GM3(3), GM3(4), O(1),
-//     // GM3(3), GM3(4), O(1),
-//     // GM3(3), GM3(4), O(1),
-//     // GM3(3), GM3(4), O(1)
-// 
-//     // memo 
-//     // Em,Am,D,Bm
-//     // Am,Em,D,Bm
-// 
-//     // pattern1
-//     // 基本っぽいコード        
-//     // Am3(3), Em3(3), CM4(3), Bm3(5), O(2)
-// 
-//     // pattern2
-//     // 2音ずつのベースっぽい感じ 
-//     // Em3(3), Em3(4), O(1),
-//     // Em3(3), Em3(4), O(1),
-//     // GM3(3), GM3(4), O(1),
-//     // GM3(3), GM3(4), O(1)
-//     Am3(4), Am3(4),
-//     Em3(4), Em3(4),
-//     CM4(4), CM4(4),
-//     Bm3(4), Bm3(4)
-//     );
-// 
-//     // SEQUENCER(rawBeat, time, T8, 16., notes, 5, epiano);
-//     SEQUENCER(rawBeat, time, T8, 32., notes, 8, epiano);
-// 
-// return res * 3.;
-// }
-// 
-// vec2 baseIntroSeq(float rawBeat, float time) {
-//     // // int[32] notes = int[32](
-//     // //     G3(4), O(2), G3(4), O(2), G3(3)
-//     // // );
-//     // 
-//     // int[32] notes = int[32](
-//     // Am3(2), Am3(1), Am3(1),
-//     // Em2(1), Em2(1), Em2(1), Em2(1),
-//     // CM3(1), CM3(1), CM3(1), CM3(1),
-//     // Bm2(1), Bm2(1), Bm2(1), Bm2(1)
-//     // );
-// 
-//     // // pattern1
-//     // SEQUENCER(rawBeat, time, T8, 16., notes, 15, base);
-// 
-//     // // pattern3
-//     // // SEQUENCER(rawBeat, time, T8, 32., notes, 16, base)
-// 
-//     // // pattern3
-//     // // SEQUENCER(rawBeat, time, T8, 64., notes, 20, base)
-// 
-// 
-// int[26] notes = int[26](
-// // pattern1
-// // G3(2), A3(2), G3(2), E3(2),
-// // G3(2), B3(2), A3(2), G3(2)
-// 
-// // pattern2
-// // G3(1), A3(1), A3(1), G3(1), O(1), B3(1), O(2),
-// // G3(1), A3(1), A3(1), G3(1), O(1), B3(1), O(2),
-// // E3(1), Fsh3(1), Fsh3(1), E3(1), O(1), G3(1), O(2),
-// // E3(1), Fsh3(1), Fsh3(1), E3(1), O(1), G3(1), O(2)
-// Am3(2), A3(1), G3(1), G3(1), B3(1), O(2),
-// G3(1), G3(1), A3(1), G3(1), G3(1), B3(1), O(2)
-// 
-// // pattern3
-// // G3(1), O(1), A3(1), O(1), G3(1), B3(1), O(2),
-// // G3(1), O(1), A3(1), O(1), G3(1), B3(1), O(2),
-// // E3(1), O(1), Fsh3(1), O(1), E3(1), G3(1), O(2),
-// // E3(1), O(1), Fsh3(1), O(1), E3(1), G3(1), O(2)
-// );
-// 
-// // pattern1
-// // SEQUENCER(rawBeat, time, T16, 16., notes, 8, arp);
-// 
-// // pattern2
-// SEQUENCER(rawBeat, time, T8, 16., notes, 13, arp);
-// 
-// return res * .8;
-// }
-// 
-// vec2 snareFillIntroSeq(float rawBeat, float time) {
-//     int[16] notes = int[16](
-//     S(1), S(1), S(1), S(1),
-//     S(1), S(1), S(1), S(1)
-//     );
-//     SEQUENCER(rawBeat, time, T4, 8., notes, 8, snareFill);
-// return res * .3;
-// }
-// 
-// vec2 snareFillHookSeq(float rawBeat, float time) {
-//     int[32] notes = int[32](
-//     S(1), O(1), S(1), O(1), S(1), O(1), S(1), O(1),
-//     S(1), O(1), S(1), O(1), S(1), O(1), S(1), O(1)
-//     );
-//     SEQUENCER(rawBeat, time, T16, 16., notes, 16, snareFill);
-// return res * .1;
-// }
-// 
-// vec2 arpBaseLoopSeqBase(float rawBeat, float time) {
-//     int[56] notes = int[56](
-//     // pattern1
-//     // G3(2), A3(2), G3(2), E3(2),
-//     // G3(2), B3(2), A3(2), G3(2)
-// 
-//     // pattern2
-//     // G3(1), A3(1), A3(1), G3(1), O(1), B3(1), O(2),
-//     // G3(1), A3(1), A3(1), G3(1), O(1), B3(1), O(2),
-//     // E3(1), Fsh3(1), Fsh3(1), E3(1), O(1), G3(1), O(2),
-//     // E3(1), Fsh3(1), Fsh3(1), E3(1), O(1), G3(1), O(2)
-//     G3(1), G3(1), A3(1), G3(1), G3(1), B3(1), O(2),
-//     G3(1), G3(1), A3(1), G3(1), G3(1), B3(1), O(2),
-//     E3(1), E3(1), Fsh3(1), E3(1), E3(1), G3(1), O(2),
-//     E3(1), E3(1), Fsh3(1), E3(1), E3(1), G3(1), O(2)
-// 
-//     // pattern3
-//     // G3(1), O(1), A3(1), O(1), G3(1), B3(1), O(2),
-//     // G3(1), O(1), A3(1), O(1), G3(1), B3(1), O(2),
-//     // E3(1), O(1), Fsh3(1), O(1), E3(1), G3(1), O(2),
-//     // E3(1), O(1), Fsh3(1), O(1), E3(1), G3(1), O(2)
-//     );
-// 
-//     // pattern1
-//     // SEQUENCER(rawBeat, time, T16, 16., notes, 8, arp);
-// 
-//     // pattern2
-//     SEQUENCER(rawBeat, time, T8, 32., notes, 28, arp);
-// 
-// return res * .3;
-// }
-// 
-// vec2 hihat1BaseLoopSeq(float rawBeat, float time) {
-//     int[16] notes = int[16](
-//     S(1), O(1), S(1), O(1), S(1), O(1), S(1), O(1)
-//     );
-//     SEQUENCER(rawBeat, time, T8, 8., notes, 8, hihat1);
-// return res;
-// }
-// 
-// vec2 bassBaseLoopSeq(float rawBeat, float time) {
-//     int[8] notes = int[8](
-//     // pattern1
-//     Am3(4),
-//     Em3(4),
-//     CM4(4),
-//     Bm3(4)
-// 
-//     // pattern2
-//     // GM3(4),
-//     // Em3(4),
-//     // CM4(4),
-//     // Am3(4)
-//     );
-//     SEQUENCER(rawBeat, time, T2, 16., notes, 4, bass);
-// return res * .05;
-// }
 
 // ------------------------------------------------------------
 
@@ -1205,9 +931,6 @@ vec2 boom(float time) {
 vec2 mainSound(float time) {
     float beat = timeToBeat(time);
 
-    // for debug 
-    // return vec2(bass(43., beatToTime(mod(beat, 1. * 4.))));
-
     vec2 sound = vec2(0.);
 
     float measure = beatToMeasure(beat);
@@ -1219,26 +942,6 @@ vec2 mainSound(float time) {
         sound += boom(time);
     }
 
-    // return
-    //     0.
-    //     + sound
-    // //     + epianoHarmonySeqBase(beat, time)
-    // //     // + synthHarmonySeqBase(beat, time)
-    // //     // // + epianoHarmonySeqHook(beat, time)
-    // //     + snareFillIntroSeq(beat, time)
-    //     + arpBaseLoopSeqBase(beat, time) 
-    // //     // + bassSeqBase(beat, time)
-    // //     + kickSeqBase(beat, time);
-    // //     + hihat1BaseLoopSeq(beat, time)
-        ;
-    // return bassLowSeqBase(beat, time);
-   
-    // 120BPMなので
-    // 1 measure = 2 sec
-    // 2 measure = 4 sec
-    // 64 measure = 128 sec
-    // 72 measucre = 144 sec 
-   
     // intro
     // 0 ~ 8
 
@@ -1307,71 +1010,6 @@ vec2 mainSound(float time) {
             + arpBaseLoopSeqBase(beat, time)
             ;
     }
-    return sound;
-    
-    // tmp ------
-
-    return epianoSeqBase(beat, time);
-    return epianoMelodyMainSeq(beat, time);
-    return baseIntroSeq(beat, time);
-    return epianoHarmonyBaseSeq(beat, time);
-
-    if(0. <= measure && measure < 8.) { // intro
-        sound +=
-        0.
-        // + bassBaseLoopSeq(beat, time)
-        + baseIntroSeq(beat, time)
-        // + arpBaseLoopSeqBase(beat, time)
-        ;
-    } else if(8. <= measure && measure < 16.) {
-        sound +=
-        0.
-        + bassBaseLoopSeq(beat, time)
-        + baseIntroSeq(beat, time)
-        + epianoMelodyLoopBaseSeq(beat, time)
-        + snareFillIntroSeq(beat, time)
-        + arpBaseLoopSeqBase(beat, time)
-        + hihat1BaseLoopSeq(beat, time)
-        ;
-    } else if(16. <= measure && measure < 24.) {
-        sound +=
-        0.
-        + bassBaseLoopSeq(beat, time)
-        + epianoMelodyLoopBaseSeq(beat, time)
-        + baseIntroSeq(beat, time)
-        + epianoHarmonySeqBase(beat, time)
-        + arpBaseLoopSeqBase(beat, time)
-        + snareFillHookSeq(beat, time)
-        ;
-    } else if(32. <= measure && measure < 40.) {
-    } else if(48. <= measure && measure < 56.) {
-    } else if(56. <= measure && measure < 64.) {
-    } else if(64. <= measure && measure < 72.) {
-    } else if(72. <= measure && measure < 80.) {
-    } else {
-        sound = vec2(0.);
-    }
-
-    return sound;
-
-    return epianoHarmonySeqBase(beat, time);
-    sound +=
-    bassSeqBase(beat, time)
-    + epianoSeqBase(beat, time)
-    + epianoHarmonySeqBase(beat, time)
-    + arpSeqBase(beat, time)
-    + kickSeqBase(beat, time)
-    // + snareSeqBase(beat, time);
-    + snareFillSeqBase(beat, time);
-
-    // sound +=
-    //     hihat2SeqT8(beat, time)
-    //     + kickSeqT4(beat, time) * .5
-    //     + kickSeqT16(beat, time) * .5
-    //     + snareFillSeqT4(beat, time) * .5;
-    //     // + pianoSeqT4(beat, time);
-    
-
     return sound;
 }
 
