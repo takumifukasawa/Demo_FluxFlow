@@ -32,16 +32,16 @@ import { MarionetterScene } from '@/Marionetter/types';
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
 
-// textを使う場合
-import { TextureFilterTypes } from '@/PaleGL/constants';
-import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
-import { Texture } from '@/PaleGL/core/Texture.ts';
-import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
-// for default img
-// noto sans
-import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
-// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
-import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
+// // textを使う場合
+// import { TextureFilterTypes } from '@/PaleGL/constants';
+// import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
+// import { Texture } from '@/PaleGL/core/Texture.ts';
+// import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
+// // for default img
+// // noto sans
+// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
+// // import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
+// import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
 
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
@@ -400,7 +400,7 @@ const load = async () => {
             gpu,
             renderer,
         }),
-        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_B,
+        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_C,
     });
     morphFollowersActorControllerBinders.push({
         morphFollowersActorController: createMorphFollowersActor({
@@ -408,7 +408,7 @@ const load = async () => {
             gpu,
             renderer,
         }),
-        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_C,
+        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_B,
     });
 
     morphFollowersActorControllerBinders.forEach((elem) => {
@@ -435,40 +435,40 @@ const load = async () => {
     // text mesh
     //
 
-    const fontAtlasImg = await loadImg(fontAtlasImgUrl);
-    // const fontAtlasImg = await loadImgArraybuffer(fontAtlasImgUrl);
-    const fontAtlasTexture = new Texture({
-        gpu,
-        // for default img
-        img: fontAtlasImg,
-        /*
-        // for gpu texture
-        img: null,
-        arraybuffer: fontAtlasImg,
-        dxt1: true
-        mipmap: false,
-        */
-        flipY: false,
-        minFilter: TextureFilterTypes.Linear,
-        magFilter: TextureFilterTypes.Linear,
-    });
-    const textMesh1 = new TextMesh({
-        gpu,
-        text: 'Flux Flow',
-        color: new Color(3, 1, 1, 1),
-        fontTexture: fontAtlasTexture,
-        fontAtlas: fontAtlasJson,
-        castShadow: false,
-        align: TextAlignType.Center,
-        // characterSpacing: -0.2
-        characterSpacing: -0.16,
-    });
-    textMesh1.transform.position = new Vector3(0, 1, 0);
-    // textMesh1.transform.rotation.setRotationX(-90);
-    textMesh1.transform.scale = Vector3.fill(0.5);
-    // TODO: 使えないかもなので一旦消しておく
-    textMesh1.enabled = false;
-    // captureScene.add(textMesh1);
+    // const fontAtlasImg = await loadImg(fontAtlasImgUrl);
+    // // const fontAtlasImg = await loadImgArraybuffer(fontAtlasImgUrl);
+    // const fontAtlasTexture = new Texture({
+    //     gpu,
+    //     // for default img
+    //     img: fontAtlasImg,
+    //     /*
+    //     // for gpu texture
+    //     img: null,
+    //     arraybuffer: fontAtlasImg,
+    //     dxt1: true
+    //     mipmap: false,
+    //     */
+    //     flipY: false,
+    //     minFilter: TextureFilterTypes.Linear,
+    //     magFilter: TextureFilterTypes.Linear,
+    // });
+    // const textMesh1 = new TextMesh({
+    //     gpu,
+    //     text: 'Flux Flow',
+    //     color: new Color(3, 1, 1, 1),
+    //     fontTexture: fontAtlasTexture,
+    //     fontAtlas: fontAtlasJson,
+    //     castShadow: false,
+    //     align: TextAlignType.Center,
+    //     // characterSpacing: -0.2
+    //     characterSpacing: -0.16,
+    // });
+    // textMesh1.transform.position = new Vector3(0, 1, 0);
+    // // textMesh1.transform.rotation.setRotationX(-90);
+    // textMesh1.transform.scale = Vector3.fill(0.5);
+    // // TODO: 使えないかもなので一旦消しておく
+    // textMesh1.enabled = false;
+    // // captureScene.add(textMesh1);
 
     //
     // build marionetter scene
@@ -683,7 +683,7 @@ const playDemo = () => {
     }
 
     // なぜか debugger の前だとうまくいかない
-    renderer.fogPass.parameters.distanceFogStart = 10;
+    renderer.fogPass.parameters.distanceFogStart = 28;
     renderer.fogPass.parameters.distanceFogPower = 0.02;
     renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
 

@@ -27,6 +27,7 @@ export class DebuggerGUI {
                 font-weight: bold;
                 line-height: 1.2em;
                 min-width: 200px;
+                opacity: 0.5;
         `;
         }
 

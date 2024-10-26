@@ -47,7 +47,7 @@ export type VolumetricLightPassParametersArgs = Partial<VolumetricLightPassParam
 export function generateVolumetricLightParameters(params: VolumetricLightPassParametersArgs = {}): VolumetricLightPassParameters {
     return {
         enabled: params.enabled ?? true,
-        rayStep: params.rayStep ?? 0.5,
+        rayStep: params.rayStep ?? 0.62,
         blendRate: params.blendRate ?? 1,
         densityMultiplier: params.densityMultiplier ?? 1,
         rayJitterSizeX: params.rayJitterSizeX ?? 0.1,

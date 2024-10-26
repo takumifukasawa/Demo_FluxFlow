@@ -929,9 +929,9 @@ export const createMorphFollowersActor = ({
             if (attractType === FollowerAttractMode.Attractor) {
                 const orbitMoverBinderComponent = attractTarget?.getComponent<OrbitMoverBinder>();
                 const delayValue = i * 0.5;
-                const p = orbitMoverBinderComponent
+                const p = (orbitMoverBinderComponent
                     ? orbitMoverBinderComponent.calcPosition(delayValue) //
-                    : attractTarget!.transform.position;
+                    : attractTarget!.transform.position).addVector(new Vector3(0, Math.sin((performance.now()/1000) * .5 + i * .2) * 1, 0));
                 // attractTypeならTargetは必ずあるはず
                 setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
                     p,

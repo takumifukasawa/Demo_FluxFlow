@@ -115,20 +115,20 @@ const occurrenceSequenceBaseData: [number, number, FollowerIndex][] = [
     // [0, 16, FollowerIndex.None], // なにもしない時間
     [16, 20, FollowerIndex.A],
     [20, 24, FollowerIndex.A],
-    [24, 28, FollowerIndex.B],
-    [28, 32, FollowerIndex.B],
+    [24, 28, FollowerIndex.A],
+    [28, 32, FollowerIndex.A],
     [32, 36, FollowerIndex.C],
     [36, 40, FollowerIndex.C],
-    [40, 44, FollowerIndex.A],
-    [44, 48, FollowerIndex.A],
+    [40, 44, FollowerIndex.C],
+    [44, 48, FollowerIndex.C],
     [48, 50, FollowerIndex.B],
-    [50, 52, FollowerIndex.C],
-    [52, 54, FollowerIndex.A],
+    [50, 52, FollowerIndex.B],
+    [52, 54, FollowerIndex.B],
     [54, 56, FollowerIndex.B],
-    [56, 58, FollowerIndex.C],
-    [58, 60, FollowerIndex.A],
+    [56, 58, FollowerIndex.A],
+    [58, 60, FollowerIndex.C],
     [60, 62, FollowerIndex.B],
-    [62, 64, FollowerIndex.C], // 64までは操作させたいので、何かしら置いておく
+    [62, 64, FollowerIndex.A], // 64までは操作させたいので、何かしら置いておく
     // 64secまでは色々出したい
 ];
 
