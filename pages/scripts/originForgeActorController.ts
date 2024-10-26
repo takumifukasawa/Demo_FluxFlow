@@ -335,6 +335,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     // });
 
     mesh.onProcessPropertyBinder = (key: string, value: number) => {
+        // for debug
+        // console.log(key, value)
         // material index
         if (key === 'mi') {
             mesh.materials.forEach((_, i) => {
