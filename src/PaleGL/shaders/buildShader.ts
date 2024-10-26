@@ -27,8 +27,9 @@ export type ShaderDefines = {
     receiveShadow: boolean;
     isSkinning: boolean;
     gpuSkinning: boolean;
-    useNormalMap: boolean;
-    useEnvMap: boolean;
+    // ORIGINAL
+    // useNormalMap: boolean;
+    // useEnvMap: boolean;
     useReceiveShadow: boolean;
     useVertexColor: boolean;
     useAlphaTest: boolean;
@@ -46,25 +47,13 @@ const insertShaderPairs: {
     [ShaderPartialPragmas.PSEUDO_HDR]: pseudoHDR,
 };
 
-/**
- *
- * @param receiveShadow
- * @param isSkinning
- * @param gpuSkinning
- * @param useNormalMap
- * @param useEnvMap
- * @param useReceiveShadow
- * @param useVertexColor
- * @param useAlphaTest
- * @param isInstancing
- */
 const buildShaderDefines = ({
     receiveShadow,
     isSkinning,
     gpuSkinning,
-    useNormalMap,
-    useEnvMap,
-    // useReceiveShadow,
+    // ORIGINAL
+    // useNormalMap,
+    // useEnvMap,
     useVertexColor,
     useAlphaTest,
     isInstancing,
@@ -81,14 +70,12 @@ const buildShaderDefines = ({
             arr.push('#define USE_SKINNING_CPU');
         }
     }
-    if (useNormalMap) {
-        arr.push('#define USE_NORMAL_MAP');
-    }
-    if (useEnvMap) {
-        arr.push('#define USE_ENV_MAP');
-    }
-    // if (useReceiveShadow) {
-    //     arr.push('#define USE_RECEIVE_SHADOW');
+    // ORIGINAL
+    // if (useNormalMap) {
+    //     arr.push('#define USE_NORMAL_MAP');
+    // }
+    // if (useEnvMap) {
+    //     arr.push('#define USE_ENV_MAP');
     // }
     if (useVertexColor) {
         arr.push('#define USE_VERTEX_COLOR');

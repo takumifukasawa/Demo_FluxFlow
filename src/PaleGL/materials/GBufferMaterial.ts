@@ -24,7 +24,6 @@ export type GBufferMaterialArgs = {
     diffuseMap?: Texture | null;
     diffuseMapUvScale?: Vector2;
     diffuseMapUvOffset?: Vector2;
-    // specularAmount?: number;
     metallic?: number;
     metallicMap?: Texture | null;
     metallicMapTiling?: Vector4;
@@ -32,9 +31,10 @@ export type GBufferMaterialArgs = {
     roughnessMap?: Texture | null;
     roughnessMapTiling?: Vector4;
     emissiveColor?: Color;
-    normalMap?: Texture | null;
-    normalMapUvScale?: Vector2;
-    normalMapUvOffset?: Vector2;
+    // ORIGINAL
+    // normalMap?: Texture | null;
+    // normalMapUvScale?: Vector2;
+    // normalMapUvOffset?: Vector2;
     vertexShaderModifier?: VertexShaderModifier;
     uniforms?: UniformsData;
     shadingModelId?: ShadingModelIds;
@@ -59,9 +59,10 @@ export class GBufferMaterial extends Material {
         diffuseMapUvScale, // vec2
         diffuseMapUvOffset, // vec2
         // normal
-        normalMap,
-        normalMapUvScale, // vec2
-        normalMapUvOffset, // vec2,
+        // ORIGINAL
+        // normalMap,
+        // normalMapUvScale, // vec2
+        // normalMapUvOffset, // vec2,
         // params
         // specularAmount,
         metallic,
@@ -154,23 +155,24 @@ export class GBufferMaterial extends Material {
                 type: UniformTypes.Vector4,
                 value: metallicMapTilingValue,
             },
-            {
-                name: UniformNames.NormalMap,
-                type: UniformTypes.Texture,
-                value: normalMap || null,
-            },
-            {
-                name: UniformNames.NormalMapUvScale,
-                type: UniformTypes.Vector2,
-                // value: Vector2.one,
-                value: normalMapUvScale || Vector2.one,
-            },
-            {
-                name: UniformNames.NormalMapUvOffset,
-                type: UniformTypes.Vector2,
-                // value: Vector2.one,
-                value: normalMapUvOffset || Vector2.one,
-            },
+            // ORIGINAL
+            // {
+            //     name: UniformNames.NormalMap,
+            //     type: UniformTypes.Texture,
+            //     value: normalMap || null,
+            // },
+            // {
+            //     name: UniformNames.NormalMapUvScale,
+            //     type: UniformTypes.Vector2,
+            //     // value: Vector2.one,
+            //     value: normalMapUvScale || Vector2.one,
+            // },
+            // {
+            //     name: UniformNames.NormalMapUvOffset,
+            //     type: UniformTypes.Vector2,
+            //     // value: Vector2.one,
+            //     value: normalMapUvOffset || Vector2.one,
+            // },
             {
                 name: UniformNames.EmissiveColor,
                 type: UniformTypes.Color,
@@ -211,7 +213,8 @@ export class GBufferMaterial extends Material {
             vertexShaderModifier,
             uniforms: mergedUniforms,
             depthUniforms,
-            useNormalMap: !!normalMap,
+            // ORIGINAL
+            // useNormalMap: !!normalMap,
             depthTest: true,
             depthWrite: false,
             depthFuncType: DepthFuncTypes.Equal,

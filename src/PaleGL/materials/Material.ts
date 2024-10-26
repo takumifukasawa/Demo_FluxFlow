@@ -68,11 +68,13 @@ export type MaterialArgs = {
     blendType?: BlendType;
     renderQueue?: RenderQueue;
 
+    // ORIGINAL
     // normal map
-    useNormalMap?: boolean | null;
+    // useNormalMap?: boolean | null;
 
+    // ORIGINAL
     // env map
-    useEnvMap?: boolean | null;
+    // useEnvMap?: boolean | null;
 
     // skinning
     isSkinning?: boolean | null;
@@ -148,9 +150,11 @@ export class Material {
     receiveShadow: boolean;
     queue: RenderQueue | null;
 
-    useNormalMap: boolean | null;
+    // ORIGINAL
+    // useNormalMap: boolean | null;
 
-    useEnvMap: boolean | null;
+    // ORIGINAL
+    // useEnvMap: boolean | null;
 
     // skinning
     isSkinning: boolean | null;
@@ -193,40 +197,11 @@ export class Material {
         return this._fragmentShaderModifier;
     }
 
-    get useAlphaTest() {
-        return this.alphaTest !== null;
-    }
+    // ORIGINAL
+    // get useAlphaTest() {
+    //     return this.alphaTest !== null;
+    // }
 
-    /**
-     *
-     * @param name
-     * @param vertexShader
-     * @param fragmentShader
-     * @param depthFragmentShader
-     * @param vertexShaderGenerator
-     * @param fragmentShaderGenerator
-     * @param depthFragmentShaderGenerator
-     * @param vertexShaderModifier
-     * @param primitiveType
-     * @param depthTest
-     * @param depthWrite
-     * @param depthFuncType
-     * @param alphaTest
-     * @param faceSide
-     * @param receiveShadow
-     * @param blendType
-     * @param renderQueue
-     * @param useNormalMap
-     * @param isSkinning
-     * @param gpuSkinning
-     * @param jointNum
-     * @param isInstancing
-     * @param useVertexColor
-     * @param useEnvMap
-     * @param queue
-     * @param uniforms
-     * @param depthUniforms
-     */
     constructor({
         // gpu,
 
@@ -259,7 +234,8 @@ export class Material {
         blendType = BlendTypes.Opaque,
         renderQueue,
 
-        useNormalMap = null,
+        // ORIGINAL
+        // useNormalMap = null,
 
         // skinning
         isSkinning = null,
@@ -273,8 +249,9 @@ export class Material {
         // vertex color
         useVertexColor = false,
 
+        // ORIGINAL
         // env map
-        useEnvMap = false,
+        // useEnvMap = false,
 
         queue,
         uniforms = [],
@@ -367,11 +344,13 @@ export class Material {
         this.useInstanceLookDirection = !!useInstanceLookDirection;
         this.useVertexColor = !!useVertexColor;
 
+        // ORIGINAL
         // normal map
-        this.useNormalMap = !!useNormalMap;
+        // this.useNormalMap = !!useNormalMap;
 
+        // ORIGINAL
         // env map
-        this.useEnvMap = !!useEnvMap;
+        // this.useEnvMap = !!useEnvMap;
 
         // TODO:
         // - シェーダーごとにわける？(postprocessやreceiveShadow:falseの場合はいらないuniformなどがある
@@ -455,8 +434,9 @@ export class Material {
             receiveShadow: !!this.receiveShadow,
             isSkinning: !!this.isSkinning,
             gpuSkinning: !!this.gpuSkinning,
-            useNormalMap: !!this.useNormalMap,
-            useEnvMap: !!this.useEnvMap,
+            // ORIGINAL
+            // useNormalMap: !!this.useNormalMap,
+            // useEnvMap: !!this.useEnvMap,
             useReceiveShadow: !!this.receiveShadow,
             useVertexColor: !!this.useVertexColor,
             isInstancing: !!this.isInstancing,

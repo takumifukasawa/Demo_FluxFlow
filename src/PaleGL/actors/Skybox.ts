@@ -69,32 +69,6 @@ f 1/3/3 5/11/6 7/13/4
 f 6/12/8 2/6/2 4/10/5
 `;
 
-// const skyboxVertexShader: string = `#version 300 es
-//
-// precision mediump float;
-//
-// layout (location = 0) in vec3 ${AttributeNames.Position};
-// layout (location = 1) in vec2 ${AttributeNames.Uv};
-// layout (location = 2) in vec3 ${AttributeNames.Normal};
-//
-// uniform mat4 ${UniformNames.WorldMatrix};
-// uniform mat4 ${UniformNames.ViewMatrix};
-// uniform mat4 ${UniformNames.ProjectionMatrix};
-// uniform mat4 ${UniformNames.NormalMatrix};
-//
-// out vec2 vUv;
-// out vec3 vNormal;
-// out vec3 vWorldPosition;
-//
-// void main() {
-//     vUv = aUv;
-//     vNormal = (${UniformNames.NormalMatrix} * vec4(aNormal, 1)).xyz;
-//     vec4 worldPosition = ${UniformNames.WorldMatrix} * vec4(aPosition, 1);
-//     vWorldPosition = worldPosition.xyz;
-//     gl_Position = ${UniformNames.ProjectionMatrix} * ${UniformNames.ViewMatrix} * worldPosition;
-// }
-// `;
-
 type SkyboxArgs = {
     gpu: GPU;
     cubeMap: CubeMap;
@@ -144,7 +118,8 @@ export class Skybox extends Mesh {
             primitiveType: PrimitiveTypes.Triangles,
             depthTest: true,
             depthWrite: false,
-            useEnvMap: true,
+            // ORIGINAL
+            // useEnvMap: true,
             uniforms: [
                 {
                     name: UniformNames.CubeTexture,

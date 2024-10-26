@@ -529,12 +529,14 @@ export async function loadGLTF({ gpu, dir, path }: { gpu: GPU; dir?: string; pat
         const materials = materialIndices.map((materialIndex) => {
             const targetMaterial = gltf.materials[materialIndex];
             const hasDiffuseMap = !!targetMaterial.pbrMetallicRoughness.baseColorTexture;
-            const hasNormalMap = !!targetMaterial.normalTexture;
+            // ORIGINAL
+            // const hasNormalMap = !!targetMaterial.normalTexture;
 
             const diffuseMap = hasDiffuseMap
                 ? preloadTextures[targetMaterial.pbrMetallicRoughness.baseColorTexture!.index]
                 : null;
-            const normalMap = hasNormalMap ? preloadTextures[targetMaterial.normalTexture!.index] : null;
+            // ORIGINAL
+            // const normalMap = hasNormalMap ? preloadTextures[targetMaterial.normalTexture!.index] : null;
 
             let emissiveColor = Color.black;
             // eslint-disable-next-line no-prototype-builtins
@@ -553,7 +555,8 @@ export async function loadGLTF({ gpu, dir, path }: { gpu: GPU; dir?: string; pat
                 diffuseColor: targetMaterial.pbrMetallicRoughness.baseColorFactor
                     ? Color.fromArray(targetMaterial.pbrMetallicRoughness.baseColorFactor)
                     : Color.white,
-                normalMap,
+                // ORIGINAL
+                // normalMap,
                 metallic: targetMaterial.pbrMetallicRoughness.metallicFactor,
                 roughness: targetMaterial.pbrMetallicRoughness.roughnessFactor,
                 emissiveColor,

@@ -88,17 +88,6 @@ export class PostProcessPassBase implements IPostProcessPass {
         return postProcessPassVertexShader;
     }
 
-    /**
-     *
-     * @param gpu
-     * @param vertexShader
-     * @param fragmentShader
-     * @param uniforms
-     * @param useEnvMap
-     * @param receiveShadow
-     * @param name
-     * @param renderTargetType
-     */
     constructor({
         gpu,
         type,
@@ -109,7 +98,8 @@ export class PostProcessPassBase implements IPostProcessPass {
         rawFragmentShader,
         uniforms = [],
         uniformBlockNames = [],
-        useEnvMap = false,
+        // ORIGINAL
+        // useEnvMap = false,
         receiveShadow = false,
         name = '',
         renderTargetType = RenderTargetTypes.RGBA,
@@ -175,7 +165,8 @@ export class PostProcessPassBase implements IPostProcessPass {
                     : []),
             ],
             uniformBlockNames,
-            useEnvMap: !!useEnvMap,
+            // ORIGINAL
+            // useEnvMap: !!useEnvMap,
             receiveShadow: !!receiveShadow,
             primitiveType: PrimitiveTypes.Triangles,
             // uniformBlockNames: [

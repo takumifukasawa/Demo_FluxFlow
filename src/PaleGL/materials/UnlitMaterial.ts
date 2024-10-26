@@ -103,7 +103,8 @@ export class UnlitMaterial extends Material {
             vertexShaderModifier,
             uniforms: mergedUniforms,
             depthUniforms,
-            useNormalMap: false,
+            // ORIGINAL
+            // useNormalMap: false,
             depthTest: true,
             depthWrite: false, // TODO: これはGBufferの場合. unlitはtransparentの場合も対処すべき
             depthFuncType: DepthFuncTypes.Equal, // TODO: これはGBufferの場合
