@@ -36,12 +36,6 @@ uniform float uEmissiveMixer;
 #include ./partial/receive-shadow-vertex-varyings.glsl
 #include ./partial/vertex-color-vertex-varyings.glsl
 
-// uniform mat4 uWorldMatrix;
-// uniform mat4 uViewMatrix;
-// uniform mat4 uProjectionMatrix;
-// uniform mat4 uNormalMatrix;
-// uniform float uTime;
-
 #pragma APPEND_UNIFORMS
         
 #include ./partial/receive-shadow-vertex-uniforms.glsl

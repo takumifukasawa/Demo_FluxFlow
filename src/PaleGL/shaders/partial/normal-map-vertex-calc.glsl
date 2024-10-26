@@ -2,36 +2,45 @@
 
 mat3 normalMatrix;
 
-#ifdef USE_NORMAL_MAP
-    #if defined(USE_SKINNING_GPU) || defined(USE_SKINNING_CPU)
-        #ifdef USE_INSTANCING
-            normalMatrix = mat3(transpose(inverse(worldMatrix))) * mat3(skinMatrix);
-        #else
-            normalMatrix = mat3(uNormalMatrix) * mat3(skinMatrix);
-        #endif
-    #else
-        #ifdef USE_INSTANCING
-            normalMatrix = mat3(transpose(inverse(worldMatrix)));
-        #else
-            normalMatrix = mat3(uNormalMatrix);
-        #endif
-    #endif
-    vNormal = normalMatrix * aNormal;
-    vTangent = normalMatrix * aTangent;
-    vBinormal = normalMatrix * aBinormal;
+// ORIGINAL
+// #ifdef USE_NORMAL_MAP
+//     #if defined(USE_SKINNING_GPU) || defined(USE_SKINNING_CPU)
+//         #ifdef USE_INSTANCING
+//             normalMatrix = mat3(transpose(inverse(worldMatrix))) * mat3(skinMatrix);
+//         #else
+//             normalMatrix = mat3(uNormalMatrix) * mat3(skinMatrix);
+//         #endif
+//     #else
+//         #ifdef USE_INSTANCING
+//             normalMatrix = mat3(transpose(inverse(worldMatrix)));
+//         #else
+//             normalMatrix = mat3(uNormalMatrix);
+//         #endif
+//     #endif
+//     vNormal = normalMatrix * aNormal;
+//     vTangent = normalMatrix * aTangent;
+//     vBinormal = normalMatrix * aBinormal;
+// #else
+//     #if defined(USE_SKINNING_GPU) || defined(USE_SKINNING_CPU)
+//         #ifdef USE_INSTANCING
+//             normalMatrix = mat3(transpose(inverse(worldMatrix))) * mat3(skinMatrix);
+//         #else
+//             normalMatrix = mat3(uNormalMatrix);
+//         #endif
+//     #else
+//         #ifdef USE_INSTANCING
+//             normalMatrix = mat3(transpose(inverse(worldMatrix)));
+//         #else
+//             normalMatrix = mat3(uNormalMatrix);
+//         #endif
+//     #endif
+//     vNormal = normalMatrix * aNormal;
+// #endif
+
+// CUSTOM_DEMO
+#ifdef USE_INSTANCING
+    normalMatrix = mat3(transpose(inverse(worldMatrix)));
 #else
-    #if defined(USE_SKINNING_GPU) || defined(USE_SKINNING_CPU)
-        #ifdef USE_INSTANCING
-            normalMatrix = mat3(transpose(inverse(worldMatrix))) * mat3(skinMatrix);
-        #else
-            normalMatrix = mat3(uNormalMatrix);
-        #endif
-    #else
-        #ifdef USE_INSTANCING
-            normalMatrix = mat3(transpose(inverse(worldMatrix)));
-        #else
-            normalMatrix = mat3(uNormalMatrix);
-        #endif
-    #endif
-    vNormal = normalMatrix * aNormal;
+    normalMatrix = mat3(uNormalMatrix);
 #endif
+vNormal = normalMatrix * aNormal;
