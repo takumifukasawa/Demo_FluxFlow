@@ -940,15 +940,15 @@ export class Renderer {
         // this.updateCommonUniforms({ time, deltaTime });
         // TODO: このままだと directional-light がなくなったときも directional-light が残ることになる
         if (lightActors.directionalLight) {
-            this.updateDirectionalLightUniforms(lightActors.directionalLight);
+            this.$updateDirectionalLightUniforms(lightActors.directionalLight);
         }
         // TODO: このままだと spot-light がなくなったときも spot-light が残ることになる
         if (lightActors.spotLights.length > 0) {
-            this.updateSpotLightsUniforms(lightActors.spotLights);
+            this.$updateSpotLightsUniforms(lightActors.spotLights);
         }
         // TODO: このままだと point-light がなくなったときも point-light が残ることになる
         if (lightActors.pointLights.length > 0) {
-            this.updatePointLightsUniforms(lightActors.pointLights);
+            this.$updatePointLightsUniforms(lightActors.pointLights);
         }
 
         // ------------------------------------------------------------------------------
@@ -1182,7 +1182,7 @@ export class Renderer {
 
         this.setRenderTarget(this._afterDeferredShadingRenderTarget.write);
         
-        this.transparentPass(sortedTransparentRenderMeshInfos, camera, lightActors);
+        this.$transparentPass(sortedTransparentRenderMeshInfos, camera, lightActors);
 
 
         // ------------------------------------------------------------------------------
@@ -1779,7 +1779,7 @@ export class Renderer {
      * @param uniformName
      * @param value
      */
-    updateUniformBlockValue(
+    $updateUniformBlockValue(
         blockName: string,
         uniformName: string,
         value: UniformBufferObjectValue,
@@ -1908,9 +1908,9 @@ export class Renderer {
      */
     updateCommonUniforms({ time, deltaTime }: { time: number; deltaTime: number }) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
-        this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.Time, time);
-        this.updateUniformBlockValue(UniformBlockNames.Common, UniformNames.DeltaTime, deltaTime);
-        this.updateUniformBlockValue(
+        this.$updateUniformBlockValue(UniformBlockNames.Common, UniformNames.Time, time);
+        this.$updateUniformBlockValue(UniformBlockNames.Common, UniformNames.DeltaTime, deltaTime);
+        this.$updateUniformBlockValue(
             UniformBlockNames.Common,
             UniformNames.Viewport,
             new Vector4(this.realWidth, this.realHeight, this.realWidth / this.realHeight, 0)
@@ -1919,16 +1919,16 @@ export class Renderer {
 
     updateTimelineUniforms(timelineTime: number, timelineDeltaTime: number) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
-        this.updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineTime, timelineTime);
-        this.updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineDeltaTime, timelineDeltaTime);
+        this.$updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineTime, timelineTime);
+        this.$updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineDeltaTime, timelineDeltaTime);
     }
 
     /**
      *
      * @param directionalLight
      */
-    updateDirectionalLightUniforms(directionalLight: DirectionalLight) {
-        this.updateUniformBlockValue(UniformBlockNames.DirectionalLight, UniformNames.DirectionalLight, [
+    $updateDirectionalLightUniforms(directionalLight: DirectionalLight) {
+        this.$updateUniformBlockValue(UniformBlockNames.DirectionalLight, UniformNames.DirectionalLight, [
             {
                 name: UniformNames.LightDirection,
                 type: UniformTypes.Vector3,
@@ -1958,8 +1958,8 @@ export class Renderer {
      *
      * @param spotLights
      */
-    updateSpotLightsUniforms(spotLights: SpotLight[]) {
-        this.updateUniformBlockValue(
+    $updateSpotLightsUniforms(spotLights: SpotLight[]) {
+        this.$updateUniformBlockValue(
             UniformBlockNames.SpotLight,
             UniformNames.SpotLight,
             spotLights.map((spotLight) => {
@@ -2018,8 +2018,8 @@ export class Renderer {
      *
      * @param pointLights
      */
-    updatePointLightsUniforms(pointLights: PointLight[]) {
-        this.updateUniformBlockValue(
+    $updatePointLightsUniforms(pointLights: PointLight[]) {
+        this.$updateUniformBlockValue(
             UniformBlockNames.PointLight,
             UniformNames.PointLight,
             pointLights.map((pointLight) => {
@@ -2055,14 +2055,7 @@ export class Renderer {
         );
     }
 
-    /**
-     *
-     * @param sortedRenderMeshInfos
-     * @param camera
-     * @param lightActors
-     * @private
-     */
-    private transparentPass(
+    $transparentPass(
         sortedRenderMeshInfos: RenderMeshInfo[],
         camera: Camera,
         lightActors: LightActors
