@@ -11,6 +11,7 @@ import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { Rotator } from '@/PaleGL/math/Rotator.ts';
 import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
+import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 type EngineOnStartCallbackArgs = void;
 
@@ -40,7 +41,7 @@ export type EngineOnRenderCallback = (time: number, deltaTime: number) => void;
 
 export class Engine {
     #gpu: GPU;
-    #stats: Stats;
+    #stats: Stats | null = null;
     #renderer: Renderer;
     #scene: Scene | null = null;
     // #scenes: Scene[] = [];
@@ -117,8 +118,10 @@ export class Engine {
         this.#gpu = gpu;
         this.#renderer = renderer;
 
-        this.#stats = new Stats({ showStats, showPipeline: false }); // 一旦手動で
-        this.#renderer.setStats(this.#stats);
+        if (isDevelopment()) {
+            this.#stats = new Stats({ showStats, showPipeline: false }); // 一旦手動で
+            this.#renderer.setStats(this.#stats);
+        }
 
         // TODO: 外からfps変えられるようにしたい
         this.#fixedUpdateFrameTimer = new TimeAccumulator(fixedUpdateFps, this.fixedUpdate.bind(this));
@@ -183,7 +186,14 @@ export class Engine {
             this.#onBeforeFixedUpdate({ fixedTime, fixedDeltaTime });
         }
 
-        this.#scene?.traverse((actor) => actor.fixedUpdate({ gpu: this.#gpu, scene:this.#scene!, fixedTime, fixedDeltaTime }));
+        this.#scene?.traverse((actor) =>
+            actor.fixedUpdate({
+                gpu: this.#gpu,
+                scene: this.#scene!,
+                fixedTime,
+                fixedDeltaTime,
+            })
+        );
         // this.#scenes.forEach((scene) => {
         //     scene.traverse((actor) => actor.fixedUpdate({ gpu: this.#gpu, fixedTime, fixedDeltaTime }));
         // });
@@ -248,7 +258,7 @@ export class Engine {
             this.#onLastUpdate({ time, deltaTime });
         }
         this.#scene?.traverse((actor) => {
-            actor.lastUpdate({ gpu: this.#gpu,scene: this.#scene!, time, deltaTime });
+            actor.lastUpdate({ gpu: this.#gpu, scene: this.#scene!, time, deltaTime });
         });
 
         //
@@ -272,7 +282,7 @@ export class Engine {
      * @param deltaTime
      */
     lastUpdate(time: number, deltaTime: number) {
-        this.#scene?.traverse((actor) => actor.lastUpdate({ gpu: this.#gpu,scene: this.#scene!, time, deltaTime }));
+        this.#scene?.traverse((actor) => actor.lastUpdate({ gpu: this.#gpu, scene: this.#scene!, time, deltaTime }));
     }
 
     /**
@@ -284,7 +294,9 @@ export class Engine {
         // for debug
         // console.log(`[Engine.render]`);
 
-        this.#stats.clear();
+        if (isDevelopment()) {
+            this.#stats?.clear();
+        }
 
         this.renderer.beforeRender(time, deltaTime);
 
@@ -301,7 +313,9 @@ export class Engine {
         // TODO: ここにrenderer.renderを書く
         // this.#renderer.renderScene(this.#scene!);
 
-        this.#stats.update(time);
+        if (isDevelopment()) {
+            this.#stats?.update(time);
+        }
     }
 
     warmRender() {
