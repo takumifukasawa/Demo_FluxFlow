@@ -120,3 +120,11 @@ export function randomOnUnitPlane(seed: number, scale: number = 1) {
     const z = generateRandomValue(seed, 1) * 2 - 1;
     return new Vector3(x * scale, 0, z * scale);
 }
+
+export function randomOnUnitCircle(id: number, scale: number = 1) {
+    const t = lerp(0, Math.PI * 2, generateRandomValue(10, id));
+    const x = Math.cos(t);
+    const z = Math.sin(t);
+    const r = scale * Math.sqrt(generateRandomValue(20, id));
+    return new Vector3(x * r, 0, z * r);
+}

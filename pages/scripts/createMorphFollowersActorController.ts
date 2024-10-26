@@ -25,7 +25,12 @@ import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
-import { generateRandomValue, lerp, randomOnUnitPlane, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
+import {
+    generateRandomValue,
+    lerp,
+    randomOnUnitCircle,
+    randomOnUnitSphere
+} from '@/PaleGL/utilities/mathUtilities.ts';
 import {
     createObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterialArgs,
@@ -356,6 +361,7 @@ export const createMorphFollowersActor = ({
     const stateParameters = {
         diffuseMixer: 0,
         emissionMixer: 0,
+        floorEmitRange: 0,
     }
 
     const surfaceParameters: Required<MorphSurfaceParameters> = {
@@ -911,7 +917,7 @@ export const createMorphFollowersActor = ({
                     continue;
 
                 case FollowerAttractMode.Ground:
-                    const wp = randomOnUnitPlane(_followerSeed + i, 10); // TODO: scaleをfloor_actorから引っ張ってきたい
+                    const wp = randomOnUnitCircle(_followerSeed + i, stateParameters.floorEmitRange); // TODO: scaleをfloor_actorから引っ張ってきたい
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: 0,
@@ -1060,6 +1066,10 @@ export const createMorphFollowersActor = ({
             mesh.materials.forEach((_, i) => {
                 mesh.setCanRenderMaterial(i, i === Math.round(value));
             });
+        }
+        // floor range
+        if( key === 'ffr') {
+            stateParameters.floorEmitRange = value;
         }
 
         //

@@ -35,3 +35,4 @@ export const buildTimelinePropertyB = (key: string) => {
 export const buildTimelinePropertyA = (key: string) => {
     return `${key}.a`;
 };
+export const snapToStep = (v: number, s: number) => Math.floor(v / s) * s;

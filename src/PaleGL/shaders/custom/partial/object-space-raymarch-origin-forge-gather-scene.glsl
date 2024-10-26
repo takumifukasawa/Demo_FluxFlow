@@ -11,7 +11,7 @@ vec2 dfScene(vec3 p) {
     vec4 state3 = uGSs[2];
     vec4 state4 = uGSs[3];
 
-    float s = 1.5; // 蝶のスケール
+    float s = 1.; // 蝶のスケール
     vec3 q = p / s;
 
     vec3 q1 = opTr(q, uGPs[0]);

@@ -28,7 +28,7 @@ import { wait } from '@/utilities/wait.ts';
 import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import { Marionetter, MarionetterSceneStructure } from '@/Marionetter/types';
-import { MarionetterScene} from '@/Marionetter/types';
+import { MarionetterScene } from '@/Marionetter/types';
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
 
@@ -84,10 +84,11 @@ import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
 import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
-import {ScreenSpaceRaymarchMesh} from "@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts";
-import {createScreenSpaceRaymarchMesh} from "./scripts/createScreenSpaceRaymarchMesh.ts";
-import {BufferVisualizerPass} from "@/PaleGL/postprocess/BufferVisualizerPass.ts";
-
+import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
+import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
+import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass.ts';
+import {snapToStep} from "@/Marionetter/timelineUtilities.ts";
+import {clamp} from "@/PaleGL/utilities/mathUtilities.ts";
 
 const stylesText = `
 body {
@@ -229,7 +230,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
     // console.log('[buildScene] scene json', sceneJson);
     // marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson, captureScene);
     marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson);
-    
+
     // timeline生成したらscene内のactorをbind
     const { actors } = marionetterSceneStructure;
 
@@ -256,7 +257,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     const createSpotLightShadowMap = (spotLight: SpotLight) => {
         if (spotLight.shadowCamera) {
-            spotLight.shadowCamera.visibleFrustum = true;
+            spotLight.shadowCamera.visibleFrustum = false;
             spotLight.castShadow = true;
             spotLight.shadowCamera.near = 0.1;
             spotLight.shadowCamera.far = spotLight.distance;
@@ -281,7 +282,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
 
     // TODO: directional light は constructor で shadow camera を生成してるのでこのガードいらない
     if (directionalLight && directionalLight.shadowCamera) {
-        directionalLight.shadowCamera.visibleFrustum = true;
+        directionalLight.shadowCamera.visibleFrustum = false;
         directionalLight.castShadow = true;
         directionalLight.shadowCamera.near = 1;
         directionalLight.shadowCamera.far = 40;
@@ -532,25 +533,25 @@ const load = async () => {
 
     const focusTargetActor = captureScene.find(DEPTH_OF_FIELD_TARGET_ACTOR_NAME)!;
 
-    focusTargetActor.addComponent(
-        createTimelineHandShakeController({
-            amplitude: new Vector3(0.1, 0.1, 0.1),
-            speed: new Vector3(1.6, 1.4, 1.2),
-            offset: new Vector3(4, 5, 6),
-        })
-    );
+    const focusTargetHandShake = createTimelineHandShakeController({
+        amplitude: new Vector3(0.1, 0.1, 0.1),
+        speed: new Vector3(1.6, 1.4, 1.2),
+        offset: new Vector3(4, 5, 6),
+    });
+    focusTargetActor.onProcessPropertyBinder = (key, string) => focusTargetHandShake.updatePropertyBinder(key, string);
 
     captureSceneCamera?.addComponent(
         createDofFocusTargetController(focusTargetActor, captureSceneCamera, renderer.depthOfFieldPass)
     );
+    const captureSceneCameraHandShake = createTimelineHandShakeController({
+        amplitude: new Vector3(0.1, 0.1, 0.1),
+        speed: new Vector3(1.4, 1.2, 1.0),
+        offset: new Vector3(1, 2, 3),
+    });
     // TODO: timelineから制御したい
-    captureSceneCamera?.addComponent(
-        createTimelineHandShakeController({
-            amplitude: new Vector3(0.1, 0.1, 0.1),
-            speed: new Vector3(1.4, 1.2, 1.0),
-            offset: new Vector3(1, 2, 3),
-        })
-    );
+    captureSceneCamera?.addComponent(captureSceneCameraHandShake);
+    captureSceneCamera!.onProcessPropertyBinder = (key, string) =>
+        captureSceneCameraHandShake.updatePropertyBinder(key, string);
 
     //
     // floor
@@ -566,7 +567,6 @@ const load = async () => {
     // override pp
     // TODO: ある程度はtimelineからいじりたい
     //
-
 
     //
     // events
@@ -593,8 +593,8 @@ const load = async () => {
             if (glslSoundWrapper.isPlaying()) {
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
             }
-            const snapToStep = (v: number, s: number) => Math.floor(v / s) * s;
             timelineTime = snapToStep(currentTimeForTimeline, 1 / 60);
+            timelineTime = clamp(timelineTime, 0, SOUND_DURATION); 
             timelineDeltaTime = timelineTime - timelinePrevTime;
             timelinePrevTime = timelineTime;
             marionetterSceneStructure.marionetterTimeline.execute({
@@ -641,7 +641,8 @@ const load = async () => {
 };
 
 const playDemo = () => {
-    captureSceneCamera!.far = 500;
+    captureSceneCamera!.near = 0.1;
+    captureSceneCamera!.far = 300;
 
     // let prevTime = -1;
     // let deltaTime = 0;
@@ -689,7 +690,6 @@ const playDemo = () => {
     glslSoundWrapper.play();
 
     requestAnimationFrame(tick);
-
 };
 
 const main = async () => {
