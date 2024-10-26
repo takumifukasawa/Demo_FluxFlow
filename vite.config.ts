@@ -15,6 +15,7 @@ import { transformExtractGlslRaymarchTemplate } from './vite-extract-glsl-raymar
 import { deleteTmpCachesPlugin } from './vite-delete-tmp-caches-plugin.ts';
 import { roundFloatPlugin } from './vite-round-float-plugin.ts';
 import { viteGlslShaderMinifierCustomNoRenamingList } from './vite-glsl-shader-minifier-custom-no-renaming-list.ts';
+import string from 'vite-plugin-string';
 
 type EntryPointInfo = { name: string; path: string };
 // type EntryPointInfo = { path: string };
@@ -70,18 +71,21 @@ export default defineConfig(async (config) => {
 
     const isBundle = env.VITE_BUNDLE === 'true';
     const isMinifyShader = env.VITE_MINIFY_SHADER === 'true';
-    const isMangleProperties = env.VITE_MANGLE_PROPERTIES === 'true'; // gltf loader を使うときは必ず false
+    // const isMangleProperties = env.VITE_MANGLE_PROPERTIES === 'true'; // gltf loader を使うときは必ず false
     const isDropConsole = env.VITE_DROP_CONSOLE === 'true';
     const isCompact = env.VITE_COMPACT === 'true';
+    const manglePassesCount = parseInt(env.VITE_MANGLE_PASSES_COUNT || '1');
 
     console.log(`=== [env] mode: ${mode} ===`);
     console.log(`isBundle: ${isBundle}`);
     console.log(`isMinifyShader: ${isMinifyShader}`);
-    console.log(`isMangleProperties: ${isMangleProperties}`);
+    // console.log(`isMangleProperties: ${isMangleProperties}`);
     console.log(`isDropConsole: ${isDropConsole}`);
     console.log(`isCompact: ${isCompact}`);
     console.log(`entryPath: ${ENTRY_PATH}`);
     console.log(`isMainEntry: ${IS_MAIN_ENTRY}`);
+    console.log(`manglePassesCount: ${manglePassesCount}`);
+    console.log(`======================`);
 
     // NOTE: 今はentryを一つにしているので複数管理前提にする必要はない
     const entryPointInfos: EntryPointInfo[] = [];
@@ -131,6 +135,9 @@ export default defineConfig(async (config) => {
             deleteTmpCachesPlugin(),
             tsconfigPaths(),
             checker({ typescript: true }),
+            string({
+                include: '**/*.txt',
+            }),
             gltf(),
             glsl({
                 include: ['**/*.glsl'],
@@ -230,16 +237,19 @@ export default defineConfig(async (config) => {
                 // },
             },
             minify: 'terser',
-            // target: 'es2022',
             target: 'esnext',
             terserOptions: {
                 mangle: {
-                    toplevel: true,
-                    properties: isMangleProperties,
+                    // toplevel: true,
+                    // properties: isMangleProperties,
+                    properties: {
+                        regex: /^(_|\$)/,
+                    },
                 },
                 compress: {
                     drop_console: isDropConsole,
                     drop_debugger: true,
+                    passes: manglePassesCount,
                 },
             },
         },

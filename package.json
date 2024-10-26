@@ -46,6 +46,7 @@
     "vite-plugin-gltf": "^3.1.0",
     "vite-plugin-html": "^3.2.0",
     "vite-plugin-singlefile": "^0.13.5",
+    "vite-plugin-string": "^1.2.3",
     "vite-tsconfig-paths": "^4.2.0",
     "ws": "^8.14.2"
   },
