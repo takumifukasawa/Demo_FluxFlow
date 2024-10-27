@@ -35,7 +35,11 @@ vec3 opLiRe(vec3 p, float s, vec3 l)
 
 #define OP_ID(p, r) round(p / r)
 #define OP_RE(p, r) p - r * round(p / r)
-// #define OP_LI_RE(p, r, l) p - r * clamp(round(p / r), -l, l)
+#define OP_LI_RE(p, r, l) p - r * clamp(round(p / r), -l, l)
+
+#define EPS .0001 // general eps
+#define OI 80 // object space iteration
+#define SI 80 // screen space iteration
 
 vec2 opRo(vec2 p, float a) {
     return p * rot(-a);

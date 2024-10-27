@@ -76,14 +76,12 @@ void main() {
     float distance = 0.;
     float accLen = 0.;
     vec3 currentRayPosition = rayOrigin;
-    float minDistance = .0001;
-    for(int i = 0; i < 80; i++) {
+    float minDistance = EPS;
+    for(int i = 0; i < OI; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
-        // distance = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale).x;
         distance = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale, uUseWorld).x;
         accLen += distance;
         if(
-            // !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
             !isDfInnerBox(toLocal(currentRayPosition, vInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
             distance <= minDistance
         ) {

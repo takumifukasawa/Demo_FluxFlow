@@ -109,7 +109,7 @@ export class Engine {
         renderer: Renderer;
         fixedUpdateFps?: number;
         updateFps?: number;
-        renderFps?: number;
+        // renderFps?: number;
         onBeforeFixedUpdate?: EngineOnBeforeFixedUpdateCallback;
         onBeforeUpdate?: EngineOnBeforeUpdateCallback;
         onRender?: EngineOnRenderCallback;

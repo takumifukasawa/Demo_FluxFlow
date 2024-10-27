@@ -85,8 +85,8 @@ void main() {
     vec2 result = vec2(0.);
     float accLen = uNearClip;
     vec3 currentRayPosition = rayOrigin;
-    float minDistance = .0001;
-    for(int i = 0; i < 80; i++) {
+    float minDistance = EPS;
+    for(int i = 0; i < SI; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
         result = dfScene(currentRayPosition);
         accLen += result.x;

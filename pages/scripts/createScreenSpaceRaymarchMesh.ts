@@ -2,7 +2,7 @@ import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh
 import litScreenSpaceRaymarchFrag from '@/PaleGL/shaders/lit-screen-space-raymarch-fragment-test.glsl';
 import gBufferScreenSpaceRaymarchDepthFrag from '@/PaleGL/shaders/gbuffer-screen-space-raymarch-depth-fragment-test.glsl';
 import { Color } from '@/PaleGL/math/Color.ts';
-import { Vector3 } from '@/PaleGL/math/Vector3.ts';
+// import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
 
 export const createScreenSpaceRaymarchMesh = ({ gpu }: { gpu: GPU }) => {
@@ -20,8 +20,8 @@ export const createScreenSpaceRaymarchMesh = ({ gpu }: { gpu: GPU }) => {
         depthFragmentShaderContent: gBufferScreenSpaceRaymarchDepthFrag
         // castShadow: true,
     });
-    mesh.transform.scale = new Vector3(2, 2, 2);
-    mesh.transform.position = new Vector3(0, 4, 0);
+    // mesh.transform.scale = new Vector3(2, 2, 2);
+    // mesh.transform.position = new Vector3(0, 4, 0);
     // mesh.enabled = false;
 
     return mesh;

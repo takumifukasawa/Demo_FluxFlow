@@ -14,7 +14,7 @@ typeof _traverse === "function" ? traverse : traverse.default;
 // @ts-ignore
 typeof _generate === "function" ? generate : generate.default;
 
-const PRECISION: number = 4;
+const PRECISION: number = 6;
 
 // Babelを使ってASTを操作する関数
 export function processAst(ast: t.File, precision: number) {

@@ -145,14 +145,12 @@ void main() {
     vec2 result = vec2(0.);
     float accLen = 0.;
     vec3 currentRayPosition = rayOrigin;
-    float minDistance = .0001;
-    for(int i = 0; i < 80; i++) {
+    float minDistance = EPS;
+    for(int i = 0; i < OI; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
-        // result = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
         result = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale, uUseWorld);
         accLen += result.x;
         if(
-            // !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
             !isDfInnerBox(toLocal(currentRayPosition, vInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
             result.x <= minDistance
         ) {
