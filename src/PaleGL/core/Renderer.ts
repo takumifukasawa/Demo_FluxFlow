@@ -886,11 +886,21 @@ export class Renderer {
                 renderMeshInfo.queue === RenderQueueType.AlphaTest
             );
         });
+        sortedBasePassRenderMeshInfos.sort((a, b) => {
+            const al = Vector3.subVectors(camera.transform.position, a.actor.transform.position).magnitude;
+            const bl = Vector3.subVectors(camera.transform.position, b.actor.transform.position).magnitude;
+            return al < bl ? -1 : 1;
+        })
 
         // transparent mesh infos
         const sortedTransparentRenderMeshInfos: RenderMeshInfo[] = sortedRenderMeshInfos.filter(
             (renderMeshInfo) => renderMeshInfo.queue === RenderQueueType.Transparent
         );
+        sortedTransparentRenderMeshInfos.sort((a, b) => {
+            const al = Vector3.subVectors(camera.transform.position, a.actor.transform.position).magnitude;
+            const bl = Vector3.subVectors(camera.transform.position, b.actor.transform.position).magnitude;
+            return al > bl ? -1 : 1;
+        })
 
         // ------------------------------------------------------------------------------
         // update common uniforms
@@ -919,6 +929,11 @@ export class Renderer {
                 return false;
             }
             return actor;
+        });
+        depthPrePassRenderMeshInfos.sort((a, b) => {
+            const al = Vector3.subVectors(camera.transform.position, a.actor.transform.position).magnitude;
+            const bl = Vector3.subVectors(camera.transform.position, b.actor.transform.position).magnitude;
+            return al < bl ? -1 : 1;
         });
         this.depthPrePass(depthPrePassRenderMeshInfos, camera);
 
