@@ -157,7 +157,9 @@ export class Mesh extends Actor {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    updateDepthMaterial(_args: { camera: Camera }) {}
+    updateDepthMaterial(_args: { camera: Camera }) {
+        this.depthMaterials.forEach((material) => material.updateUniforms());
+    }
     
     setCanRenderMaterial(index: number, flag: boolean) {
         this.materials[index].canRender = flag;

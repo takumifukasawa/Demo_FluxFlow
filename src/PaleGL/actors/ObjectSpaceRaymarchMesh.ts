@@ -69,11 +69,25 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
     update(args: ActorUpdateArgs) {
         super.update(args);
 
+        // for debug
+        // console.log("============")
+        // console.log(this.name)
+        // this.transform.scale.log()
+        // this.parent?.transform.scale.log()
+        // this.transform.getWorldScale().log();
+        // console.log("============")
+        
         this.materials.forEach((material) => {
-            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+            // local
+            // material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+            // wp
+            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.getWorldScale());
         });
         this.depthMaterials.forEach((material) => {
-            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+            // local
+            // material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+            // wp
+            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.getWorldScale());
         });
     }
 

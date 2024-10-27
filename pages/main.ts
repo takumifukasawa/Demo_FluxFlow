@@ -52,7 +52,6 @@ import {
     MorphFollowerActorControllerEntity,
 } from './scripts/createMorphFollowersActorController.ts';
 import { SOUND_DURATION } from './scripts/demoSequencer.ts';
-import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import {
     ATTRACTOR_ORBIT_MOVER_A,
     ATTRACTOR_ORBIT_MOVER_B,
@@ -81,7 +80,6 @@ import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { createOrbitMoverBinder } from './scripts/orbitMoverBinder.ts';
 import { createDofFocusTargetController } from './scripts/dofFocusTargetController.ts';
 import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineHandShakeController.ts';
-import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
 import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
@@ -575,8 +573,8 @@ const load = async () => {
     //
 
     createFloorActorController(
-        captureScene.find(FLOOR_ACTOR_NAME)! as Mesh,
-        engine.sharedTextures[SharedTexturesTypes.SIMPLEX_NOISE].texture
+        gpu,
+        captureScene.find(FLOOR_ACTOR_NAME) as Actor
     );
     // (captureScene.find("BG")! as Mesh).material = new GBufferMaterial();
 

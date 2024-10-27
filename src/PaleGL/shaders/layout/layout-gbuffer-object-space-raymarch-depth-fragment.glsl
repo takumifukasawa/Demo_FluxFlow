@@ -4,6 +4,8 @@ precision highp float;
 
 #pragma DEFINES
 
+#include ../partial/common.glsl
+
 #include ../partial/uniform-block-common.glsl
 #include ../partial/uniform-block-transformations.glsl
 #include ../partial/uniform-block-camera.glsl

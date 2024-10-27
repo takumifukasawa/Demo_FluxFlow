@@ -21,10 +21,12 @@ import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera.ts';
 import { MaterialArgs } from '@/PaleGL/materials/Material.ts';
 import { gbufferScreenSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-screen-space-raymarch-depth-fragment-template.ts';
 import { litScreenSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-screen-space-raymarch-fragment-template.ts';
+import {Geometry} from "@/PaleGL/geometries/Geometry.ts";
 
 type ScreenSpaceRaymarchMeshArgs = {
     gpu: GPU;
     name?: string;
+    geometry?: Geometry,
     uniforms?: UniformsData;
     fragmentShaderTemplate?: string;
     fragmentShaderContent: string;
@@ -56,7 +58,7 @@ export class ScreenSpaceRaymarchMesh extends Mesh {
         ).replace(PRAGMA_RAYMARCH_SCENE, args.depthFragmentShaderContent);
 
         // NOTE: geometryは親から渡して使いまわしてもよい
-        const geometry = new PlaneGeometry({ gpu });
+        const geometry = args.geometry ?? new PlaneGeometry({ gpu });
         const material = new ScreenSpaceRaymarchMaterial({
             ...materialArgs,
             // overrides

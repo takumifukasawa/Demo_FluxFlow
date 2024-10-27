@@ -8,6 +8,8 @@ layout(location = 1) in vec4 aVelocity; // [nx, ny, nz, length]
 layout(location = 2) in vec4 aAttractTargetPosition; // [x,y,z, attractAmplitude]
 layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, attractPower]
 
+#include ../../partial/common.glsl
+
 #include ../../partial/uniform-block-common.glsl
 #include ../../partial/uniform-block-timeline.glsl
 
@@ -21,12 +23,6 @@ uniform float uAttractPower;
 
 // v minmag
 #define VMM .0001
-
-// https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
-float noise(vec2 seed)
-{
-    return fract(sin(dot(seed, vec2(12.9898, 78.233))) * 43758.5453);
-}
 
 vec3 unpackVelocity(vec4 v) {
     return v.xyz * max(v.w, VMM);
@@ -82,11 +78,11 @@ void main() {
 
         // // fuwafuwa
         vec2 seed = vec2(rawSeed, rawSeed);
-        float rand = noise(seed);
+        float hash = rand(seed);
         target += vec3(
-            cos((uTimelineTime + rand * 100. + seed.x)) * (2. + rand * 1.),
-            sin((uTimelineTime - rand * 400. + seed.x)) * (2. + rand * 1.),
-            cos((uTimelineTime - rand * 300. + seed.x)) * (2. + rand * 1.)
+            cos((uTimelineTime + hash * 100. + seed.x)) * (2. + hash * 1.),
+            sin((uTimelineTime - hash * 400. + seed.x)) * (2. + hash * 1.),
+            cos((uTimelineTime - hash * 300. + seed.x)) * (2. + hash * 1.)
         ) * attractAmplitude;
 
         vec3 diffP = target - vPosition;
@@ -120,7 +116,7 @@ void main() {
         //     diffDir * 2.,
         //     uDeltaTime
         // );
-        float attractDelayValue = noise(seed) * .5;
+        float attractDelayValue = hash * .5;
         float baseAttractPower = 2.;
         float attractMinPower = .2;
         // velocity = diffP * uDeltaTime * attractPower * baseAttractPower;

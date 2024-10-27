@@ -11,7 +11,7 @@ precision highp float;
 // #define MAX_SPOT_LIGHT_COUNT 1
 
 #include ./partial/common.glsl
-#include ./partial/noise.glsl
+// #include ./partial/noise.glsl
 // #include ./partial/lighting.glsl
 
 // 
@@ -148,7 +148,7 @@ void main() {
     GBufferA gBufferA = DecodeGBufferA(uGBufferATexture, uv);
     float rawDepth = texture(uDepthTexture, uv).r;
 
-    float jitter = noise(uv + uTime) * 2. - 1.;
+    float jitter = rand(uv + uTime) * 2. - 1.;
     vec2 jitterOffset = vec2(
         jitter * uRayJitterSizeX,
         jitter * uRayJitterSizeY * uViewport.z

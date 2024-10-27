@@ -19,10 +19,6 @@ uniform float uVignettePower;
 
 // ref: https://www.sawcegames.com/en/post/nier-automata-glitch
 
-float rand(vec2 co){
-    return fract(sin(dot(co.xy ,vec2(12.98, 78.23))) * 43.75);
-}
-
 float blockNoise(vec2 st, vec2 scale, vec2 offset) {
     st *= scale;
     vec2 ipos = floor(st);
@@ -55,11 +51,6 @@ void main() {
     vec4 glitchFinal = mix(srcCol, glitchCol, glitchMix);
 
     // distortion glitch
-
-    // float chrNoise = texture(iChannel1, fract(uv + random2 * 10.) * .5).x;
-    // float chrNoise2 = texture(iChannel1, fract(uv + random1 * 10.) * .75).x;
-    // float chrNoise = rand(ipos + random1);
-    // float chrNoise2 = rand(ipos + random2);
 
     float chrNoise = blockNoise(uv, vec2(8.), vec2(random1, 0.));
     float chrNoise2 = blockNoise(uv, vec2(11.), vec2(random1, 1.));

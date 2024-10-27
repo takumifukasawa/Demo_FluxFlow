@@ -17,7 +17,6 @@ out vec4 outColor;
 // -----------------------------------------------------------
 
 #include ./partial/common.glsl
-#include ./partial/noise.glsl
 
 #include ./partial/depth-functions.glsl
 
@@ -145,10 +144,10 @@ void main() {
 
     float jitterSpeed = 1.;
     vec3 jitterOffset = normalize(vec3(
-        noise(uv + uTime * jitterSpeed + .1),
-        noise(uv + uTime * jitterSpeed + .2),
+        rand(uv + uTime * jitterSpeed + .1),
+        rand(uv + uTime * jitterSpeed + .2),
         // 0.
-        noise(uv + uTime * jitterSpeed + .3)
+        rand(uv + uTime * jitterSpeed + .3)
     ) * 2. - 1.);
 
     float occlusion = 0.;

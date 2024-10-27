@@ -53,6 +53,10 @@ export class Transform {
     get worldPosition() {
         return this.#worldMatrix.position;
     }
+    
+    getWorldScale() {
+        return this.#worldMatrix.getScale();
+    }
 
     get worldRight() {
         return new Vector3(this.#worldMatrix.m00, this.#worldMatrix.m10, this.#worldMatrix.m20).normalize();

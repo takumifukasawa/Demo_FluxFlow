@@ -8,13 +8,8 @@ precision mediump float;
    
 const int MAX_ITERATION_NUM = 64;
 
+#include ./partial/common.glsl
 #include ./partial/depth-functions.glsl
-
-// TODO: bundle rand
-// ref: https://stackoverflow.com/questions/4200224/random-noise-functions-for-glsl
-float rand(vec2 co){
-    return fract(sin(dot(co, vec2(12.9898, 78.233))) * 43758.5453);
-}
 
 in vec2 vUv;
 

@@ -145,7 +145,25 @@ export class Matrix4 {
     get position() {
         return new Vector3(this.m03, this.m13, this.m23);
     }
-
+    
+    getScale() {
+        const m00 = this.m00;
+        const m01 = this.m01;
+        const m02 = this.m02;
+        const m10 = this.m10;
+        const m11 = this.m11;
+        const m12 = this.m12;
+        const m20 = this.m20;
+        const m21 = this.m21;
+        const m22 = this.m22;
+        
+        const sx = Math.sqrt(m00 ** 2 + m01 ** 2 + m02 ** 2);
+        const sy = Math.sqrt(m10 ** 2 + m11 ** 2 + m12 ** 2);
+        const sz = Math.sqrt(m20 ** 2 + m21 ** 2 + m22 ** 2);
+        
+        return new Vector3(sx, sy, sz);
+    }
+    
     // get clipPosition() {
     //     const w = this.m33 === 0 ? 0.0001 : this.m33; // TODO: cheap NaN fallback
     //     return new Vector3(this.m03 / w, this.m13 / w, this.m23 / w);

@@ -19,3 +19,8 @@ vec4 calcAreaColor(vec4 color, vec2 uv, vec2 tiling, vec2 offset) {
 vec4 calcTextureAreaColor(sampler2D tex, vec2 uv, vec2 tiling, vec2 offset) {
     return calcAreaColor(texture(tex, uv * tiling + offset), uv, tiling, offset);
 }
+
+// 0 - 1
+float rand(vec2 co){
+    return fract(sin(dot(co.xy ,vec2(12.98, 78.23))) * 43.75);
+}
