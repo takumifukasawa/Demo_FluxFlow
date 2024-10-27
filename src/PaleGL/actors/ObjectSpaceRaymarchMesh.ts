@@ -36,18 +36,8 @@ type ObjectSpaceRaymarchMeshArgs = {
 // NOTE: 今はbox限定. sphereも対応したい
 export class ObjectSpaceRaymarchMesh extends Mesh {
     constructor(args: ObjectSpaceRaymarchMeshArgs) {
-        // const { gpu, fragmentShader, depthFragmentShader, uniforms = [], castShadow } = args;
         const { gpu, name, materialArgs, castShadow, size } = args;
-        // const {gpu, castShadow } = args;
         const geometry = new BoxGeometry({ gpu, size });
-
-        // const fragmentShader = (args.fragmentShaderTemplate || litObjectSpaceRaymarchFragmentTemplate).replace(
-        //     PRAGMA_RAYMARCH_SCENE,
-        //     args.fragmentShaderContent
-        // );
-        // const depthFragmentShader = (
-        //     args.depthFragmentShaderTemplate || gbufferObjectSpaceRaymarchDepthFragmentTemplate
-        // ).replace(PRAGMA_RAYMARCH_SCENE, args.depthFragmentShaderContent);
 
         const materials = args.materials
             ? args.materials
@@ -58,34 +48,6 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
                       materialArgs: materialArgs!,
                   }),
               ];
-
-        // const material = createObjectSpaceRaymarchMaterial({
-        //     fragmentShader,
-        //     depthFragmentShader,
-        //     materialArgs
-        // });
-
-        // // const { fragmentShader, depthFragmentShader, uniforms = [] } = materialArgs;
-        // const material = new ObjectSpaceRaymarchMaterial({
-        //     // tmp
-        //     // uniforms,
-        //     // // metallic,
-        //     // // roughness,
-        //     // // receiveShadow,
-        //     // // receiveShadow: !!receiveShadow,
-        //     // primitiveType: PrimitiveTypes.Triangles,
-        //     // uniformBlockNames: [
-        //     //     UniformBlockNames.Common
-        //     // ]
-
-        //     // new
-        //     ...materialArgs,
-        //     // override
-        //     fragmentShader,
-        //     depthFragmentShader,
-        //     primitiveType: PrimitiveTypes.Triangles,
-        //     faceSide: FaceSide.Double,
-        // });
 
         // NOTE
         // const material = new GBufferMaterial({
