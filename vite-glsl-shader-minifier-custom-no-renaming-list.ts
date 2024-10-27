@@ -1,5 +1,6 @@
 export const viteGlslShaderMinifierCustomNoRenamingList = [
     'rand',
+    'hash3',
     'dfSp',
     'dfRb',
     'dfMB',
