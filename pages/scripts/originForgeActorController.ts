@@ -61,8 +61,6 @@ const gatherChildPositions: Vector3[] = maton.range(4).map(() => Vector3.zero);
 // [morph rate, rot x, rot y, ,]
 const gatherChildMorphStates: Vector4[] = maton.range(4).map(() => Vector4.zero);
 
-
-
 const shaderContentPairs: {
     fragment: string;
     depth: string;
@@ -425,7 +423,6 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             surfaceParameters.roughness = value;
             return;
         }
-        
 
         // diffuse r
         if (key === buildTimelinePropertyR(SURFACE_DIFFUSE_PROPERTY_BASE)) {
@@ -534,8 +531,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
             const instancePositions = calcEmitInstancePositions(easeInOutQuad(rate), false);
             metaballPositions = instancePositions;
-            mesh.materials.forEach((material) => {
-                material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+            // mesh.materials.forEach((material) => {
+            //     material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+            // });
+            mesh.materials.forEach((_, i) => {
+                mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
             });
         } else {
             morphFollowersActorController.setInstanceNum(data.instanceNum);
@@ -548,8 +548,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         metaballPositions = maton.range(METABALL_NUM, true).map(() => {
             return new Vector3(0, 0, 0);
         });
-        mesh.materials.forEach((material) => {
-            material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+        // mesh.materials.forEach((material) => {
+        //     material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+        // });
+        mesh.materials.forEach((_, i) => {
+            mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
         });
     };
 
@@ -562,7 +565,12 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             // gatherChildPositions[i] = mesh.transform.worldToLocalPoint(actor.transform.position);
             gatherChildPositions[i] = Vector3.subVectors(actor.transform.position, mesh.transform.position);
         });
-        mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
+        // mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
+        //     UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS,
+        //     gatherChildPositions
+        // );
+        mesh.setUniformValueToPairMaterial(
+            GATHER_PHASE_MATERIAL_INDEX,
             UNIFORM_NAME_METABALL_GATHER_CHILDREN_POSITIONS,
             gatherChildPositions
         );
@@ -576,25 +584,36 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             UNIFORM_NAME_METABALL_GATHER_MORPH_STATES,
             gatherChildMorphStates
         );
-        // mesh.materials[GATHER_PHASE_MATERIAL_INDEX].uniforms.setValue(
-        //     UniformNames.EmissiveColor,
-        //     surfaceParameters.emissiveColor
-        // );
+        mesh.setUniformValueToPairMaterial(
+            GATHER_PHASE_MATERIAL_INDEX,
+            UNIFORM_NAME_METABALL_GATHER_MORPH_STATES,
+            gatherChildMorphStates
+        );
 
-        mesh.materials.forEach((material) => {
-            material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, statesParameters.originMorphRate);
+        // mesh.materials.forEach((material) => {
+        //     material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, statesParameters.originMorphRate);
+        // });
+        mesh.materials.forEach((_, i) => {
+            mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, statesParameters.originMorphRate);
         });
 
-        mesh.materials.forEach((material) => {
-            material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_ROT, statesParameters.originForgeRotationRad);
+        // mesh.materials.forEach((material) => {
+        //     material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_ROT, statesParameters.originForgeRotationRad);
+        // });
+        mesh.materials.forEach((_, i) => {
+            mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_ORIGIN_ROT, statesParameters.originForgeRotationRad);
         });
 
-        mesh.materials.forEach((material) => {
-            material.uniforms.setValue(UNIFORM_NAME_METABALL_GATHER_SCALE_RATE, statesParameters.gatherScale);
+        // mesh.materials.forEach((material) => {
+        //     material.uniforms.setValue(UNIFORM_NAME_METABALL_GATHER_SCALE_RATE, statesParameters.gatherScale);
+        // });
+        mesh.materials.forEach((_, i) => {
+            mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_GATHER_SCALE_RATE, statesParameters.gatherScale);
         });
 
         //
         // surface
+        // depthは更新しなくていい
         //
 
         mesh.materials.forEach((material) => {
@@ -609,7 +628,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         mesh.materials.forEach((material) => {
             material.uniforms.setValue(UniformNames.EmissiveColor, surfaceParameters.emissiveColor);
         });
-       
+
         //
         // シーケンスの処理
         //

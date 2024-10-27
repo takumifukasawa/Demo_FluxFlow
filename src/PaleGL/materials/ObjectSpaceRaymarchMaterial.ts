@@ -130,6 +130,11 @@ export class ObjectSpaceRaymarchMaterial extends Material {
                 type: UniformTypes.Float,
                 value: 0,
             },
+            {
+                name: 'uUseWorld',
+                type: UniformTypes.Float,
+                value: 0
+            }
         ];
         const shadingUniforms: UniformsData = [
             {

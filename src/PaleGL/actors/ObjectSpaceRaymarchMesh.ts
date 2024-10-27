@@ -79,15 +79,15 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
         
         this.materials.forEach((material) => {
             // local
-            // material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
             // wp
-            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.getWorldScale());
+            // material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.getWorldScale());
         });
         this.depthMaterials.forEach((material) => {
             // local
-            // material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
+            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.scale);
             // wp
-            material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.getWorldScale());
+            // material.uniforms.setValue(UniformNames.ObjectSpaceRaymarchBoundsScale, this.transform.getWorldScale());
         });
     }
 
@@ -99,9 +99,13 @@ export class ObjectSpaceRaymarchMesh extends Mesh {
     }
 
     updateDepthMaterial({ camera }: { camera: Camera }) {
-        super.updateMaterial({ camera });
+        super.updateDepthMaterial({ camera });
         this.depthMaterials.forEach((material) => {
             material.uniforms.setValue(UNIFORM_NAME_PERSPECTIVE_FLAG, camera.isPerspective() ? 1 : 0);
         });
+    }
+    
+    setUseWorldSpace(flag: boolean) {
+        this.setUniformValueToAllMaterials("uUseWorld", flag ? 1 : 0);
     }
 }

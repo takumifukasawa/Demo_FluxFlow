@@ -10,6 +10,7 @@ import gBufferObjectSpaceRaymarchFragFloorContent from '@/PaleGL/shaders/custom/
 import { createObjectSpaceRaymarchMaterial } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
 import {FaceSide, UniformBlockNames} from '@/PaleGL/constants.ts';
 import {ObjectSpaceRaymarchMesh} from "@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts";
+// import {Scene} from "@/PaleGL/core/Scene.ts";
 // import {Vector3} from "@/PaleGL/math/Vector3.ts";
 
 export function createFloorActorController(gpu: GPU, actor: Actor) {
@@ -27,7 +28,7 @@ export function createFloorActorController(gpu: GPU, actor: Actor) {
         materialArgs: {
             receiveShadow: true,
             uniformBlockNames: [UniformBlockNames.Timeline],
-            faceSide: FaceSide.Double
+            faceSide: FaceSide.Double,
         },
     });
 
@@ -38,6 +39,13 @@ export function createFloorActorController(gpu: GPU, actor: Actor) {
         castShadow: true,
     });
     
+    actor.onPostProcessTimeline = () => {
+        mesh.transform.position = actor.transform.position;
+        mesh.transform.scale = actor.transform.scale;
+        mesh.transform.rotation = actor.transform.rotation;
+        mesh.setUseWorldSpace(true);
+    }
+
     // s-s
 
     // const mesh = new ScreenSpaceRaymarchMesh({
@@ -55,5 +63,5 @@ export function createFloorActorController(gpu: GPU, actor: Actor) {
     //     // castShadow: true,
     // });
 
-    actor.addChild(mesh);
+    return mesh;
 }

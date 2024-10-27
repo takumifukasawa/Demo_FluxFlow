@@ -24,11 +24,17 @@ vec3 opRe(vec3 p, float s) {
     return p - s * round(p / s);
 }
 
+vec3 opLiRe(vec3 p, float s, vec3 l)
+{
+    return p - s * clamp(round(p / s), -l, l);
+}
+
 // #define OP_ID(p, r) round((p + r * .5) / r)
 // #define OP_RE(p, r) mod(p, r) - r * .5
 
 #define OP_ID(p, r) round(p / r)
 #define OP_RE(p, r) p - r * round(p / r)
+#define OP_LI_RE(p, r, l) p - r * clamp(round(p / r), -l, l)
 
 vec2 opRo(vec2 p, float a) {
     return p * rot(-a);

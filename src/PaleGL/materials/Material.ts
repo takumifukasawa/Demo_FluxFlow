@@ -499,7 +499,7 @@ export class Material {
      * マテリアルごとにアップデートしたいuniformがあるとき
      */
     updateUniforms() {}
-
+    
     // private uniformBufferObjects: { uniformBufferObject: UniformBufferObject; blockIndex: number }[] = [];
 
     // addUniformBufferObject(uniformBufferObject: UniformBufferObject, blockIndex: number) {

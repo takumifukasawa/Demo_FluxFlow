@@ -572,10 +572,11 @@ const load = async () => {
     // floor
     //
 
-    createFloorActorController(
+    const floorMesh = createFloorActorController(
         gpu,
         captureScene.find(FLOOR_ACTOR_NAME) as Actor
     );
+    captureScene.add(floorMesh);
     // (captureScene.find("BG")! as Mesh).material = new GBufferMaterial();
 
     //

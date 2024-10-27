@@ -4,6 +4,7 @@ import { Material } from '@/PaleGL/materials/Material';
 import { defaultDepthFragmentShader } from '@/PaleGL/shaders/buildShader';
 import { Geometry } from '@/PaleGL/geometries/Geometry';
 import { Camera } from '@/PaleGL/actors/Camera.ts';
+import {UniformValue} from "@/PaleGL/core/Uniforms.ts";
 
 export type MeshOptionsArgs = {
     castShadow?: boolean;
@@ -159,6 +160,16 @@ export class Mesh extends Actor {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     updateDepthMaterial(_args: { camera: Camera }) {
         this.depthMaterials.forEach((material) => material.updateUniforms());
+    }
+    
+    setUniformValueToPairMaterial(i: number, name: string, newValue: UniformValue) {
+        this.materials[i].uniforms.setValue(name, newValue);
+        this.depthMaterials[i].uniforms.setValue(name, newValue);
+    }
+    
+    setUniformValueToAllMaterials(name: string, newValue: UniformValue) {
+        this.materials.forEach((material) => material.uniforms.setValue(name, newValue));
+        this.depthMaterials.forEach((material) => material.uniforms.setValue(name, newValue));
     }
     
     setCanRenderMaterial(index: number, flag: boolean) {

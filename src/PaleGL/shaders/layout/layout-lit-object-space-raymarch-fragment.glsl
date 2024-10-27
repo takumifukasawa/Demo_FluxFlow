@@ -49,6 +49,7 @@ uniform int uShadingModelId;
 #include ../partial/normal-map-fragment-uniforms.glsl
 
 uniform float uIsPerspective;
+uniform float uUseWorld;
 uniform vec3 uBoundsScale;
 uniform sampler2D uDepthTexture;
 
@@ -148,7 +149,7 @@ void main() {
     for(int i = 0; i < 80; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
         // result = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
-        result = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale);
+        result = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale, uUseWorld);
         accLen += result.x;
         if(
             // !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
@@ -180,7 +181,7 @@ void main() {
 
     if(result.x > 0.) {
         // worldNormal = getNormalObjectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale);
-        worldNormal = getNormalObjectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale);
+        worldNormal = getNormalObjectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale, uUseWorld);
     }
  
     //

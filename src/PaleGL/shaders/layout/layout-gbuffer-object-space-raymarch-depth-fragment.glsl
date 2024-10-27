@@ -32,17 +32,10 @@ in vec4 vInstanceState;
 uniform vec4 uColor;
 uniform sampler2D uDiffuseMap;
 uniform vec2 uDiffuseMapUvScale;
-// uniform vec3 uViewPosition;
 uniform float uIsPerspective;
-
-// uniform mat4 uWorldMatrix;
-// uniform mat4 uViewMatrix;
-// uniform mat4 uProjectionMatrix;
-// uniform mat4 uInverseWorldMatrix;
+uniform float uUseWorld;
 uniform vec3 uBoundsScale;
 uniform sampler2D uDepthTexture;
-// uniform float uNearClip;
-// uniform float uFarClip;
 
 #ifdef USE_ALPHA_TEST
 uniform float uAlphaTestThreshold;
@@ -87,7 +80,7 @@ void main() {
     for(int i = 0; i < 80; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
         // distance = objectSpaceDfScene(currentRayPosition, uInverseWorldMatrix, uBoundsScale).x;
-        distance = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale).x;
+        distance = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale, uUseWorld).x;
         accLen += distance;
         if(
             // !isDfInnerBox(toLocal(currentRayPosition, uInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
