@@ -576,7 +576,6 @@ const load = async () => {
         gpu,
         captureScene.find(FLOOR_ACTOR_NAME) as Actor
     );
-    floorMesh.enabled = true;
     captureScene.add(floorMesh);
     // (captureScene.find("BG")! as Mesh).material = new GBufferMaterial();
 

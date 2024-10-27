@@ -19,6 +19,7 @@ out vec2 vUv;
 out vec3 vLocalPosition;
 out vec3 vWorldPosition;
 out vec3 vNormal;
+out mat4 vWorldMatrix;
 out mat4 vInverseWorldMatrix;
 
 #ifdef USE_INSTANCING
@@ -201,6 +202,8 @@ void main() {
 
     vWorldPosition = worldPosition.xyz;
     vInverseWorldMatrix = inverse(worldMatrix);
+    
+    vWorldMatrix = worldMatrix;
 
     #include ./partial/normal-map-vertex-calc.glsl;
 

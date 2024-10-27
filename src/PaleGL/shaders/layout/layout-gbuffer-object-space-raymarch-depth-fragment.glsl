@@ -43,6 +43,7 @@ uniform float uAlphaTestThreshold;
 
 in vec2 vUv;
 in vec3 vLocalPosition;
+in mat4 vWorldMatrix;
 in vec3 vWorldPosition;
 in mat4 vInverseWorldMatrix;
 
@@ -69,22 +70,29 @@ void main() {
     // NOTE: raymarch block
     //
 
-    vec3 rayOrigin = vWorldPosition;
+    vec3 wp = vWorldPosition;
+    // vec3 wp = (vWorldMatrix * vec4(vLocalPosition, 1.)).xyz;
+    
+    vec3 rayOrigin = wp;
     vec3 rayDirection = uIsPerspective > .5
-        ? normalize(vWorldPosition - uViewPosition)
+        ? normalize(wp - uViewPosition)
         : normalize(-uViewPosition);
     float distance = 0.;
     float accLen = 0.;
     vec3 currentRayPosition = rayOrigin;
     float minDistance = EPS;
+
+    mat4 inverseWorldMatrix = vInverseWorldMatrix;
+    // mat4 inverseWorldMatrix = inverse(uWorldMatrix);
+    
     for(int i = 0; i < OI; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
-        distance = objectSpaceDfScene(currentRayPosition, vInverseWorldMatrix, uBoundsScale, uUseWorld).x;
+        distance = objectSpaceDfScene(currentRayPosition, inverseWorldMatrix, uBoundsScale, uUseWorld).x;
         accLen += distance;
-        if(
-            !isDfInnerBox(toLocal(currentRayPosition, vInverseWorldMatrix, uBoundsScale), uBoundsScale) ||
-            distance <= minDistance
-        ) {
+        if(!isDfInnerBox(toLocal(currentRayPosition, inverseWorldMatrix, uBoundsScale), uBoundsScale)) {
+            break;
+        }
+        if(distance <= minDistance) {
             break;
         }
     }

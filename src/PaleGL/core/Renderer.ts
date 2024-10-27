@@ -1472,7 +1472,7 @@ export class Renderer {
         depthPrePassRenderMeshInfos.forEach(({ actor }) => {
             this.updateActorTransformUniforms(actor);
 
-            actor.depthMaterials.forEach((depthMaterial) => {
+            actor.depthMaterials.forEach((depthMaterial, i) => {
                 if (!depthMaterial) {
                     console.error('[Renderer.depthPrePass] invalid depth material');
                     return;
@@ -1482,7 +1482,7 @@ export class Renderer {
                     return;
                 }
 
-                if (actor.mainMaterial.skipDepthPrePass) {
+                if (actor.materials[i].skipDepthPrePass) {
                     return;
                 }
 
