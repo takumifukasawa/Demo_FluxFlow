@@ -152,6 +152,11 @@ export class PostProcessPassBase implements IPostProcessPass {
             rawVertexShader,
             rawFragmentShader,
             uniforms: [
+                ...([{
+                    name: UniformNames.BlendRate,
+                    type: UniformTypes.Float,
+                    value: 1,
+                }]),
                 ...uniforms,
                 ...PostProcessPassBase.commonUniforms,
                 ...(srcTextureEnabled
@@ -169,10 +174,6 @@ export class PostProcessPassBase implements IPostProcessPass {
             // useEnvMap: !!useEnvMap,
             receiveShadow: !!receiveShadow,
             primitiveType: PrimitiveTypes.Triangles,
-            // uniformBlockNames: [
-            //     UniformBlockNames.Transformations,
-            //     UniformBlockNames.Camera
-            // ]
         });
         this.materials.push(this.material);
 
@@ -206,65 +207,12 @@ export class PostProcessPassBase implements IPostProcessPass {
                 type: UniformTypes.Float,
                 value: 1,
             },
-            // {
-            //     name: UniformNames.CameraNear,
-            //     type: UniformTypes.Float,
-            //     value: 0,
-            // },
-            // {
-            //     name: UniformNames.CameraFar,
-            //     type: UniformTypes.Float,
-            //     value: 0,
-            // },
             {
                 name: UniformNames.Time,
                 type: UniformTypes.Float,
                 value: 0,
             },
-            // {
-            //     name: UniformNames.ViewPosition,
-            //     type: UniformTypes.Vector3,
-            //     value: Vector3.zero,
-            // },
-            // {
-            //     name: UniformNames.ViewMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.ProjectionMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.ViewProjectionMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.InverseViewMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.InverseProjectionMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.InverseViewProjectionMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
-            // {
-            //     name: UniformNames.TransposeInverseViewMatrix,
-            //     type: UniformTypes.Matrix4,
-            //     value: Matrix4.identity,
-            // },
         ];
-        // passMaterial.updateUniform(UniformNames.GBufferATexture, renderer.gBufferRenderTargets.gBufferATexture);
-        // passMaterial.updateUniform(UniformNames.GBufferBTexture, renderer.gBufferRenderTargets.gBufferBTexture);
-        // passMaterial.updateUniform(UniformNames.DepthTexture, renderer.depthPrePassRenderTarget.depthTexture);
     }
 
     /**
@@ -278,8 +226,8 @@ export class PostProcessPassBase implements IPostProcessPass {
         this._renderTarget.setSize(width, height);
 
         // TODO: pass base で更新しちゃって大丈夫？
-        this.material.uniforms.setValue('uTargetWidth', this.width);
-        this.material.uniforms.setValue('uTargetHeight', this.height);
+        this.material.uniforms.setValue(UniformNames.TargetWidth, this.width);
+        this.material.uniforms.setValue(UniformNames.TargetHeight, this.height);
     }
 
     /**

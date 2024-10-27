@@ -73,6 +73,7 @@ import {
     ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_2,
     ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_3,
     ORIGIN_FORGE_GATHER_CHILD_ACTOR_NAME_4,
+    POST_PROCESS_ACTOR_NAME,
     SPOT_LIGHT_ACTOR_NAME_A,
     SPOT_LIGHT_ACTOR_NAME_B,
 } from './scripts/demoConstants.ts';
@@ -87,8 +88,9 @@ import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
 import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass.ts';
-import {snapToStep} from "@/Marionetter/timelineUtilities.ts";
-import {clamp} from "@/PaleGL/utilities/mathUtilities.ts";
+import { snapToStep } from '@/Marionetter/timelineUtilities.ts';
+import { clamp } from '@/PaleGL/utilities/mathUtilities.ts';
+import { createBlackCurtainPass } from './scripts/createBlackCurtainPass.ts';
 
 const stylesText = `
 body {
@@ -170,14 +172,6 @@ const styleElement = document.createElement('style');
 styleElement.innerText = stylesText;
 document.head.appendChild(styleElement);
 
-let width: number, height: number;
-let directionalLight: DirectionalLight;
-let currentTimeForTimeline = 0;
-let captureSceneCamera: PerspectiveCamera | null;
-let marionetterSceneStructure: MarionetterSceneStructure | null = null;
-let cameraPostProcess: PostProcess;
-let bufferVisualizerPass: BufferVisualizerPass;
-
 // const wrapperElement = document.getElementById("wrapper")!;
 const wrapperElement = document.createElement('div');
 document.body.appendChild(wrapperElement);
@@ -194,6 +188,15 @@ if (!gl) {
 }
 
 const gpu = new GPU({ gl });
+
+let width: number, height: number;
+let directionalLight: DirectionalLight;
+let currentTimeForTimeline = 0;
+let captureSceneCamera: PerspectiveCamera | null;
+let marionetterSceneStructure: MarionetterSceneStructure | null = null;
+let cameraPostProcess: PostProcess;
+let bufferVisualizerPass: BufferVisualizerPass;
+const blackCurtainPass = createBlackCurtainPass(gpu);
 
 const glslSoundWrapper = initGLSLSound(gpu, soundVertexShader, SOUND_DURATION);
 
@@ -239,20 +242,29 @@ const buildScene = (sceneJson: MarionetterScene) => {
         captureScene.add(actors[i]);
     }
 
+    //
+    // camera
+    //
     captureSceneCamera = captureScene.find(MAIN_CAMERA_ACTOR_NAME) as PerspectiveCamera;
-    directionalLight = captureScene.find(DIRECT_LIGHT_ACTOR_NAME) as DirectionalLight;
-    // directionalLight = new DirectionalLight({
-    //     intensity: 1,
-    //     color: Color.white
-    // });
-    // captureScene.add(directionalLight);
 
     captureSceneCamera.subscribeOnStart(({ actor }) => {
         (actor as Camera).setClearColor(new Vector4(0, 0, 0, 1));
     });
 
     //
-    // spot light shadow map
+    // post process
+    //
+
+    const postProessActor = captureScene.find(POST_PROCESS_ACTOR_NAME) as Actor;
+    postProessActor.onProcessPropertyBinder = (key, value) => {
+        // color cover pass
+        if (key === 'cbr') {
+            blackCurtainPass.setBlendRate(value);
+        }
+    };
+
+    //
+    // spot light shadow
     //
 
     const createSpotLightShadowMap = (spotLight: SpotLight) => {
@@ -277,8 +289,10 @@ const buildScene = (sceneJson: MarionetterScene) => {
     createSpotLightShadowMap(captureScene.find(SPOT_LIGHT_ACTOR_NAME_B) as SpotLight);
 
     //
-    // directional light shadows
+    // directional light and shadows
     //
+
+    directionalLight = captureScene.find(DIRECT_LIGHT_ACTOR_NAME) as DirectionalLight;
 
     // TODO: directional light は constructor で shadow camera を生成してるのでこのガードいらない
     if (directionalLight && directionalLight.shadowCamera) {
@@ -305,16 +319,19 @@ const buildScene = (sceneJson: MarionetterScene) => {
         // }
     }
 
+    cameraPostProcess = new PostProcess();
+    cameraPostProcess.enabled = true;
+
+    cameraPostProcess.addPass(blackCurtainPass.getPass());
+    captureSceneCamera.setPostProcess(cameraPostProcess);
+
     if (isDevelopment()) {
-        cameraPostProcess = new PostProcess();
         bufferVisualizerPass = new BufferVisualizerPass({
             gpu,
         });
         bufferVisualizerPass.parameters.enabled = false;
         cameraPostProcess.addPass(bufferVisualizerPass);
-        cameraPostProcess.enabled = true;
         // TODO: set post process いらないかも
-        captureSceneCamera.setPostProcess(cameraPostProcess);
     }
     console.log('scene', actors);
 };
@@ -594,7 +611,7 @@ const load = async () => {
                 currentTimeForTimeline = glslSoundWrapper.getCurrentTime()!;
             }
             timelineTime = snapToStep(currentTimeForTimeline, 1 / 60);
-            timelineTime = clamp(timelineTime, 0, SOUND_DURATION); 
+            timelineTime = clamp(timelineTime, 0, SOUND_DURATION);
             timelineDeltaTime = timelineTime - timelinePrevTime;
             timelinePrevTime = timelineTime;
             marionetterSceneStructure.marionetterTimeline.execute({

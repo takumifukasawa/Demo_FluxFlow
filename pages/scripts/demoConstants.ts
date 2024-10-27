@@ -31,3 +31,5 @@ export const ATTRACTOR_ORBIT_MOVER_C = 'O_C';
 export const DEPTH_OF_FIELD_TARGET_ACTOR_NAME = 'FT';
 
 export const FLOOR_ACTOR_NAME = 'FL';
+
+export const POST_PROCESS_ACTOR_NAME = 'PP';

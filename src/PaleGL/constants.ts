@@ -254,6 +254,7 @@ export const PostProcessPassType = {
     VolumetricLight: 16,
     Fragment: 17,
     Fog: 18,
+    FragmentPass: 19
 } as const;
 
 export type PostProcessPassType = (typeof PostProcessPassType)[keyof typeof PostProcessPassType];

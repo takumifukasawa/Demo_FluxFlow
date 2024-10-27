@@ -6,12 +6,16 @@ in vec2 vUv;
 
 out vec4 outColor;
 
+#include ./partial/common.glsl
 #include ./partial/uniform-block-common.glsl
 
 uniform sampler2D uSrcTexture;
 uniform float uTargetWidth;
 uniform float uTargetHeight;
 uniform float uBlendRate;
+
+uniform float uVignetteRadius;
+uniform float uVignettePower;
 
 // ref: https://www.sawcegames.com/en/post/nier-automata-glitch
 
@@ -88,6 +92,14 @@ void main() {
     vec4 desaturatedCol = vec4(dot((srcCol + lensBlur + lensBlur2).rgb / 3., vec3(.3, .59, .11)));
     desaturatedCol += vec4(lensAbrR * 2., 0., 0., 0.);
     destCol = mix(compositeCol, vec4(desaturatedCol.xyz, 1.), desaturate);
+
+    // wip
+    // // radial mask
+    // vec2 uv = vUv;
+    // vec2 centerUv = vUv * 2. - 1.; // -1 ~ 1
+    // centerUv.x *= uAspect;
+    // float d = dot(centerUv, centerUv);
+    // float factor = 1. - saturate(pow(min(1., d / uVignetteRadius), uVignettePower) * uBlendRate);
 
     outColor = mix(srcCol, destCol, uBlendRate);
 }
