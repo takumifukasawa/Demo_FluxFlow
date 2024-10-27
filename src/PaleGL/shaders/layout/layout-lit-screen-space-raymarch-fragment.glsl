@@ -27,6 +27,7 @@ precision highp float;
 uniform float uMetallic;
 uniform float uRoughness;
 uniform int uShadingModelId;
+uniform vec4 uEmissiveColor;
 
 #pragma APPEND_UNIFORMS
 
@@ -71,9 +72,10 @@ in vec3 vWorldPosition;
 
 void main() {
     vec4 resultColor = vec4(0, 0, 0, 1);
-    vec4 emissiveColor = vec4(1., 1., 1., 1.);
-    
+
     vec3 worldNormal = vec3(0., 0., 1.);
+
+    vec3 emissiveColor = uEmissiveColor.rgb;
 
     //
     // NOTE: raymarch block
@@ -86,26 +88,26 @@ void main() {
     float accLen = uNearClip;
     vec3 currentRayPosition = rayOrigin;
     float minDistance = EPS;
-    for(int i = 0; i < SI; i++) {
+    for (int i = 0; i < SI; i++) {
         currentRayPosition = rayOrigin + rayDirection * accLen;
         result = dfScene(currentRayPosition);
         accLen += result.x;
-        if(accLen > uFarClip || result.x <= minDistance) {
+        if (accLen > uFarClip || result.x <= minDistance) {
             break;
         }
     }
-    
-    if(result.x > minDistance) {
+
+    if (result.x > minDistance) {
         discard;
     }
-    
+
     // currentRayPosition = rayOrigin + rayDirection * accLen;
 
     // 既存の深度値と比較して、奥にある場合は破棄する
     float rawDepth = texelFetch(uDepthTexture, ivec2(gl_FragCoord.xy), 0).x;
     float sceneDepth = perspectiveDepthToLinearDepth(rawDepth, uNearClip, uFarClip);
     float currentDepth = viewZToLinearDepth((uViewMatrix * vec4(currentRayPosition, 1.)).z, uNearClip, uFarClip);
-    if(currentDepth >= sceneDepth) {
+    if (currentDepth >= sceneDepth) {
         discard;
     }
 
@@ -113,17 +115,17 @@ void main() {
     float newDepth = (rayClipPosition.z / rayClipPosition.w) * .5 + .5;
     gl_FragDepth = newDepth;
 
-    if(result.x > 0.) {
+    if (result.x > 0.) {
         worldNormal = getNormalDfScene(currentRayPosition);
     }
-    
+
     //
     // NOTE: end raymarch block
     //
 
-#ifdef USE_ALPHA_TEST
+    #ifdef USE_ALPHA_TEST
     checkAlphaTest(resultColor.a, uAlphaTestThreshold);
-#endif
+    #endif
 
     resultColor.rgb = gamma(resultColor.rgb);
 

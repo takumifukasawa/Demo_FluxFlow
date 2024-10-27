@@ -17,16 +17,16 @@ import { PostProcessPassBase } from '@/PaleGL/postprocess/PostProcessPassBase.ts
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 // import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
 import { Camera } from '@/PaleGL/actors/Camera.ts';
-import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera.ts';
+// import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera.ts';
 import { MaterialArgs } from '@/PaleGL/materials/Material.ts';
 import { gbufferScreenSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-screen-space-raymarch-depth-fragment-template.ts';
 import { litScreenSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-screen-space-raymarch-fragment-template.ts';
-import {Geometry} from "@/PaleGL/geometries/Geometry.ts";
+import { Geometry } from '@/PaleGL/geometries/Geometry.ts';
 
 type ScreenSpaceRaymarchMeshArgs = {
     gpu: GPU;
     name?: string;
-    geometry?: Geometry,
+    geometry?: Geometry;
     uniforms?: UniformsData;
     fragmentShaderTemplate?: string;
     fragmentShaderContent: string;
@@ -82,17 +82,26 @@ export class ScreenSpaceRaymarchMesh extends Mesh {
     updateMaterial(args: { camera: Camera }) {
         super.updateMaterial(args);
 
-        const { camera } = args;
+        // const { camera } = args;
 
         // this.mainMaterial.uniforms.setValue(UniformNames.ViewDirection, camera.getWorldForward());
         // this.mainMaterial.uniforms.setValue(UniformNames.TargetWidth, width);
         // this.mainMaterial.uniforms.setValue(UniformNames.TargetHeight, height);
 
-        // TODO: orthographic対応
-        if (camera.isPerspective()) {
-            const perspectiveCamera = camera as PerspectiveCamera;
-            this.mainMaterial.uniforms.setValue('uAspect', perspectiveCamera.aspect);
-            this.mainMaterial.uniforms.setValue('uFov', perspectiveCamera.fov);
-        }
+        // // TODO: orthographic対応
+        // if (camera.isPerspective()) {
+        //     const perspectiveCamera = camera as PerspectiveCamera;
+        //     this.setUniformValueToAllMaterials(UniformNames.CameraAspect, perspectiveCamera.aspect);
+        //     this.setUniformValueToAllMaterials(UniformNames.CameraFov, perspectiveCamera.fov);
+        // }
+    }
+
+    updateDepthMaterial({ camera }: { camera: Camera }) {
+        super.updateDepthMaterial({ camera });
+        // if (camera.isPerspective()) {
+        //     const perspectiveCamera = camera as PerspectiveCamera;
+        //     this.setUniformValueToAllMaterials(UniformNames.CameraAspect, perspectiveCamera.aspect);
+        //     this.setUniformValueToAllMaterials(UniformNames.CameraFov, perspectiveCamera.fov);
+        // }
     }
 }

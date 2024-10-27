@@ -29,6 +29,7 @@ export class ScreenSpaceRaymarchMaterial extends Material {
         emissiveColor,
         metallic,
         roughness,
+        uniformBlockNames,
         ...options
     }: ScreenSpaceRaymarchMaterialArgs) {
         const commonUniforms: UniformsData = [
@@ -37,19 +38,18 @@ export class ScreenSpaceRaymarchMaterial extends Material {
                 type: UniformTypes.Texture,
                 value: null,
             },
-            // {
-            //     name: UniformNames.CameraNear,
-            //     type: UniformTypes.Float,
-            //     value: 0
-            // },
-            // {
-            //     name: UniformNames.CameraFar,
-            //     type: UniformTypes.Float,
-            //     value: 0,
-            // }
-
             {
-                name: 'uDiffuseColor',
+                name: UniformNames.CameraFov,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+            {
+                name: UniformNames.CameraAspect,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+            {
+                name: UniformNames.DiffuseColor,
                 type: UniformTypes.Color,
                 value: diffuseColor || Color.white,
             },
@@ -64,7 +64,7 @@ export class ScreenSpaceRaymarchMaterial extends Material {
                 value: roughness || 0,
             },
             {
-                name: 'uEmissiveColor',
+                name: UniformNames.EmissiveColor,
                 type: UniformTypes.Color,
                 value: emissiveColor || Color.black,
             },
@@ -87,7 +87,8 @@ export class ScreenSpaceRaymarchMaterial extends Material {
             fragmentShader,
             depthFragmentShader,
             uniforms: mergedUniforms,
-            depthUniforms: commonUniforms,
+            // depthUniforms: commonUniforms,
+            depthUniforms: mergedUniforms,
             // NOTE: GBufferMaterialの設定
             // useNormalMap: !!normalMap,
             // depthTest: true,
@@ -98,7 +99,12 @@ export class ScreenSpaceRaymarchMaterial extends Material {
             depthWrite: true,
             depthFuncType: DepthFuncTypes.Lequal,
             skipDepthPrePass: true,
-            uniformBlockNames: [UniformBlockNames.Transformations, UniformBlockNames.Camera],
+            uniformBlockNames: [
+                UniformBlockNames.Common,
+                UniformBlockNames.Transformations,
+                UniformBlockNames.Camera,
+                ...(uniformBlockNames ? uniformBlockNames : []),
+            ],
         });
     }
 }

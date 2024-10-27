@@ -68,7 +68,10 @@ void main() {
     float rawDepth = texelFetch(uDepthTexture, ivec2(gl_FragCoord.xy), 0).x;
     float sceneDepth = perspectiveDepthToLinearDepth(rawDepth, uNearClip, uFarClip);
     float currentDepth = viewZToLinearDepth((uViewMatrix * vec4(currentRayPosition, 1.)).z, uNearClip, uFarClip);
-    if(currentDepth >= sceneDepth) {
+    // equal許容しない
+    // if(currentDepth >= sceneDepth) {
+    // equal許容
+    if(currentDepth > sceneDepth) {
         discard;
     }
 

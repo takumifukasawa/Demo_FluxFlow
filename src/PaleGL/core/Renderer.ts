@@ -1617,14 +1617,14 @@ export class Renderer {
                 return;
             }
 
-            // pr-epassしてないmaterialの場合はdepthをcopy.
-            // pr-epassしてないmaterialが存在する度にdepthをcopyする必要があるので、使用は最小限にとどめる（raymarch以外では使わないなど）
+            // pre-passしてないmaterialの場合はdepthをcopy.
+            // pre-passしてないmaterialが存在する度にdepthをcopyする必要があるので、使用は最小限にとどめる（raymarch以外では使わないなど）
             if (targetMaterial.skipDepthPrePass) {
                 this.setRenderTarget(null, false, false);
                 this.copyDepthTexture();
                 this.setRenderTarget(this._gBufferRenderTargets.write, false, false);
             }
-
+            
             // TODO: material 側でやった方がよい？
             this.updateActorTransformUniforms(actor);
 

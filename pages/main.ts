@@ -83,8 +83,6 @@ import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineH
 import { createFloorActorController } from './scripts/createFloorActorController.ts';
 import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
-import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
-import { createScreenSpaceRaymarchMesh } from './scripts/createScreenSpaceRaymarchMesh.ts';
 import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass.ts';
 import { snapToStep } from '@/Marionetter/timelineUtilities.ts';
 import { clamp } from '@/PaleGL/utilities/mathUtilities.ts';
@@ -379,7 +377,6 @@ const morphFollowersActorControllerBinders: MorphFollowerActorControllerBinder[]
 const attractorTargetBoxActors: Actor[] = [];
 const attractorTargetSphereActors: Actor[] = [];
 let originForgeActorController: OriginForgeActorController;
-let screenSpaceRaymarchMesh: ScreenSpaceRaymarchMesh;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars,@typescript-eslint/ban-ts-comment
 const load = async () => {
@@ -437,14 +434,6 @@ const load = async () => {
     originForgeActorController = createOriginForgeActorController(gpu);
     captureScene.add(originForgeActorController.getActor());
     // originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
-
-    // //
-    // // screen space object
-    // //
-
-    screenSpaceRaymarchMesh = createScreenSpaceRaymarchMesh({ gpu });
-    screenSpaceRaymarchMesh.enabled = false;
-    captureScene.add(screenSpaceRaymarchMesh);
 
     //
     // text mesh
@@ -658,7 +647,7 @@ const load = async () => {
 
 const playDemo = () => {
     captureSceneCamera!.near = 0.1;
-    captureSceneCamera!.far = 300;
+    captureSceneCamera!.far = 500;
 
     // let prevTime = -1;
     // let deltaTime = 0;

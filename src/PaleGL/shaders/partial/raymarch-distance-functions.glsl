@@ -5,6 +5,18 @@
 #define PI 3.14
 #define PI2 6.28
 
+// #define OP_ID(p, r) floor((p + r * .5) / r)
+// // #define OP_RE(p, r) mod(p + r * .5, r) - r * .5
+// #define OP_RE(a, b) mod(a, b) - b * .5
+
+#define OP_ID(p, r) round(p / r)
+#define OP_RE(p, r) p - r * round(p / r)
+#define OP_LI_RE(p, r, l) p - r * clamp(round(p / r), -l, l)
+
+#define EPS .0001 // general eps
+#define OI 80 // object space iteration
+#define SI 80 // screen space iteration
+
 //
 // operators
 // TRSをしたいときは基本的に opTrasnalte -> opRoaet -> opPreScale -> distanceFunction -> opPostScale の順でやる 
@@ -28,18 +40,6 @@ vec3 opLiRe(vec3 p, float s, vec3 l)
 {
     return p - s * clamp(round(p / s), -l, l);
 }
-
-// #define OP_ID(p, r) floor((p + r * .5) / r)
-// // #define OP_RE(p, r) mod(p + r * .5, r) - r * .5
-// #define OP_RE(a, b) mod(a, b) - b * .5
-
-#define OP_ID(p, r) round(p / r)
-#define OP_RE(p, r) p - r * round(p / r)
-#define OP_LI_RE(p, r, l) p - r * clamp(round(p / r), -l, l)
-
-#define EPS .0001 // general eps
-#define OI 80 // object space iteration
-#define SI 80 // screen space iteration
 
 vec2 opRo(vec2 p, float a) {
     return p * rot(-a);
@@ -108,6 +108,14 @@ float dfOc( vec3 p, float s)
     p = abs(p);
     return (p.x+p.y+p.z-s)*0.577;
 }
+
+float dfCo(vec3 p, vec2 c)
+{
+    vec2 q = vec2(length(p.xz), -p.y);
+    float d = length(q - c * max(dot(q, c), 0.));
+    return d * ((q.x * c.y - q.y * c.x < 0.) ? -1. : 1.);
+}
+
 
 
 // ra: 太さ

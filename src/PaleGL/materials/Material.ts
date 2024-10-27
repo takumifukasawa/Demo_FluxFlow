@@ -32,7 +32,7 @@ import { Uniforms, UniformsData } from '@/PaleGL/core/Uniforms.ts';
 
 export type MaterialArgs = {
     type?: MaterialTypes;
-    
+
     // gpu: GPU,
     // TODO: required じゃなくて大丈夫??
     vertexShader?: string;
@@ -120,17 +120,17 @@ export type DepthFragmentShaderGenerator = () => string;
 
 export const MaterialTypes = {
     Misc: 0,
-    ObjectSpaceRaymarch: 1
+    ObjectSpaceRaymarch: 1,
 } as const;
 
-export type MaterialTypes = typeof MaterialTypes[keyof typeof MaterialTypes];
+export type MaterialTypes = (typeof MaterialTypes)[keyof typeof MaterialTypes];
 
 export class Material {
     name: string = '';
-    
+
     canRender: boolean = true;
-    
-    type: MaterialTypes = MaterialTypes.Misc
+
+    type: MaterialTypes = MaterialTypes.Misc;
 
     shader: Shader | null = null;
     primitiveType: PrimitiveType;
@@ -179,6 +179,8 @@ export class Material {
 
     showLog: boolean;
 
+    boundUniformBufferObjects: boolean = false;
+
     private vertexShaderGenerator: VertexShaderGenerator | null = null;
     private fragmentShaderGenerator: FragmentShaderGenerator | null = null;
     private depthFragmentShaderGenerator: DepthFragmentShaderGenerator | null = null;
@@ -206,7 +208,7 @@ export class Material {
         // gpu,
 
         name = '',
-        
+
         type = MaterialTypes.Misc,
 
         vertexShader = '',
@@ -408,7 +410,7 @@ export class Material {
         this.uniforms = new Uniforms(commonUniforms, shadowUniforms, uniforms);
 
         this.depthUniforms = new Uniforms(commonUniforms, depthUniforms);
-        
+
         this.uniformBlockNames = uniformBlockNames;
 
         this.showLog = showLog;
@@ -499,23 +501,4 @@ export class Material {
      * マテリアルごとにアップデートしたいuniformがあるとき
      */
     updateUniforms() {}
-    
-    // private uniformBufferObjects: { uniformBufferObject: UniformBufferObject; blockIndex: number }[] = [];
-
-    // addUniformBufferObject(uniformBufferObject: UniformBufferObject, blockIndex: number) {
-    //     if(!this.shader) {
-    //         return;
-    //     }
-    //     this.uniforms.addUniformBlock(uniformBufferObject, blockIndex)
-    //     // this.uniformBufferObjects.push({
-    //     //     uniformBufferObject,
-    //     //     blockIndex,
-    //     // });
-    //     // this.shader.bindUniformBlock(
-    //     //     blockIndex,
-    //     //     uniformBufferObject.bindingPoint
-    //     // );
-    // }
-
-    boundUniformBufferObjects: boolean = false;
 }

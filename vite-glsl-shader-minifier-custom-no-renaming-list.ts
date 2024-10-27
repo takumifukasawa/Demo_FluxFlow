@@ -8,6 +8,7 @@ export const viteGlslShaderMinifierCustomNoRenamingList = [
     'dfBo',
     'dfTo',
     'dfOc',
+    'dfCo',
     'dfMe',
     'dfMC',
     'diMb',

@@ -1,10 +1,15 @@
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
+import {FaceSide, UniformBlockNames} from '@/PaleGL/constants.ts';
+import {ScreenSpaceRaymarchMesh} from "@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts";
+// import {Color} from "@/PaleGL/math/Color.ts";
 import litObjectSpaceRaymarchFragFloorContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-floor.glsl';
 import gBufferObjectSpaceRaymarchFragFloorContent from '@/PaleGL/shaders/custom/entry/gbuffer-object-space-raymarch-depth-fragment-floor.glsl';
+import litScreenSpaceRaymarchFragFloorContent from '@/PaleGL/shaders/custom/entry/lit-screen-space-raymarch-fragment-floor.glsl';
+import gBufferScreenSpaceRaymarchFragFloorContent from '@/PaleGL/shaders/custom/entry/gbuffer-screen-space-raymarch-depth-fragment-floor.glsl';
 import { createObjectSpaceRaymarchMaterial } from '@/PaleGL/materials/ObjectSpaceRaymarchMaterial.ts';
-import {FaceSide, UniformBlockNames} from '@/PaleGL/constants.ts';
 import { ObjectSpaceRaymarchMesh } from '@/PaleGL/actors/ObjectSpaceRaymarchMesh.ts';
+
 
 export function createFloorActorController(gpu: GPU, actor: Actor) {
     console.log(actor)
@@ -45,6 +50,23 @@ export function createFloorActorController(gpu: GPU, actor: Actor) {
         mesh.transform.rotation = actor.transform.rotation;
         mesh.setUseWorldSpace(true);
     };
+
+    const sMesh= new ScreenSpaceRaymarchMesh({
+        gpu,
+        materialArgs: {
+            metallic: 0,
+            roughness: 0,
+            receiveShadow: true,
+            // emissiveColor: Color.white,
+            // receiveShadow: true,
+            uniformBlockNames: [UniformBlockNames.Timeline],
+            // faceSide: FaceSide.Double,
+        },
+        fragmentShaderContent: litScreenSpaceRaymarchFragFloorContent,
+        depthFragmentShaderContent: gBufferScreenSpaceRaymarchFragFloorContent,
+        // castShadow: true,
+    });
+    console.log(sMesh)
     
-    return mesh;
+    return sMesh;
 }
