@@ -526,7 +526,7 @@ const load = async () => {
             //
             
             renderer.updateTimelineUniforms(timelineTime, timelineDeltaTime);
-            renderer.render(captureScene, captureSceneCamera, { time, timelineTime, timelineDeltaTime });
+            renderer.render(captureScene, captureSceneCamera, engine.sharedTextures, { time, timelineTime, timelineDeltaTime });
         }
     };
 

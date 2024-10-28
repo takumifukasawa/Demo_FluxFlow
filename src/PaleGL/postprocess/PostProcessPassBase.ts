@@ -198,6 +198,11 @@ export class PostProcessPassBase implements IPostProcessPass {
     static get commonUniforms(): UniformsData {
         return [
             {
+                name: UniformNames.TexelSize,
+                type: UniformTypes.Float,
+                value: 1,
+            },
+            {
                 name: UniformNames.TargetWidth,
                 type: UniformTypes.Float,
                 value: 1,
@@ -228,6 +233,7 @@ export class PostProcessPassBase implements IPostProcessPass {
         // TODO: pass base で更新しちゃって大丈夫？
         this.material.uniforms.setValue(UniformNames.TargetWidth, this.width);
         this.material.uniforms.setValue(UniformNames.TargetHeight, this.height);
+        this.material.uniforms.setValue(UniformNames.TexelSize, this.width / this.height);
     }
 
     /**

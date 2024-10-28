@@ -17,6 +17,7 @@ import effectTexturePostProcessFragment from '@/PaleGL/shaders/effect-texture-po
 import randomNoiseFragment from '@/PaleGL/shaders/random-noise-fragment.glsl';
 import perlinNoiseFragment from '@/PaleGL/shaders/perlin-noise-fragment.glsl';
 import simplexNoiseFragment from '@/PaleGL/shaders/simplex-noise.glsl';
+import fbmNoiseFragment from '@/PaleGL/shaders/fbm-noise.glsl';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 
 const gridUniformName = 'uGridSize';
@@ -28,6 +29,7 @@ export const SharedTexturesTypes = {
     PERLIN_NOISE: 1,
     IMPROVE_NOISE: 2,
     SIMPLEX_NOISE: 3,
+    FBM_NOISE: 4,
 } as const;
 
 export type SharedTexturesType = (typeof SharedTexturesTypes)[keyof typeof SharedTexturesTypes];
@@ -156,6 +158,48 @@ const sharedTextureInfos: SharedTextureInfo[] = [
         //     effectMaterial.uniforms.setValue("uTime", time);
         // }
     },
+    {
+        key: SharedTexturesTypes.FBM_NOISE,
+        width: TEXTURE_SIZE,
+        height: TEXTURE_SIZE,
+        effectFragmentShader: fbmNoiseFragment,
+        effectUniforms: [
+            {
+                name: UniformNames.Time,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+            {
+                name: gridUniformName,
+                type: UniformTypes.Vector2,
+                value: new Vector2(4.4, 4.4),
+            },
+            {
+                name: "uOctaves",
+                type: UniformTypes.Float,
+                value: 8.,
+            },
+            {
+                name: "uAmplitude",
+                type: UniformTypes.Float,
+                value: 0.307,
+            },
+            {
+                name: "uFrequency",
+                type: UniformTypes.Float,
+                value: 1.357,
+            },
+            {
+                name: "uFactor",
+                type: UniformTypes.Float,
+                value: 0.597,
+            },
+        ],
+        tilingEnabled: true,
+        edgeMaskMix: 1,
+        remapMin: 0,
+        remapMax: 1,
+    }
 ];
 
 export function createSharedTextures({ gpu, renderer }: { gpu: GPU; renderer: Renderer }): SharedTextures {

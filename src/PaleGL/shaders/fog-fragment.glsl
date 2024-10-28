@@ -14,6 +14,7 @@ in vec2 vUv;
 out vec4 outColor;
 
 #include ./partial/common.glsl
+#include ./partial/uniform-block-common.glsl
 #include ./partial/uniform-block-transformations.glsl
 #include ./partial/uniform-block-camera.glsl
 
@@ -22,6 +23,7 @@ uniform sampler2D uLightShaftTexture;
 uniform sampler2D uVolumetricLightTexture;
 uniform sampler2D uSSSTexture;
 uniform sampler2D uDepthTexture;
+uniform sampler2D uNoiseTexture;
 uniform vec4 uFogColor;
 uniform float uFogStrength;
 uniform float uFogDensity;
@@ -32,6 +34,7 @@ uniform float uDistanceFogPower;
 uniform float uSSSFogRate;
 uniform vec4 uSSSFogColor;
 uniform float uBlendRate;
+uniform float uTexelSize;
 
 #include ./partial/depth-functions.glsl
 
@@ -88,6 +91,12 @@ void main() {
     vec4 lightShaftColor = texture(uLightShaftTexture, uv);
     vec4 volumetricLightColor = texture(uVolumetricLightTexture, uv);
     float sssRate = texture(uSSSTexture, uv).r;
+
+    vec2 aspect = vec2(uAspect, 1.);
+    
+    float noiseRate1 = texture(uNoiseTexture, (uv + uTime * vec2(.04, .02)) * aspect * 2.).x;
+    float noiseRate2 = texture(uNoiseTexture, (uv + uTime * vec2(-.03, .015)) * aspect * 2.).x;
+    float noiseRate = 1. - (noiseRate1 * .17 + noiseRate2 * .13);
     
     // 高ければ高いほど遮蔽されてる
     float occlusion = saturate(lightShaftColor.x);
@@ -111,7 +120,7 @@ void main() {
     // distance fog
     fogRate += calcDistanceFog(worldPositionFromDepth, uViewPosition, uDistanceFogStart, uDistanceFogPower);
     // clamp
-    fogRate = saturate(fogRate);
+    fogRate = saturate(fogRate) * noiseRate;
 
     // TODO: fog->occlusionの方が正しい？
     vec4 applyOcclusionColor = sceneColor * (1. - occlusion);
@@ -121,7 +130,7 @@ void main() {
     // TODO: 加算ではなく混ぜる方が正しいはず(手前にvolumetric, 奥にemissiveがある場合、volumetricの方が強いはず)
     // TODO: しかし、どう混ぜるかという問題がある。手前と奥をどう判断するか
     // patter1: add
-    outColor += vec4(volumetricLightColor.xyz, 0.);
+    outColor += vec4(volumetricLightColor.xyz * noiseRate, 0.);
     // outColor = vec4(mix(sceneColor.xyz, outColor.xyz, 1.), 1.);
     
     // pattern2: mix

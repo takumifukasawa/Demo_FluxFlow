@@ -66,6 +66,7 @@ import { Texture } from '@/PaleGL/core/Texture.ts';
 import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
 import { GlitchPass } from '@/PaleGL/postprocess/GlitchPass.ts';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
+import {SharedTextures, SharedTexturesTypes} from "@/PaleGL/core/createSharedTextures.ts";
 
 type RenderMeshInfo = { actor: Mesh; materialIndex: number; queue: RenderQueueType };
 
@@ -746,6 +747,7 @@ export class Renderer {
     render(
         scene: Scene,
         camera: Camera,
+        sharedTextures: SharedTextures,
         {
             time,
             onBeforePostProcess,
@@ -1115,9 +1117,12 @@ export class Renderer {
         // height fog pass
         // ------------------------------------------------------------------------------
 
-        this._fogPass.setLightShaftMap(this._lightShaftPass.renderTarget);
-        this._fogPass.setVolumetricLightMap(this._volumetricLightPass.renderTarget);
-        this._fogPass.setScreenSpaceShadowMap(this._screenSpaceShadowPass.renderTarget);
+        this._fogPass.setTextures(
+            this._lightShaftPass.renderTarget,
+            this._volumetricLightPass.renderTarget,
+            this._screenSpaceShadowPass.renderTarget,
+            sharedTextures[SharedTexturesTypes.FBM_NOISE].texture
+        )
 
         PostProcess.renderPass({
             pass: this._fogPass,

@@ -16,6 +16,7 @@ import {
 } from '@/PaleGL/constants.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 import { Override } from '@/PaleGL/palegl';
+import { Texture } from '@/PaleGL/core/Texture.ts';
 
 const UNIFORM_FOG_COLOR = 'uFogColor';
 const UNIFORM_FOG_STRENGTH = 'uFogStrength';
@@ -26,6 +27,7 @@ const UNIFORM_DISTANCE_FOG_START = 'uDistanceFogStart';
 const UNIFORM_DISTANCE_FOG_POWER = 'uDistanceFogPower';
 const UNIFORM_SSS_FOG_RATE = 'uSSSFogRate';
 const UNIFORM_SSS_FOG_COLOR = 'uSSSFogColor';
+const UNIFORM_NOISE_TEXTURE = 'uNoiseTexture';
 
 export type FogPassParametersBase = {
     fogColor: Color;
@@ -73,7 +75,6 @@ const volumetricLightTextureUniformName = 'uVolumetricLightTexture';
 const screenSpaceShadowTextureUniformName = 'uSSSTexture';
 
 export class FogPass extends PostProcessPassBase {
-
     // fogColor: Color = Color.white;
     // fogStrength: number;
     // fogDensity: number;
@@ -170,13 +171,18 @@ export class FogPass extends PostProcessPassBase {
                     value: Color.white,
                 },
                 {
+                    name: UNIFORM_NOISE_TEXTURE,
+                    type: UniformTypes.Texture,
+                    value: null,
+                },
+                {
                     name: UniformNames.BlendRate,
                     type: UniformTypes.Float,
                     value: 1,
                 },
                 // ...PostProcessPassBase.commonUniforms,
             ],
-            uniformBlockNames: [UniformBlockNames.Camera],
+            uniformBlockNames: [UniformBlockNames.Common, UniformBlockNames.Camera],
             parameters,
         });
 
@@ -191,20 +197,18 @@ export class FogPass extends PostProcessPassBase {
         // this.distanceFogPower = distanceFogPower;
     }
 
-    // TODO: mapの割り当て、renderなりupdateなりで一緒にやった方がいい気がする.
-
-    setLightShaftMap(rt: RenderTarget) {
-        this.material.uniforms.setValue(lightShaftTextureUniformName, rt.read.texture);
+    setTextures(
+        lightShaftRt: RenderTarget,
+        volumetricLightRt: RenderTarget,
+        screenSpaceShadowRt: RenderTarget,
+        noiseTexture: Texture
+    ) {
+        this.material.uniforms.setValue(lightShaftTextureUniformName, lightShaftRt.read.texture);
+        this.material.uniforms.setValue(volumetricLightTextureUniformName, volumetricLightRt.read.texture);
+        this.material.uniforms.setValue(screenSpaceShadowTextureUniformName, screenSpaceShadowRt.read.texture);
+        this.material.uniforms.setValue(UNIFORM_NOISE_TEXTURE, noiseTexture);
     }
 
-    setVolumetricLightMap(rt: RenderTarget) {
-        this.material.uniforms.setValue(volumetricLightTextureUniformName, rt.read.texture);
-    }
-    
-    setScreenSpaceShadowMap(rt: RenderTarget) {
-        this.material.uniforms.setValue(screenSpaceShadowTextureUniformName, rt.read.texture);
-    }
-    
     render(options: PostProcessPassRenderArgs) {
         this.material.uniforms.setValue(UNIFORM_FOG_COLOR, this.parameters.fogColor);
         this.material.uniforms.setValue(UNIFORM_FOG_STRENGTH, this.parameters.fogStrength);
