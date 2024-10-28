@@ -482,7 +482,7 @@ const load = async () => {
     const floorMesh = createFloorActorController(
         gpu,
         captureScene.find(FLOOR_ACTOR_NAME) as Actor,
-        engine.sharedTextures[SharedTexturesTypes.PERLIN_NOISE].texture
+        engine.sharedTextures[SharedTexturesTypes.FBM_NOISE].texture
     );
     captureScene.add(floorMesh);
     // (captureScene.find("BG")! as Mesh).material = new GBufferMaterial();

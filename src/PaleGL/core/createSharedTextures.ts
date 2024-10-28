@@ -19,6 +19,7 @@ import perlinNoiseFragment from '@/PaleGL/shaders/perlin-noise-fragment.glsl';
 import simplexNoiseFragment from '@/PaleGL/shaders/simplex-noise.glsl';
 import fbmNoiseFragment from '@/PaleGL/shaders/fbm-noise.glsl';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
+import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 const gridUniformName = 'uGridSize';
 
@@ -58,107 +59,6 @@ type SharedTextureInfo = {
 
 const sharedTextureInfos: SharedTextureInfo[] = [
     {
-        key: SharedTexturesTypes.RANDOM_NOISE,
-        width: TEXTURE_SIZE,
-        height: TEXTURE_SIZE,
-        effectFragmentShader: randomNoiseFragment,
-        effectUniforms: [
-            {
-                name: UniformNames.Time,
-                type: UniformTypes.Float,
-                value: 0,
-            },
-            {
-                name: gridUniformName,
-                type: UniformTypes.Vector2,
-                value: new Vector2(TEXTURE_SIZE, TEXTURE_SIZE),
-            },
-        ],
-        tilingEnabled: true,
-        edgeMaskMix: 1,
-        remapMin: 0,
-        remapMax: 1,
-    },
-    {
-        key: SharedTexturesTypes.PERLIN_NOISE,
-        width: TEXTURE_SIZE,
-        height: TEXTURE_SIZE,
-        effectFragmentShader: perlinNoiseFragment,
-        effectUniforms: [
-            {
-                name: UniformNames.Time,
-                type: UniformTypes.Float,
-                value: 0,
-            },
-            {
-                name: gridUniformName,
-                type: UniformTypes.Vector2,
-                value: new Vector2(4, 4),
-            },
-            {
-                name: 'uIsImproved',
-                type: UniformTypes.Float,
-                value: 0,
-            },
-        ],
-        tilingEnabled: true,
-        edgeMaskMix: 1,
-        remapMin: 0,
-        remapMax: 1,
-    },
-    {
-        key: SharedTexturesTypes.IMPROVE_NOISE,
-        width: TEXTURE_SIZE,
-        height: TEXTURE_SIZE,
-        effectFragmentShader: perlinNoiseFragment,
-        effectUniforms: [
-            {
-                name: UniformNames.Time,
-                type: UniformTypes.Float,
-                value: 0,
-            },
-            {
-                name: gridUniformName,
-                type: UniformTypes.Vector2,
-                value: new Vector2(4, 4),
-            },
-            {
-                name: 'uIsImproved',
-                type: UniformTypes.Float,
-                value: 1,
-            },
-        ],
-        tilingEnabled: true,
-        edgeMaskMix: 1,
-        remapMin: 0,
-        remapMax: 1,
-    },
-    {
-        key: SharedTexturesTypes.SIMPLEX_NOISE,
-        width: TEXTURE_SIZE,
-        height: TEXTURE_SIZE,
-        effectFragmentShader: simplexNoiseFragment,
-        effectUniforms: [
-            {
-                name: UniformNames.Time,
-                type: UniformTypes.Float,
-                value: 0,
-            },
-            {
-                name: gridUniformName,
-                type: UniformTypes.Vector2,
-                value: new Vector2(4, 4),
-            },
-        ],
-        tilingEnabled: true,
-        edgeMaskMix: 1,
-        remapMin: 0,
-        remapMax: 1,
-        // update: (time, effectMaterial) => {
-        //     effectMaterial.uniforms.setValue("uTime", time);
-        // }
-    },
-    {
         key: SharedTexturesTypes.FBM_NOISE,
         width: TEXTURE_SIZE,
         height: TEXTURE_SIZE,
@@ -175,22 +75,22 @@ const sharedTextureInfos: SharedTextureInfo[] = [
                 value: new Vector2(4.4, 4.4),
             },
             {
-                name: "uOctaves",
+                name: 'uOctaves',
                 type: UniformTypes.Float,
-                value: 8.,
+                value: 8,
             },
             {
-                name: "uAmplitude",
+                name: 'uAmplitude',
                 type: UniformTypes.Float,
                 value: 0.307,
             },
             {
-                name: "uFrequency",
+                name: 'uFrequency',
                 type: UniformTypes.Float,
                 value: 1.357,
             },
             {
-                name: "uFactor",
+                name: 'uFactor',
                 type: UniformTypes.Float,
                 value: 0.597,
             },
@@ -199,7 +99,109 @@ const sharedTextureInfos: SharedTextureInfo[] = [
         edgeMaskMix: 1,
         remapMin: 0,
         remapMax: 1,
-    }
+    },
+    ...(isDevelopment()
+        ? [
+              {
+                  key: SharedTexturesTypes.RANDOM_NOISE,
+                  width: TEXTURE_SIZE,
+                  height: TEXTURE_SIZE,
+                  effectFragmentShader: randomNoiseFragment,
+                  effectUniforms: [
+                      {
+                          name: UniformNames.Time,
+                          type: UniformTypes.Float,
+                          value: 0,
+                      },
+                      {
+                          name: gridUniformName,
+                          type: UniformTypes.Vector2,
+                          value: new Vector2(TEXTURE_SIZE, TEXTURE_SIZE),
+                      },
+                  ],
+                  tilingEnabled: true,
+                  edgeMaskMix: 1,
+                  remapMin: 0,
+                  remapMax: 1,
+              },
+              {
+                  key: SharedTexturesTypes.PERLIN_NOISE,
+                  width: TEXTURE_SIZE,
+                  height: TEXTURE_SIZE,
+                  effectFragmentShader: perlinNoiseFragment,
+                  effectUniforms: [
+                      {
+                          name: UniformNames.Time,
+                          type: UniformTypes.Float,
+                          value: 0,
+                      },
+                      {
+                          name: gridUniformName,
+                          type: UniformTypes.Vector2,
+                          value: new Vector2(4, 4),
+                      },
+                      {
+                          name: 'uIsImproved',
+                          type: UniformTypes.Float,
+                          value: 0,
+                      },
+                  ],
+                  tilingEnabled: true,
+                  edgeMaskMix: 1,
+                  remapMin: 0,
+                  remapMax: 1,
+              },
+              {
+                  key: SharedTexturesTypes.IMPROVE_NOISE,
+                  width: TEXTURE_SIZE,
+                  height: TEXTURE_SIZE,
+                  effectFragmentShader: perlinNoiseFragment,
+                  effectUniforms: [
+                      {
+                          name: UniformNames.Time,
+                          type: UniformTypes.Float,
+                          value: 0,
+                      },
+                      {
+                          name: gridUniformName,
+                          type: UniformTypes.Vector2,
+                          value: new Vector2(4, 4),
+                      },
+                      {
+                          name: 'uIsImproved',
+                          type: UniformTypes.Float,
+                          value: 1,
+                      },
+                  ],
+                  tilingEnabled: true,
+                  edgeMaskMix: 1,
+                  remapMin: 0,
+                  remapMax: 1,
+              },
+              {
+                  key: SharedTexturesTypes.SIMPLEX_NOISE,
+                  width: TEXTURE_SIZE,
+                  height: TEXTURE_SIZE,
+                  effectFragmentShader: simplexNoiseFragment,
+                  effectUniforms: [
+                      {
+                          name: UniformNames.Time,
+                          type: UniformTypes.Float,
+                          value: 0,
+                      },
+                      {
+                          name: gridUniformName,
+                          type: UniformTypes.Vector2,
+                          value: new Vector2(4, 4),
+                      },
+                  ],
+                  tilingEnabled: true,
+                  edgeMaskMix: 1,
+                  remapMin: 0,
+                  remapMax: 1,
+              },
+          ]
+        : []),
 ];
 
 export function createSharedTextures({ gpu, renderer }: { gpu: GPU; renderer: Renderer }): SharedTextures {
