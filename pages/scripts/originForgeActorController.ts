@@ -11,7 +11,10 @@ import { DEG_TO_RAD, FaceSide, UniformBlockNames, UniformNames, UniformTypes } f
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
-import { MorphFollowerActorControllerEntity } from './createMorphFollowersActorController.ts';
+import {
+    generateKeepFlyingInstancePositions,
+    MorphFollowerActorControllerEntity
+} from './createMorphFollowersActorController.ts';
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
 import { easeInOutQuad, easeOutCube } from '@/PaleGL/utilities/easingUtilities.ts';
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
@@ -394,7 +397,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             return;
         }
         // point light distance
-        if(key === 'pd') {
+        if (key === 'pd') {
             pointLight.distance = value;
             return;
         }
@@ -530,7 +533,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                 // TODO: ここパラメーター化したい
                 morphFollowersActorController.setInstancePosition(
                     i,
-                    new Vector3(Math.cos(i) * 60, Math.sin(i) * 50, Math.sin(i) * 20)
+                    generateKeepFlyingInstancePositions(i)
                 );
                 morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                 morphFollowersActorController.setInstanceState(i, { morphRate: rate });
@@ -604,21 +607,33 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         //     material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, statesParameters.originMorphRate);
         // });
         mesh.materials.forEach((_, i) => {
-            mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE, statesParameters.originMorphRate);
+            mesh.setUniformValueToPairMaterial(
+                i,
+                UNIFORM_NAME_METABALL_ORIGIN_MORPH_RATE,
+                statesParameters.originMorphRate
+            );
         });
 
         // mesh.materials.forEach((material) => {
         //     material.uniforms.setValue(UNIFORM_NAME_METABALL_ORIGIN_ROT, statesParameters.originForgeRotationRad);
         // });
         mesh.materials.forEach((_, i) => {
-            mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_ORIGIN_ROT, statesParameters.originForgeRotationRad);
+            mesh.setUniformValueToPairMaterial(
+                i,
+                UNIFORM_NAME_METABALL_ORIGIN_ROT,
+                statesParameters.originForgeRotationRad
+            );
         });
 
         // mesh.materials.forEach((material) => {
         //     material.uniforms.setValue(UNIFORM_NAME_METABALL_GATHER_SCALE_RATE, statesParameters.gatherScale);
         // });
         mesh.materials.forEach((_, i) => {
-            mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_GATHER_SCALE_RATE, statesParameters.gatherScale);
+            mesh.setUniformValueToPairMaterial(
+                i,
+                UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
+                statesParameters.gatherScale
+            );
         });
 
         //

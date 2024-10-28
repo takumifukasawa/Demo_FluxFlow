@@ -216,6 +216,16 @@ export type MorphFollowersActorController = {
     setFollowAttractMode: (mode: FollowerAttractMode) => void;
 };
 
+
+//
+// functions
+//
+
+export const generateKeepFlyingInstancePositions = (i: number) => {
+    return new Vector3(Math.cos(i) * 60, Math.sin(i) * 50, Math.sin(i) * 20);
+};
+
+
 const createInstanceUpdater = ({
     gpu,
     renderer,
@@ -887,6 +897,18 @@ export const createMorphFollowersActor = (
 
     const updateStatesAndBuffers = () => {
         for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
+            //
+            // コントロールされていない時の処理
+            //
+            if(!_isControlled) {
+                if(i >= instancingInfo.instanceNum) {
+                    setInstancePosition(i, generateKeepFlyingInstancePositions(i))
+                }
+            }
+            
+            //
+            // follow mode に応じて追従先の位置を設定
+            //
             const attractType = instancingInfo.attractType[i];
             const attractTarget = instancingInfo.attractorTarget[i];
 
@@ -1110,7 +1132,7 @@ export const createMorphFollowersActor = (
             stateParameters.attractMinPower = value;
             return;
         }
-
+        
         //
         // forgeによる制御を受け付けている場合は以降は無視
         //
