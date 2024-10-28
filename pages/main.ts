@@ -221,7 +221,6 @@ const buildScene = (sceneJson: MarionetterScene) => {
                 type: RenderTargetTypes.Depth,
                 depthPrecision: TextureDepthPrecisionType.High,
             });
-            console.log(spotLight, spotLight, spotLight.shadowMap);
         }
     };
 
@@ -240,7 +239,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
         directionalLight.castShadow = true;
         directionalLight.shadowCamera.near = 1;
         directionalLight.shadowCamera.far = 40;
-        const size = 15;
+        const size = 12.5;
         (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -size, size, -size, size);
         directionalLight.shadowMap = new RenderTarget({
             gpu,

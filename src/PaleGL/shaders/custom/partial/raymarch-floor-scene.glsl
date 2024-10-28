@@ -42,37 +42,32 @@ vec2 dfScene(vec3 p) {
    
     // o-s floor
     
-    float r = 4.; // repeat
-
+    // single floor distance
     vec3 q1 = p;
-    vec3 id1 = OP_ID(p, r);
-    
     q1 = opTr(q1, vec3(0., -50., 0.));
-    q1.xz = OP_RE(q1.xz, r);
-    
-    // q = OP_LI_RE(q, r, vec3(2., 2., 2.));
-
-    float hash = rand(id1);
-
-    vec3 q2 = p;
-    q2 = opTr(q2, vec3(0., -50., 0.));
-    
-    vec3 s = vec3(1., 49., 1.);
-
     // single floor scale
     vec3 sf = vec3(10., 49., 10.);
-    
+    float d1 = dfBo(q1, sf);
 
+    // repeat floor
+    float r = 4.; // repeat
+    vec3 q2 = p;
+    vec3 id2 = OP_ID(p, r);
+    q2 = opTr(q2, vec3(0., -50., 0.));
+    q2.xz = OP_RE(q2.xz, r);
+    float hash = rand(id2.xz);
+    // q = OP_LI_RE(q, r, vec3(2., 2., 2.));
+    vec3 s = vec3(1., 44., 1.);
+    float d2 = dfBo(q2, s);
     // float di =
     //     sin(p.x * 1. + uTimelineTime * 3.6) * .1 +
     //     cos(p.y * 1.2 + uTimelineTime * 3.2) * .1 +
     //     sin(p.z * 1.4 + uTimelineTime * 3.0) * .1;
     // 
-    float d1 = dfBo(q1, s);
-   
-    // single floor distance
-    float d2 = dfBo(q2, sf);
 
-    return vec2(d2, 0.);
-    // // return vec2(dfCo(q, vec2(.5, 1.)), 0.);
+
+    // return vec2(d1, 0.);
+    // return vec2(d2, 0.);
+    
+    return vec2(mix(d1, d2, 0.), 0.);
 }

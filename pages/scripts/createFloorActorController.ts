@@ -1,6 +1,6 @@
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
-import { FaceSide, UniformBlockNames } from '@/PaleGL/constants.ts';
+import {FaceSide, UniformBlockNames, UniformNames} from '@/PaleGL/constants.ts';
 import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
 // import {Color} from "@/PaleGL/math/Color.ts";
 import litObjectSpaceRaymarchFragFloorContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-floor.glsl';
@@ -13,6 +13,7 @@ import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { GBufferMaterial } from '@/PaleGL/materials/GBufferMaterial.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
 import { Vector4 } from '@/PaleGL/math/Vector4.ts';
+import {Vector2} from "@/PaleGL/math/Vector2.ts";
 
 export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: Texture) {
     // tmp
@@ -39,6 +40,10 @@ export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: T
             faceSide: FaceSide.Double,
         },
     });
+    
+    material.uniforms.setValue(UniformNames.DiffuseMap, surfaceMap);
+    material.uniforms.setValue(UniformNames.DiffuseMapUvScale, new Vector2(10, 10));
+    
 
     const mesh = new ObjectSpaceRaymarchMesh({
         gpu,
