@@ -21,7 +21,14 @@ vec2 dfScene(vec3 p) {
     q.xz = OP_RE(q.xz, r);
     
     vec3 s = vec3(3., 25., 3.);
-    float d = dfBo(q, s);
+    float d1 = dfBo(q, s);
+   
+    vec3 q2 = p;
+    q2 = opTr(q2, vec3(0., -30., 0.));
+    vec3 s2 = vec3(100., 30., 100.);
+    float d2 = dfBo(q2, s2);
+    
+    float d = mix(d1, d2, 0.);
     
     return vec2(d, 0.);
    

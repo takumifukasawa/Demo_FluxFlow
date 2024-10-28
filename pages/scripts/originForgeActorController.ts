@@ -520,7 +520,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                 // TODO: ここパラメーター化したい
                 morphFollowersActorController.setInstancePosition(
                     i,
-                    new Vector3(Math.cos(i) * 50, Math.sin(i) * 40, 0)
+                    new Vector3(Math.cos(i) * 60, Math.sin(i) * 50, Math.sin(i) * 10)
                 );
                 morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                 morphFollowersActorController.setInstanceState(i, { morphRate: rate });

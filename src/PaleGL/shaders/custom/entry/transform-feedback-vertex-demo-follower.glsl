@@ -19,7 +19,8 @@ out vec4 vVelocity;
 
 // uniform vec3 aAttractTargetPosition;
 
-uniform float uAttractPower;
+uniform float uAttractBasePower;
+uniform float uAttractMinPower;
 
 // v minmag
 #define VMM .0001
@@ -53,8 +54,9 @@ void main() {
     // // for debug
     // vPosition = aPosition;
     // return;
-   
-    vec3 velocity = unpackVelocity(aVelocity);
+
+    vec3 currentVelocity = unpackVelocity(aVelocity);
+    vec3 velocity = currentVelocity;
     float mag = length(velocity);
     
     if(attractType < .5) {
@@ -117,13 +119,17 @@ void main() {
         //     uDeltaTime
         // );
         float attractDelayValue = hash * .5;
-        float baseAttractPower = 2.;
-        float attractMinPower = .2;
+        // float baseAttractPower = 2.;
+        // float attractMinPower = .2;
         // velocity = diffP * uDeltaTime * attractPower * baseAttractPower;
         vec3 v = diffP
             * uTimelineDeltaTime
-            * max(max(attractPower - attractDelayValue, 0.), attractMinPower) * baseAttractPower;
+            * max(max(attractPower - attractDelayValue, 0.), uAttractMinPower) * uAttractBasePower;
         velocity = diffDir * max(length(v), .003); // fallback. ちょっとだけ動かすと回転バグらない
+      
+        // lerpする場合
+        // float r = max(uTimelineDeltaTime * 10., 1.);
+        // velocity = mix(currentVelocity, velocity, r * saturate(uAttractBasePower)); // 速度制限
 
         // attract: 簡易版_等速
         // velocity = diffDir * uDeltaTime;

@@ -1,36 +1,36 @@
 // actors
-import { DirectionalLight } from '@/PaleGL/actors/DirectionalLight';
-import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera';
+import {DirectionalLight} from '@/PaleGL/actors/DirectionalLight';
+import {PerspectiveCamera} from '@/PaleGL/actors/PerspectiveCamera';
 
 // core
-import { Engine } from '@/PaleGL/core/Engine';
-import { Renderer } from '@/PaleGL/core/Renderer';
-import { GPU } from '@/PaleGL/core/GPU';
-import { RenderTarget } from '@/PaleGL/core/RenderTarget';
-import { Scene } from '@/PaleGL/core/Scene';
+import {Engine} from '@/PaleGL/core/Engine';
+import {Renderer} from '@/PaleGL/core/Renderer';
+import {GPU} from '@/PaleGL/core/GPU';
+import {RenderTarget} from '@/PaleGL/core/RenderTarget';
+import {Scene} from '@/PaleGL/core/Scene';
 
 // loaders
 // materials
 // math
-import { Vector3 } from '@/PaleGL/math/Vector3';
-import { Vector4 } from '@/PaleGL/math/Vector4';
+import {Vector3} from '@/PaleGL/math/Vector3';
+import {Vector4} from '@/PaleGL/math/Vector4';
 
 // others
-import { RenderTargetTypes, TextureDepthPrecisionType } from '@/PaleGL/constants';
+import {RenderTargetTypes, TextureDepthPrecisionType} from '@/PaleGL/constants';
 
 import sceneJsonUrl from './data/scene.json';
 
-import { Camera } from '@/PaleGL/actors/Camera';
-import { OrthographicCamera } from '@/PaleGL/actors/OrthographicCamera';
-import { PostProcess } from '@/PaleGL/postprocess/PostProcess.ts';
+import {Camera} from '@/PaleGL/actors/Camera';
+import {OrthographicCamera} from '@/PaleGL/actors/OrthographicCamera';
+import {PostProcess} from '@/PaleGL/postprocess/PostProcess.ts';
 import soundVertexShader from '@/PaleGL/shaders/sound-vertex-demo.glsl';
-import { wait } from '@/utilities/wait.ts';
-import { createMarionetter } from '@/Marionetter/createMarionetter.ts';
-import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
-import { Marionetter, MarionetterSceneStructure } from '@/Marionetter/types';
-import { MarionetterScene } from '@/Marionetter/types';
-import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
-import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
+import {wait} from '@/utilities/wait.ts';
+import {createMarionetter} from '@/Marionetter/createMarionetter.ts';
+import {SpotLight} from '@/PaleGL/actors/SpotLight.ts';
+import {Marionetter, MarionetterSceneStructure} from '@/Marionetter/types';
+import {MarionetterScene} from '@/Marionetter/types';
+import {buildMarionetterScene} from '@/Marionetter/buildMarionetterScene.ts';
+import {createPointLightDebugger, initDebugger} from './scripts/initDebugger.ts';
 
 // // textを使う場合
 // import { TextureFilterTypes } from '@/PaleGL/constants';
@@ -43,15 +43,15 @@ import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.t
 // // import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
 // import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
 
-import { initGLSLSound } from './scripts/initGLSLSound.ts';
-import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
-import { Color } from '@/PaleGL/math/Color.ts';
+import {initGLSLSound} from './scripts/initGLSLSound.ts';
+import {createOriginForgeActorController, OriginForgeActorController} from './scripts/originForgeActorController.ts';
+import {Color} from '@/PaleGL/math/Color.ts';
 import {
     createMorphFollowersActor,
     MorphFollowerActorControllerBinder,
     MorphFollowerActorControllerEntity,
 } from './scripts/createMorphFollowersActorController.ts';
-import { SOUND_DURATION } from './scripts/demoSequencer.ts';
+import {SOUND_DURATION} from './scripts/demoSequencer.ts';
 import {
     ATTRACTOR_ORBIT_MOVER_A,
     ATTRACTOR_ORBIT_MOVER_B,
@@ -76,17 +76,17 @@ import {
     SPOT_LIGHT_ACTOR_NAME_A,
     SPOT_LIGHT_ACTOR_NAME_B,
 } from './scripts/demoConstants.ts';
-import { Actor } from '@/PaleGL/actors/Actor.ts';
-import { createOrbitMoverBinder } from './scripts/orbitMoverBinder.ts';
-import { createDofFocusTargetController } from './scripts/dofFocusTargetController.ts';
-import { createTimelineHandShakeController } from '@/PaleGL/components/TimelineHandShakeController.ts';
-import { createFloorActorController } from './scripts/createFloorActorController.ts';
-import { initHotReloadAndParseScene } from './scripts/initHotReloadAndParseScene.ts';
-import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
-import { BufferVisualizerPass } from '@/PaleGL/postprocess/BufferVisualizerPass.ts';
-import { snapToStep } from '@/Marionetter/timelineUtilities.ts';
-import { clamp } from '@/PaleGL/utilities/mathUtilities.ts';
-import { createBlackCurtainPass } from './scripts/createBlackCurtainPass.ts';
+import {Actor} from '@/PaleGL/actors/Actor.ts';
+import {createOrbitMoverBinder} from './scripts/orbitMoverBinder.ts';
+import {createDofFocusTargetController} from './scripts/dofFocusTargetController.ts';
+import {createTimelineHandShakeController} from '@/PaleGL/components/TimelineHandShakeController.ts';
+import {createFloorActorController} from './scripts/createFloorActorController.ts';
+import {initHotReloadAndParseScene} from './scripts/initHotReloadAndParseScene.ts';
+import {isDevelopment} from '@/PaleGL/utilities/envUtilities.ts';
+import {BufferVisualizerPass} from '@/PaleGL/postprocess/BufferVisualizerPass.ts';
+import {snapToStep} from '@/Marionetter/timelineUtilities.ts';
+import {clamp, lerp} from '@/PaleGL/utilities/mathUtilities.ts';
+import {createBlackCurtainPass} from './scripts/createBlackCurtainPass.ts';
 
 const stylesText = `
 body {
@@ -177,13 +177,13 @@ wrapperElement.setAttribute('id', 'wrapper');
 const canvasElement = document.createElement('canvas')!;
 wrapperElement.appendChild(canvasElement);
 
-const gl = canvasElement.getContext('webgl2', { antialias: false });
+const gl = canvasElement.getContext('webgl2', {antialias: false});
 
 if (!gl) {
     throw 'invalid gl';
 }
 
-const gpu = new GPU({ gl });
+const gpu = new GPU({gl});
 
 let width: number, height: number;
 let directionalLight: DirectionalLight;
@@ -200,7 +200,7 @@ const marionetter: Marionetter = createMarionetter({
     showLog: false,
     onPlay: (time: number) => {
         console.log(`[marionetter.onPlay] time: ${time}`);
-        glslSoundWrapper.play({ time });
+        glslSoundWrapper.play({time});
         currentTimeForTimeline = time;
     },
     onSeek: (time: number) => {
@@ -221,7 +221,7 @@ const renderer = new Renderer({
     pixelRatio: Math.min(window.devicePixelRatio, 1),
 });
 
-const engine = new Engine({ gpu, renderer, updateFps: 60 });
+const engine = new Engine({gpu, renderer, updateFps: 60});
 
 engine.setScene(captureScene);
 
@@ -231,7 +231,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
     marionetterSceneStructure = buildMarionetterScene(gpu, sceneJson);
 
     // timeline生成したらscene内のactorをbind
-    const { actors } = marionetterSceneStructure;
+    const {actors} = marionetterSceneStructure;
 
     marionetterSceneStructure.marionetterTimeline?.bindActors(captureScene.children);
     for (let i = 0; i < actors.length; i++) {
@@ -243,7 +243,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
     //
     captureSceneCamera = captureScene.find(MAIN_CAMERA_ACTOR_NAME) as PerspectiveCamera;
 
-    captureSceneCamera.subscribeOnStart(({ actor }) => {
+    captureSceneCamera.subscribeOnStart(({actor}) => {
         (actor as Camera).setClearColor(new Vector4(0, 0, 0, 1));
     });
 
@@ -397,29 +397,58 @@ const load = async () => {
     //
     // morph follower actor controller
     //
-
     morphFollowersActorControllerBinders.push({
-        morphFollowersActorController: createMorphFollowersActor({
-            name: FOLLOWERS_ACTOR_NAME_A,
+        morphFollowersActorController: createMorphFollowersActor(
+            FOLLOWERS_ACTOR_NAME_A,
             gpu,
             renderer,
-        }),
+            (rx, ry, rz) => Color.fromRGB(
+                lerp(20, 200, rx),
+                lerp(20, 40, ry),
+                lerp(20, 200, rz)
+            ),
+            (rx, ry, rz) => Color.fromRGB(
+                lerp(20, 200, rx) * 3,
+                lerp(20, 40, ry),
+                lerp(20, 200, rz) * 3
+            )
+        ),
         orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_A,
     });
     morphFollowersActorControllerBinders.push({
-        morphFollowersActorController: createMorphFollowersActor({
-            name: FOLLOWERS_ACTOR_NAME_B,
+        morphFollowersActorController: createMorphFollowersActor(
+            FOLLOWERS_ACTOR_NAME_B,
             gpu,
             renderer,
-        }),
+            (rx, ry, rz) => Color.fromRGB(
+                lerp(20, 40, rx),
+                lerp(20, 200, ry),
+                lerp(20, 200, rz)
+            ),
+            (rx, ry, rz) => Color.fromRGB(
+                lerp(20, 40, rx) * 3,
+                lerp(20, 200, ry),
+                lerp(20, 200, rz) * 3
+            )
+        ),
         orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_C,
     });
     morphFollowersActorControllerBinders.push({
-        morphFollowersActorController: createMorphFollowersActor({
-            name: FOLLOWERS_ACTOR_NAME_C,
+        morphFollowersActorController: createMorphFollowersActor(
+            FOLLOWERS_ACTOR_NAME_C,
             gpu,
             renderer,
-        }),
+            (rx, ry, rz) => Color.fromRGB(
+                lerp(20, 200, rx),
+                lerp(20, 200, ry),
+                lerp(20, 40, rz)
+            ),
+            (rx, ry, rz) => Color.fromRGB(
+                lerp(20, 200, rx) * 3,
+                lerp(20, 200, ry),
+                lerp(20, 40, rz) * 3
+            )
+        ),
         orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_B,
     });
 
@@ -612,7 +641,7 @@ const load = async () => {
     engine.onRender = (time) => {
         if (captureSceneCamera) {
             renderer.updateTimelineUniforms(timelineTime, timelineDeltaTime);
-            renderer.render(captureScene, captureSceneCamera, { time, timelineTime, timelineDeltaTime });
+            renderer.render(captureScene, captureSceneCamera, {time, timelineTime, timelineDeltaTime});
         }
     };
 
@@ -687,10 +716,20 @@ const playDemo = () => {
         createPointLightDebugger(debuggerGUI, originForgeActorController.getPointLight(), 'point light');
     }
 
+    //
+    // override pp values
+    //
     // なぜか debugger の前だとうまくいかない
     renderer.fogPass.parameters.distanceFogStart = 28;
     renderer.fogPass.parameters.distanceFogPower = 0.02;
     renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
+    
+    renderer.vignettePass.parameters.vignetteRadius = 2.743;
+    renderer.vignettePass.parameters.vignettePower = 1.251;
+    
+    //
+    // exec
+    //
 
     glslSoundWrapper.play();
 

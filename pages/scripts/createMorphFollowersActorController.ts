@@ -25,12 +25,7 @@ import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
-import {
-    generateRandomValue,
-    lerp,
-    randomOnUnitCircle,
-    randomOnUnitSphere
-} from '@/PaleGL/utilities/mathUtilities.ts';
+import { generateRandomValue, randomOnUnitCircle, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
 import {
     createObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterialArgs,
@@ -69,6 +64,8 @@ const TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION = 'aAttractTargetPosi
 const TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME = 'aState';
 const TRANSFORM_FEEDBACK_VARYINGS_POSITION = 'vPosition';
 const TRANSFORM_FEEDBACK_VARYINGS_VELOCITY = 'vVelocity';
+const TRANSFORM_FEEDBACK_UNIFORM_ATTRACT_BASE_POWER = 'uAttractBasePower';
+const TRANSFORM_FEEDBACK_UNIFORM_ATTRACT_MIN_POWER = 'uAttractMinPower';
 
 const UNIFORM_DIFFUSE_MIXER_NAME = 'uDiffuseMixer';
 const UNIFORM_EMISSIVE_MIXER_NAME = 'uEmissiveMixer';
@@ -300,7 +297,18 @@ const createInstanceUpdater = ({
             },
         ],
         vertexShader: transformFeedbackVertexFollower,
-        uniforms: [],
+        uniforms: [
+            {
+                name: TRANSFORM_FEEDBACK_UNIFORM_ATTRACT_BASE_POWER,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+            {
+                name: TRANSFORM_FEEDBACK_UNIFORM_ATTRACT_MIN_POWER,
+                type: UniformTypes.Float,
+                value: 0,
+            },
+        ],
         uniformBlockNames: [UniformBlockNames.Common, UniformBlockNames.Timeline],
         drawCount: instanceNum,
     });
@@ -337,18 +345,13 @@ const createInstanceUpdater = ({
     return transformFeedbackDoubleBuffer;
 };
 
-export const createMorphFollowersActor = ({
-    name,
-    gpu,
-    renderer, // instanceNum,
-} // attractorActor,
-: {
-    name: string;
-    gpu: GPU;
-    renderer: Renderer;
-    // instanceNum: number;
-    // attractorActor: Actor;
-}): MorphFollowersActorController => {
+export const createMorphFollowersActor = (
+    name: string,
+    gpu: GPU,
+    renderer: Renderer, // instanceNum,
+    instanceVertexColorGenerator: (rx: number, ry: number, rz: number) => Color,
+    instanceEmissiveColorGenerator: (rx: number, ry: number, rz: number) => Color
+): MorphFollowersActorController => {
     let _followerIndex: number;
     let _followerSeed: number;
     let _currentFollowMode: FollowerAttractMode = FollowerAttractMode.None;
@@ -362,7 +365,9 @@ export const createMorphFollowersActor = ({
         diffuseMixer: 0,
         emissionMixer: 0,
         floorEmitRange: 0,
-    }
+        attractBasePower: 2,
+        attractMinPower: 0.2,
+    };
 
     const surfaceParameters: Required<MorphSurfaceParameters> = {
         metallic: 0,
@@ -487,18 +492,18 @@ export const createMorphFollowersActor = ({
         tmpInstanceInfo.velocity.push([0, 0, 1, 0]);
 
         // color
-        const c = Color.fromRGB(
-            lerp(20, 200, generateRandomValue(0, i)),
-            lerp(20, 40, generateRandomValue(1, i)),
-            lerp(20, 200, generateRandomValue(2, i))
+        const c = instanceVertexColorGenerator(
+            generateRandomValue(0, i),
+            generateRandomValue(1, i),
+            generateRandomValue(2, i)
         );
         tmpInstanceInfo.color.push([...c.e]);
 
         // emissive color
-        const ec = Color.fromRGB(
-            lerp(20, 200, generateRandomValue(0, i)) * 4,
-            lerp(20, 40, generateRandomValue(1, i)),
-            lerp(20, 200, generateRandomValue(2, i)) * 4
+        const ec = instanceEmissiveColorGenerator(
+            generateRandomValue(0, i),
+            generateRandomValue(1, i),
+            generateRandomValue(2, i)
         );
         tmpInstanceInfo.emissiveColor.push([...ec.e]);
 
@@ -884,15 +889,21 @@ export const createMorphFollowersActor = ({
                 case FollowerAttractMode.FollowCubeEdge:
                     const attractorTargetBoxActor = _attractorTargetBoxActors[i % _attractorTargetBoxActors.length];
                     if (attractorTargetBoxActor) {
-                        // set edge
+                        // 1: set edge
                         const lp = _refBoxGeometry.getRandomLocalPositionOnEdge(
-                            generateRandomValue(_followerSeed, i + _followerIndex),
-                            generateRandomValue(_followerSeed, i + 1)
+                            generateRandomValue(_followerSeed * 10, i + _followerIndex * 2),
+                            generateRandomValue(_followerSeed * 10, i + _followerIndex * 3)
                         );
+                        // // 2: set edge( surface)
+                        // const lp = _refBoxGeometry.getRandomLocalPositionOnSurface(
+                        //     i,
+                        //     generateRandomValue(_followerSeed * 10, i + _followerIndex + 1),
+                        //     generateRandomValue(_followerSeed * 10, i + _followerIndex + 2)
+                        // );
                         const wp = attractorTargetBoxActor.transform.localPointToWorld(lp);
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
                             p: wp,
-                            attractAmplitude: 0.1,
+                            attractAmplitude: 0.13,
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
@@ -929,13 +940,15 @@ export const createMorphFollowersActor = ({
             if (attractType === FollowerAttractMode.Attractor) {
                 const orbitMoverBinderComponent = attractTarget?.getComponent<OrbitMoverBinder>();
                 const delayValue = i * 0.5;
-                const p = (orbitMoverBinderComponent
-                    ? orbitMoverBinderComponent.calcPosition(delayValue) //
-                    : attractTarget!.transform.position).addVector(new Vector3(0, Math.sin((performance.now()/1000) * .5 + i * .2) * 1, 0));
+                const p = (
+                    orbitMoverBinderComponent
+                        ? orbitMoverBinderComponent.calcPosition(delayValue) //
+                        : attractTarget!.transform.position
+                ).addVector(new Vector3(0, Math.sin((performance.now() / 1000) * 0.5 + i * 0.2) * 1, 0));
                 // attractTypeならTargetは必ずあるはず
                 setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
                     p,
-                    attractAmplitude: 0.2,
+                    attractAmplitude: 0.3,
                 });
                 setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
             }
@@ -970,7 +983,7 @@ export const createMorphFollowersActor = ({
         mesh.materials.forEach((material) => {
             material.uniforms.setValue(UNIFORM_EMISSIVE_MIXER_NAME, stateParameters.emissionMixer);
         });
-        
+
         mesh.materials.forEach((material) => {
             material.uniforms.setValue(UniformNames.Metallic, surfaceParameters.metallic);
         });
@@ -1022,9 +1035,17 @@ export const createMorphFollowersActor = ({
             );
         }
 
+        // update transform feedback uniforms
+        transformFeedbackDoubleBuffer.uniforms.setValue(
+            TRANSFORM_FEEDBACK_UNIFORM_ATTRACT_BASE_POWER,
+            stateParameters.attractBasePower
+        );
+        transformFeedbackDoubleBuffer.uniforms.setValue(
+            TRANSFORM_FEEDBACK_UNIFORM_ATTRACT_MIN_POWER,
+            stateParameters.attractMinPower
+        );
+
         // transform feedback を更新
-        // transformFeedbackDoubleBuffer.uniforms.setValue('uNeedsJumpPosition', needsJumpPosition ? 1 : 0);
-        transformFeedbackDoubleBuffer.uniforms.setValue('uAttractRate', 0);
         gpu.updateTransformFeedback({
             shader: transformFeedbackDoubleBuffer.shader,
             uniforms: transformFeedbackDoubleBuffer.uniforms,
@@ -1068,8 +1089,21 @@ export const createMorphFollowersActor = ({
             });
         }
         // floor range
-        if( key === 'ffr') {
+        if (key === 'ffr') {
             stateParameters.floorEmitRange = value;
+        }
+
+        // attract base power
+        if (key === 'abp') {
+            stateParameters.attractBasePower = value;
+            // setInstanceAttractPower(value, value);
+            return;
+        }
+
+        // attract min power
+        if (key === 'amp') {
+            stateParameters.attractMinPower = value;
+            return;
         }
 
         //
@@ -1087,13 +1121,6 @@ export const createMorphFollowersActor = ({
             //}
             return;
         }
-
-        // attract power
-        if (key === 'ap') {
-            // setInstanceAttractPower(value, value);
-            return;
-        }
-
         // morph rate
         if (key === 'mr') {
             setInstanceState(value, { morphRate: value });
