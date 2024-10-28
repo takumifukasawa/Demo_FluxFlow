@@ -217,6 +217,7 @@ out vec4 o; void main(){o=vec4(1.,0.,0.,1.);}`,
         super.setSize(this.width, this.height);
 
         this.renderTargetSpotLightFrustum.setSize(this.rawWidth, this.rawHeight);
+        // this.renderTargetSpotLightFrustum.setSize(this.width, this.height);
 
         this.material.uniforms.setValue(UniformNames.TargetWidth, this.width);
         this.material.uniforms.setValue(UniformNames.TargetHeight, this.height);

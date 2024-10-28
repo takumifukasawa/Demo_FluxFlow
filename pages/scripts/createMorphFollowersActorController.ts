@@ -1218,7 +1218,7 @@ export const createMorphFollowersActor = (
             }
         }
     };
-
+    
     // mesh.onLastUpdate = () => {
     //     mesh.geometry.instanceCount = MAX_INSTANCE_NUM;
     // }

@@ -4,31 +4,10 @@ precision highp float;
 
 #pragma DEFINES
 #include ./defines-light.glsl
-#define MARCH_COUNT 64
+#define MARCH_COUNT 64 
 #define MARCH_COUNT_F 64.
 
-// TODO: spot light の最大数はどこかで定数管理したい
-// #define MAX_SPOT_LIGHT_COUNT 1
-
 #include ./partial/common.glsl
-// #include ./partial/noise.glsl
-// #include ./partial/lighting.glsl
-
-// 
-// TODO: このblock、lighting用の構造体とある程度共通化できそう？
-// struct SpotLight {
-//     vec3 position;
-//     vec3 direction; // spotlightの向き先
-//     // vec4 color;
-//     // vec4 uSpotLightColor;
-//     float intensity;
-//     float distance;
-//     float attenuation;
-//     float coneCos;
-//     float penumbraCos;
-//     mat4 shadowMapProjectionMatrix;
-//     // float shadowBias;
-// };
 
 // 光源からの光が届くかどうかを判定
 bool testLightInRange(const in float lightDistance, const in float cutoffDistance) {
@@ -78,8 +57,6 @@ float calcTransmittance(
     vec3 rayPosInWorld,
     vec3 rayPosInView,
     float viewZFromDepth
-    // out float fogColor,
-    // out float fogRate
 ) {
     float rate = 0.;
     
@@ -130,15 +107,7 @@ float calcTransmittance(
             }
         }
     }
-    // rate = (1. / MARCH_COUNT_F);
-
-    // for debug
-    // fogRate = spotLight.direction.x;
-    // fogRate += spotEffect;
-    // fogRate += attenuation;
-    // fogRate += isShadowArea; 
-    // fogRate += rayStep;
-
+    
     return rate;
 }
 
@@ -154,9 +123,9 @@ void main() {
         jitter * uRayJitterSizeY * uViewport.z
     );
 
-    // pattern_1: geometry from gbuffer
+    // // pattern_1: geometry from gbuffer
     // vec3 worldPosition = reconstructWorldPositionFromDepth(uv, rawDepth, uInverseViewProjectionMatrix);
-    // pattern_22: geometry from frustum
+    // pattern_2: geometry from frustum
     float rawDepthFrustum = texture(uVolumetricDepthTexture, vUv).r;
     float sceneDepthFrustum = perspectiveDepthToLinearDepth(rawDepthFrustum, uNearClip, uFarClip);
     vec3 worldPositionFrustum = reconstructWorldPositionFromDepth(
@@ -170,11 +139,12 @@ void main() {
     // pattern_1: ワールド座標系でカメラの位置からレイを飛ばす
     // カメラの距離が変わるときに弱い
     //
-    vec3 rayOrigin = uViewPosition + vec3(jitterOffset, 0.);
     vec3 vpos = vec3(uv * 2. - 1., 1.);
     vec3 viewDir = (uInverseProjectionMatrix * vpos.xyzz * uFarClip).xyz;
     vec3 viewDirInWorld = (uInverseViewMatrix * vec4(viewDir, 0.)).xyz;
     vec3 rayDir = normalize(viewDirInWorld);
+    // vec3 rayOrigin = uViewPosition + vec3(jitterOffset * vec2(rayDir.xy), 0.);
+    vec3 rayOrigin = uViewPosition + vec3(jitterOffset * vec2(rayDir.yx), 0.);
     // pattern_1: end
 
     // //
@@ -245,7 +215,8 @@ void main() {
 
     accColor.a = fogRate; // TODO: saturateするべき？
     accColor.rgb = fogColor.xyz;
-    
+   
+    accColor.a = 1.;
     outColor = accColor;
     
     // for debug

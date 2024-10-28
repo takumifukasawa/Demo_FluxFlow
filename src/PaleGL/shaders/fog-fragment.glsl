@@ -97,8 +97,8 @@ void main() {
     // 煙っぽい表現
     // 数値は一旦シェーダーの中に入れちゃう
     vec2 viewCoef = uViewDirection.xy * .4;
-    float noiseRate1 = texture(uNoiseTexture, (uv + viewCoef + uTime * vec2(.04, .02)) * aspect * 2.).x;
-    float noiseRate2 = texture(uNoiseTexture, (uv + viewCoef + uTime * vec2(-.03, .015) + noiseRate1 * .02) * aspect * 2.).x;
+    float noiseRate1 = texture(uNoiseTexture, (uv + viewCoef + uTime * vec2(.04, .02)) * aspect * 1.2).x;
+    float noiseRate2 = texture(uNoiseTexture, (uv + viewCoef + uTime * vec2(-.03, .015) + noiseRate1 * .02) * aspect * 1.2).x;
     float noiseRate = 1. - (noiseRate1 * .13 + noiseRate2 * .17);
     
     // 高ければ高いほど遮蔽されてる
@@ -157,4 +157,5 @@ void main() {
     // outColor = vec4(vec3(worldPositionFromDepth.y), 1.);
     // outColor = vec4(worldPositionFromDepth, 1.);
     // outColor = vec4(vec3(uFogStrength), 1.);
+    // outColor = volumetricLightColor;
 }           

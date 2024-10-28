@@ -210,13 +210,14 @@ const buildScene = (sceneJson: MarionetterScene) => {
         if (spotLight.shadowCamera) {
             spotLight.shadowCamera.visibleFrustum = false;
             spotLight.castShadow = true;
-            spotLight.shadowCamera.near = 0.1;
+            spotLight.shadowCamera.near = 1;
             spotLight.shadowCamera.far = spotLight.distance;
             (spotLight.shadowCamera as PerspectiveCamera).setPerspectiveSize(1); // TODO: いらないかも
+            const shadowMapSize = 1024;
             spotLight.shadowMap = new RenderTarget({
                 gpu,
-                width: 1024,
-                height: 1024,
+                width: shadowMapSize,
+                height: shadowMapSize,
                 type: RenderTargetTypes.Depth,
                 depthPrecision: TextureDepthPrecisionType.High,
             });
@@ -239,7 +240,7 @@ const buildScene = (sceneJson: MarionetterScene) => {
         directionalLight.castShadow = true;
         directionalLight.shadowCamera.near = 1;
         directionalLight.shadowCamera.far = 40;
-        const size = 10;
+        const size = 15;
         (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -size, size, -size, size);
         directionalLight.shadowMap = new RenderTarget({
             gpu,
@@ -582,11 +583,11 @@ const playDemo = () => {
     renderer.vignettePass.parameters.vignetteRadius = 2.743;
     renderer.vignettePass.parameters.vignettePower = 1.251;
 
-    renderer.streakPass.parameters.threshold = 0.4;
-    renderer.streakPass.parameters.verticalScale = 0;
-    renderer.streakPass.parameters.horizontalScale = 0.271;
-    renderer.streakPass.parameters.stretch = 0.826;
-    renderer.streakPass.parameters.stretch = 0.124;
+    renderer.streakPass.parameters.threshold = 0.448;
+    renderer.streakPass.parameters.verticalScale = 7.611;
+    renderer.streakPass.parameters.horizontalScale = 0.708;
+    renderer.streakPass.parameters.stretch = 0.95;
+    renderer.streakPass.parameters.intensity = 0.106;
 
     renderer.volumetricLightPass.parameters.rayStep = 1.;
     
@@ -596,6 +597,11 @@ const playDemo = () => {
     renderer.ssrPass.parameters.reflectionRayThickness = .579;
     renderer.ssrPass.parameters.reflectionRayJitterSizeY = .003;
     renderer.ssrPass.parameters.reflectionRayJitterSizeY = .003;
+    
+    renderer.volumetricLightPass.parameters.rayStep = 0.496;
+    renderer.volumetricLightPass.parameters.densityMultiplier = 0.9;
+    renderer.volumetricLightPass.parameters.rayJitterSizeX = 0.088;
+    renderer.volumetricLightPass.parameters.rayJitterSizeY = 0.083;
 
     renderer.screenSpaceShadowPass.parameters.jitterSize = new Vector3(0.09, 0.09, 0);
 

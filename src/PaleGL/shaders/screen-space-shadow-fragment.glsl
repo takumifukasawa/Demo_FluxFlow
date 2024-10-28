@@ -114,9 +114,9 @@ void calcOcclusion(PointLight pointLight, vec3 worldPosition, vec3 viewPosition,
         if(
             dz > abs(currentViewPositionInPixel.z)
         ) {
-            occlusion += sharpness * saturate(pointLight.intensity);
+            // occlusion += sharpness * saturate(pointLight.intensity);
             // test fade
-            // occlusion += sharpness * saturate(pointLight.intensity) * (1. - smoothstep(60., 80., dz));
+            occlusion += sharpness * saturate(pointLight.intensity) * (1. - smoothstep(60., 80., dz));
         }
     }
     // #pragma unroll_end

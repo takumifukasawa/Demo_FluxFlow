@@ -283,7 +283,7 @@ void RE_Direct(
         irradiance *
         clamp(
             DiffuseBRDF(material.diffuseColor),
-            0.,
+            -10.,
             10.
         ); // overflow fallback
     // specular
@@ -297,7 +297,7 @@ void RE_Direct(
                 material.specularColor,
                 material.roughness
             ),
-            0.,
+            -10.,
             10.
         ); // overflow fallback
 }

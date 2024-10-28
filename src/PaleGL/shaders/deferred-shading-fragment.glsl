@@ -60,7 +60,6 @@ const vec2 poissonDisk[4] = vec2[](
     vec2(0.34495938, 0.29387760)
 );
 
-const int SHADOW_FETCH_COUNT = 4;
 
 float calcDirectionalLightShadowAttenuation(
     vec3 worldPosition,
@@ -92,17 +91,20 @@ float calcDirectionalLightShadowAttenuation(
         step(0., depthFromWorldPos) * (1. - step(1., depthFromWorldPos));
 
     float visibility = 1.;
+    vec2 offset = vec2(0.);
+    float readDepth = 0.;
 
     #pragma UNROLL_START
-    for(int i = 0; i < SHADOW_FETCH_COUNT; i++) {
+    for(int i = 0; i < 4; i++) {
         vec2 offset = poissonDisk[UNROLL_i] / 800.;
-        // float readDepth = texture(shadowMap, uv + offset).r;
-        float readDepth = textureLod(shadowMap, uv + offset, 0.).r;
-        if(readDepth < lightPos.z - bias) {
-            visibility -= .25;
-        }
+        readDepth = textureLod(shadowMap, uv + offset, 0.).r;
+        visibility -= step(readDepth, depthFromWorldPos - bias) * .25;
+        // if(readDepth < lightPos.z - bias) {
+        //     visibility -= .25;
+        // }
     }
     #pragma UNROLL_END
+
 
     // for debug
     // vec3 color = mix(
@@ -152,13 +154,13 @@ float calcSpotLightShadowAttenuation(
     // vec3 uvc = vec3(uv, depthFromWorldPos + .00001);
     // float readDepth = textureProj(shadowMap, uvc).r;
     #pragma UNROLL_START
-    for(int i = 0; i < SHADOW_FETCH_COUNT; i++) {
+    for(int i = 0; i < 4; i++) {
         vec2 offset = poissonDisk[UNROLL_i] / 100.;
-        // float readDepth = texture(shadowMap, uv + offset).r;
         float readDepth = textureLod(shadowMap, uv + offset, 0.).r;
-        if(readDepth < depthFromWorldPos - bias) {
-            visibility -= .25;
-        }
+        visibility -= step(readDepth, depthFromWorldPos - bias) * .25;
+        // if(readDepth < depthFromWorldPos - bias) {
+        //     visibility -= .25;
+        // }
     }
     #pragma UNROLL_END
 
@@ -418,8 +420,8 @@ void main() {
     // 自己発光も足す。1より溢れている場合はbloomで光が滲む感じになる
     resultColor.xyz += emissiveColor;
     
-    
     outColor = resultColor;
+    
    
     // TODO: 足したくないが何かがおかしい
     // outColor = resultColor + sssRate;
@@ -437,4 +439,11 @@ void main() {
     // vec3 worldPosition = reconstructWorldPositionFromDepth(uv, rawDepth, uInverseViewProjectionMatrix);
     // vec4 sssRate = texture(uScreenSpaceShadowTexture, uv);
     // outColor = sssRate;
+
+    // vec4 suv = uDirectionalLight.shadowMapProjectionMatrix * vec4(surface.worldPosition, 1.);
+    // vec4 s = texture(uDirectionalLightShadowMap, suv.xy);
+    // vec4 lightPos = shadowMapProjectionMatrix * vec4(worldPosition, 1.);
+    // vec2 uv = lightPos.xy;
+    // float depthFromWorldPos = lightPos.z;
+
 }
