@@ -279,28 +279,6 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         size: 0.5,
         materials,
         castShadow: true,
-        // fragmentShaderContent: litObjectSpaceRaymarchFragOriginForgeContent,
-        // depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragOriginForgeDepthContent,
-        // materialArgs: {
-        //     ...defaultSurfaceParameters,
-        //     receiveShadow: true,
-        //     faceSide: FaceSide.Double,
-        //     uniforms: [
-        //         {
-        //             name: UNIFORM_NAME_METABALL_CENTER_POSITION,
-        //             type: UniformTypes.Vector3,
-        //             value: Vector3.zero,
-        //         },
-        //         {
-        //             name: UNIFORM_NAME_METABALL_POSITIONS,
-        //             type: UniformTypes.Vector3Array,
-        //             value: metaballPositions,
-        //         },
-        //     ],
-        //     uniformBlockNames: [UniformBlockNames.Timeline],
-        // },
-        // material,
-        // castShadow: true,
     });
 
     const pointLight = new PointLight({

@@ -301,7 +301,7 @@ float opTb(float x, float A, float B, float C) {
 //
 
 #define BN 16 // メタボールの数
-#define FS 1. // 真ん中のメタボールのサイズ
+#define FS 1.4 // 真ん中のメタボールのサイズ
 #define CS .25 // 小さいメタボールのサイズ
 #define MS .25 // メタボールのsmooth
 uniform vec3 uCP;
@@ -314,9 +314,12 @@ uniform vec3 uORo; // rot x for origin forge
 
 // displacement metaball
 float diMB(vec3 p) {
-    return sin(p.x * 4. + uTimelineTime * 3.4) * .0 +
-        cos(p.y * 3. + uTimelineTime * 3.2) * .0 +
-        sin(p.z * 3.5 + uTimelineTime * 3.0) * .0;
+    float s = .025;
+    return
+        (sin(p.x * 4. + uTimelineTime * 3.4) * s + s) +
+        (cos(p.y * 3. + uTimelineTime * 3.2) * s + s) +
+        (sin(p.z * 3.5 + uTimelineTime * 3.0) * s + s) +
+        .01;
 }
 
 // 真ん中のメタボール

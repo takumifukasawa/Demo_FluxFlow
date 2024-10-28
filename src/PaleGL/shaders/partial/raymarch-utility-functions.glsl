@@ -20,12 +20,12 @@ vec2 blendSpaceDfScene(vec3 worldPos, mat4 WtoO, vec3 scale, float blendRate) {
 }
 
 vec3 getNormalObjectSpaceDfScene(vec3 p, mat4 WtoO, vec3 scale, float useWorld) {
-    // tmp
+    // // tmp
     // const float eps = .0001;
     // vec3 n = vec3(
-    //     objectSpaceDfScene(p + vec3(eps, 0, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(-eps, 0, 0), WtoO, scale).x,
-    //     objectSpaceDfScene(p + vec3(0, eps, 0), WtoO, scale).x - objectSpaceDfScene(p + vec3(0, -eps, 0), WtoO, scale).x,
-    //     objectSpaceDfScene(p + vec3(0, 0, eps), WtoO, scale).x - objectSpaceDfScene(p + vec3(0, 0, -eps), WtoO, scale).x
+    //     objectSpaceDfScene(p + vec3(eps, 0, 0), WtoO, scale, useWorld).x - objectSpaceDfScene(p + vec3(-eps, 0, 0), WtoO, scale, useWorld).x,
+    //     objectSpaceDfScene(p + vec3(0, eps, 0), WtoO, scale, useWorld).x - objectSpaceDfScene(p + vec3(0, -eps, 0), WtoO, scale, useWorld).x,
+    //     objectSpaceDfScene(p + vec3(0, 0, eps), WtoO, scale, useWorld).x - objectSpaceDfScene(p + vec3(0, 0, -eps), WtoO, scale, useWorld).x
     // );
     // return normalize(n);
 
@@ -46,14 +46,14 @@ vec3 getNormalObjectSpaceDfScene(vec3 p, mat4 WtoO, vec3 scale, float useWorld) 
 }
 
 vec3 getNormalDfScene(vec3 p) {
-    // tmp
+    // // tmp
     // const float eps = .0001;
     // vec3 n = vec3(
     //     dfScene(p + vec3(eps, 0, 0)).x - dfScene(p + vec3(-eps, 0, 0)).x,
     //     dfScene(p + vec3(0, eps, 0)).x - dfScene(p + vec3(0, -eps, 0)).x,
     //     dfScene(p + vec3(0, 0, eps)).x - dfScene(p + vec3(0, 0, -eps)).x
     // );
-    // return normalize(n);
+    // return normalize(n); 
 
     // 軽量版
     // ref: https://x.com/Shiranui_Isuzu_/status/1074492632179474432?s=20
