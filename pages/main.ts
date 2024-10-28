@@ -60,6 +60,7 @@ import {
     ATTRACTOR_TARGET_BOX_ROOT_ACTOR_B,
     ATTRACTOR_TARGET_SPHERE_ACTOR_A_NAME,
     ATTRACTOR_TARGET_SPHERE_ACTOR_B_NAME,
+    DEMO_MANAGER_ACTOR_NAME,
     DEPTH_OF_FIELD_TARGET_ACTOR_NAME,
     DIRECT_LIGHT_ACTOR_NAME,
     // DIRECT_LIGHT_ACTOR_NAME,
@@ -88,8 +89,8 @@ import { snapToStep } from '@/Marionetter/timelineUtilities.ts';
 import { clamp, lerp } from '@/PaleGL/utilities/mathUtilities.ts';
 import { createBlackCurtainPass } from './scripts/createBlackCurtainPass.ts';
 import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
-import {createStartupLayer} from "./scripts/createStartupLayer.ts";
-
+import { createStartupLayer } from './scripts/createStartupLayer.ts';
+import { createIngameLayer } from './scripts/createIngameLayer.ts';
 
 // const wrapperElement = document.getElementById("wrapper")!;
 const wrapperElement = document.createElement('div');
@@ -164,6 +165,21 @@ const buildScene = (sceneJson: MarionetterScene) => {
     for (let i = 0; i < actors.length; i++) {
         captureScene.add(actors[i]);
     }
+
+    //
+    // demo manager
+    //
+
+    const demoManagerActor = captureScene.find(DEMO_MANAGER_ACTOR_NAME) as Actor;
+    demoManagerActor.onProcessPropertyBinder = (key, value) => {
+        if (key === 'ga') {
+            if (value > 0.5) {
+                ingameLayer.fadeInGreeting();
+            } else {
+                ingameLayer.fadeOutGreeting();
+            }
+        }
+    };
 
     //
     // camera
@@ -259,10 +275,13 @@ const buildScene = (sceneJson: MarionetterScene) => {
     console.log('scene', actors);
 };
 
-const startupLayer =  createStartupLayer(() => {
+const startupLayer = createStartupLayer(() => {
     playDemo();
 });
 document.body.appendChild(startupLayer.rootElement);
+
+const ingameLayer = createIngameLayer();
+document.body.appendChild(ingameLayer.rootElement);
 
 const morphFollowersActorControllerBinders: MorphFollowerActorControllerBinder[] = [];
 const attractorTargetBoxActors: Actor[] = [];
@@ -504,7 +523,7 @@ const load = async () => {
         if (captureSceneCamera) {
             // 何か任意のパラメーターを更新する
             renderer.fogPass.parameters.sssFogColor = originForgeActorController.getPointLight().color;
-            
+
             renderer.updateTimelineUniforms(timelineTime, timelineDeltaTime);
             renderer.render(captureScene, captureSceneCamera, { time, timelineTime, timelineDeltaTime });
         }
@@ -555,7 +574,7 @@ const playDemo = () => {
     renderer.fogPass.parameters.distanceFogStart = 28;
     renderer.fogPass.parameters.distanceFogPower = 0.02;
     renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
-    renderer.fogPass.parameters.sssFogRate = .029;
+    renderer.fogPass.parameters.sssFogRate = 0.029;
 
     renderer.vignettePass.parameters.vignetteRadius = 2.743;
     renderer.vignettePass.parameters.vignettePower = 1.251;

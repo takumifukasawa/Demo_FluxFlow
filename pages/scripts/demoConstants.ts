@@ -1,4 +1,6 @@
 
+export const DEMO_MANAGER_ACTOR_NAME = "DM";
+
 export const MAIN_CAMERA_ACTOR_NAME = 'MC';
 
 export const DIRECT_LIGHT_ACTOR_NAME = 'DL';
