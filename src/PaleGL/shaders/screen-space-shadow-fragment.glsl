@@ -98,7 +98,7 @@ void calcOcclusion(PointLight pointLight, vec3 worldPosition, vec3 viewPosition,
             currentRawDepthInPixel,
             uInverseProjectionMatrix
         );
-
+        
         //
         // 1: 深度で比較
         // rayの深度がピクセルの深度より大きい場合、遮蔽されてるとみなす
@@ -110,8 +110,13 @@ void calcOcclusion(PointLight pointLight, vec3 worldPosition, vec3 viewPosition,
         //
         // 2: view z で比較
         //
-        if(abs(currentRayInView.z) > abs(currentViewPositionInPixel.z)) {
+        float dz = abs(currentRayInView.z);
+        if(
+            dz > abs(currentViewPositionInPixel.z)
+        ) {
             occlusion += sharpness * saturate(pointLight.intensity);
+            // test fade
+            // occlusion += sharpness * saturate(pointLight.intensity) * (1. - smoothstep(60., 80., dz));
         }
     }
     // #pragma unroll_end

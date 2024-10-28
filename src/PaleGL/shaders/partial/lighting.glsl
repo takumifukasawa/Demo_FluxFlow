@@ -224,7 +224,7 @@ float D_GGX(float a, float dotNH) {
     float a2 = a * a;
     float dotNH2 = dotNH * dotNH;
     float d = dotNH2 * (a2 - 1.) + 1.;
-    return a2 / (PI * d * d);
+    return a2 / max((PI * d * d), EPSILON);
 }
 
 float G_Smith_Schlick_GGX(float a, float dotNV, float dotNL) {
@@ -283,8 +283,8 @@ void RE_Direct(
         irradiance *
         clamp(
             DiffuseBRDF(material.diffuseColor),
-            -10000.,
-            10000.
+            0.,
+            10.
         ); // overflow fallback
     // specular
     // reflectedLight.directSpecular += irradiance * SpecularBRDF(directLight, geometry, material.specularColor, material.roughness);
@@ -297,8 +297,8 @@ void RE_Direct(
                 material.specularColor,
                 material.roughness
             ),
-            -10000.,
-            10000.
+            0.,
+            10.
         ); // overflow fallback
 }
 

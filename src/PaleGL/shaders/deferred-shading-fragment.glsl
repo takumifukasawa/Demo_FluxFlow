@@ -409,9 +409,15 @@ void main() {
 
     // 遮蔽はそのまま色にかけてしまう
     resultColor.xyz *= aoRate;
-  
+
+    // CUSTOM_BEGIN
+    float fr = pow(1. - saturate(dot(surface.worldNormal, geometry.viewDir)), 2.) * 1.5;
+    emissiveColor *= (.5 + fr); // fake rim
+    // CUSTOM_END
+
     // 自己発光も足す。1より溢れている場合はbloomで光が滲む感じになる
     resultColor.xyz += emissiveColor;
+    
     
     outColor = resultColor;
    

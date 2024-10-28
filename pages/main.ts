@@ -521,9 +521,10 @@ const load = async () => {
 
     engine.onRender = (time) => {
         if (captureSceneCamera) {
-            // 何か任意のパラメーターを更新する
-            renderer.fogPass.parameters.sssFogColor = originForgeActorController.getPointLight().color;
-
+            //
+            // render
+            //
+            
             renderer.updateTimelineUniforms(timelineTime, timelineDeltaTime);
             renderer.render(captureScene, captureSceneCamera, { time, timelineTime, timelineDeltaTime });
         }
@@ -568,8 +569,10 @@ const playDemo = () => {
 
     //
     // override pp values
-    //
     // なぜか debugger の前だとうまくいかない
+    //
+    
+    renderer.fogPass.parameters.sssFogColor = originForgeActorController.getPointLight().color;
 
     renderer.fogPass.parameters.distanceFogStart = 28;
     renderer.fogPass.parameters.distanceFogPower = 0.02;
@@ -578,6 +581,21 @@ const playDemo = () => {
 
     renderer.vignettePass.parameters.vignetteRadius = 2.743;
     renderer.vignettePass.parameters.vignettePower = 1.251;
+
+    renderer.streakPass.parameters.threshold = 0.4;
+    renderer.streakPass.parameters.verticalScale = 0;
+    renderer.streakPass.parameters.horizontalScale = 0.271;
+    renderer.streakPass.parameters.stretch = 0.826;
+    renderer.streakPass.parameters.stretch = 0.124;
+
+    renderer.volumetricLightPass.parameters.rayStep = 1.;
+    
+    renderer.ssrPass.parameters.rayDepthBias = .047;
+    renderer.ssrPass.parameters.rayNearestDistance = .089;
+    renderer.ssrPass.parameters.rayMaxDistance = 2.;
+    renderer.ssrPass.parameters.reflectionRayThickness = .579;
+    renderer.ssrPass.parameters.reflectionRayJitterSizeY = .003;
+    renderer.ssrPass.parameters.reflectionRayJitterSizeY = .003;
 
     renderer.screenSpaceShadowPass.parameters.jitterSize = new Vector3(0.09, 0.09, 0);
 

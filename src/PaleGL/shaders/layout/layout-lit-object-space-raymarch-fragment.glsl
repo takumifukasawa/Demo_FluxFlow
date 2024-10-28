@@ -197,6 +197,7 @@ void main() {
 
     resultColor = diffuseColor;
 
+
 #ifdef USE_ALPHA_TEST
     checkAlphaTest(resultColor.a, uAlphaTestThreshold);
 #endif
