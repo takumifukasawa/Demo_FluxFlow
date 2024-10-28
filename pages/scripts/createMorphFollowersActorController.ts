@@ -891,8 +891,9 @@ export const createMorphFollowersActor = (
     };
 
     const setInstanceNum = (instanceNum: number) => {
-        instancingInfo.instanceNum = instanceNum;
-        mesh.geometry.instanceCount = instanceNum;
+        const n = Math.floor(instanceNum);
+        instancingInfo.instanceNum = n;
+        mesh.geometry.instanceCount = n;
     };
 
     const updateStatesAndBuffers = () => {
