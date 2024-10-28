@@ -1117,6 +1117,7 @@ export class Renderer {
 
         this._fogPass.setLightShaftMap(this._lightShaftPass.renderTarget);
         this._fogPass.setVolumetricLightMap(this._volumetricLightPass.renderTarget);
+        this._fogPass.setScreenSpaceShadowMap(this._screenSpaceShadowPass.renderTarget);
 
         PostProcess.renderPass({
             pass: this._fogPass,

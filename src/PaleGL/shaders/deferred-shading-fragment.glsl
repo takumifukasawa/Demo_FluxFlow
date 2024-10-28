@@ -414,6 +414,9 @@ void main() {
     resultColor.xyz += emissiveColor;
     
     outColor = resultColor;
+   
+    // TODO: 足したくないが何かがおかしい
+    // outColor = resultColor + sssRate;
 
     // for debug
     // // surface

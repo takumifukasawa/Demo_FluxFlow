@@ -20,6 +20,7 @@ out vec4 outColor;
 uniform sampler2D uSrcTexture;
 uniform sampler2D uLightShaftTexture;
 uniform sampler2D uVolumetricLightTexture;
+uniform sampler2D uSSSTexture;
 uniform sampler2D uDepthTexture;
 uniform vec4 uFogColor;
 uniform float uFogStrength;
@@ -28,6 +29,8 @@ uniform float uFogDensityAttenuation;
 uniform float uFogEndHeight;
 uniform float uDistanceFogStart;
 uniform float uDistanceFogPower;
+uniform float uSSSFogRate;
+uniform vec4 uSSSFogColor;
 uniform float uBlendRate;
 
 #include ./partial/depth-functions.glsl
@@ -84,6 +87,7 @@ void main() {
     vec4 destColor = sceneColor;
     vec4 lightShaftColor = texture(uLightShaftTexture, uv);
     vec4 volumetricLightColor = texture(uVolumetricLightTexture, uv);
+    float sssRate = texture(uSSSTexture, uv).r;
     
     // 高ければ高いほど遮蔽されてる
     float occlusion = saturate(lightShaftColor.x);
@@ -126,6 +130,9 @@ void main() {
     //     volumetricLightColor.xyz,
     //     saturate(volumetricLightColor.a)
     // ), 1.);
+
+    // sss fog
+    outColor += vec4(uSSSFogColor.xyz * (1. - sssRate) * uSSSFogRate * fogRate, 0.);
     
     // for debug
     // outColor = sceneColor;

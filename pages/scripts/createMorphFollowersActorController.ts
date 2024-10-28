@@ -25,7 +25,7 @@ import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
-import { generateRandomValue, randomOnUnitCircle, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
+import {generateRandomValue, randomOnUnitCircle, randomOnUnitSphere} from '@/PaleGL/utilities/mathUtilities.ts';
 import {
     createObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterialArgs,
@@ -76,6 +76,9 @@ const SURFACE_EMISSIVE_PROPERTY_BASE = 'sec';
 
 const rotRateForVelocityValue = 0;
 const rotRateForLookDirectionValue = 1;
+
+const boxIndexPicker = [0, 1, 1, 1];
+const sphereIndexPicker = [0, 1, 1, 1];
 
 export const FollowerMorphType = {
     None: 0,
@@ -349,6 +352,7 @@ export const createMorphFollowersActor = (
     name: string,
     gpu: GPU,
     renderer: Renderer, // instanceNum,
+    insternalInstanceNum: number, // 本当はあんまり決めうちで渡したくないが・・・
     instanceVertexColorGenerator: (rx: number, ry: number, rz: number) => Color,
     instanceEmissiveColorGenerator: (rx: number, ry: number, rz: number) => Color
 ): MorphFollowersActorController => {
@@ -360,6 +364,7 @@ export const createMorphFollowersActor = (
     let _attractorTargetBoxActors: Actor[] = [];
     let _attractorTargetSphereActors: Actor[] = [];
     let _refBoxGeometry: BoxGeometry;
+    const _internalInstanceNum = insternalInstanceNum;
 
     const stateParameters = {
         diffuseMixer: 0,
@@ -887,7 +892,8 @@ export const createMorphFollowersActor = (
 
             switch (_currentFollowMode) {
                 case FollowerAttractMode.FollowCubeEdge:
-                    const attractorTargetBoxActor = _attractorTargetBoxActors[i % _attractorTargetBoxActors.length];
+                    const pickIndex = boxIndexPicker[i % boxIndexPicker.length];
+                    const attractorTargetBoxActor = _attractorTargetBoxActors[pickIndex];
                     if (attractorTargetBoxActor) {
                         // 1: set edge
                         const lp = _refBoxGeometry.getRandomLocalPositionOnEdge(
@@ -912,11 +918,10 @@ export const createMorphFollowersActor = (
                 case FollowerAttractMode.FollowSphereSurface:
                     if (_attractorTargetSphereActors) {
                         // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
+                        const pickIndex = sphereIndexPicker[i % sphereIndexPicker.length];
                         const lp = randomOnUnitSphere(_followerSeed + i).scale(0.5);
                         const wp =
-                            _attractorTargetSphereActors[
-                                i % _attractorTargetSphereActors.length
-                            ].transform.localPointToWorld(lp); // TODO: timelineの後でやるべき
+                            _attractorTargetSphereActors[pickIndex].transform.localPointToWorld(lp); // TODO: timelineの後でやるべき?
                         // for debug
                         // console.log(i, randomOnUnitSphere(i).e, randomOnUnitSphere(i).e, lp.e, wp.e, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.e)
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
@@ -1182,7 +1187,7 @@ export const createMorphFollowersActor = (
         if (isTimeInClip(time, 64, 72)) {
             const rr = clipRate(time, 64, 72);
             for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
-                if (i >= 96) {
+                if (i >= _internalInstanceNum) {
                     setInstanceAttractPower(i, easeInOutQuad(rr));
                     setInstanceAttractorTarget(i, _orbitFollowTargetActor);
                     setInstanceState(i, { morphRate: easeOutQuad(rr) });

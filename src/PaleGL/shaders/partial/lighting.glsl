@@ -281,17 +281,25 @@ void RE_Direct(
     // diffuse
     reflectedLight.directDiffuse +=
         irradiance *
-        max(DiffuseBRDF(material.diffuseColor), 0.);
+        clamp(
+            DiffuseBRDF(material.diffuseColor),
+            -10000.,
+            10000.
+        ); // overflow fallback
     // specular
     // reflectedLight.directSpecular += irradiance * SpecularBRDF(directLight, geometry, material.specularColor, material.roughness);
     reflectedLight.directSpecular +=
         irradiance *
-        clamp(SpecularBRDF(
-            directLight.direction,
-            geometry,
-            material.specularColor,
-            material.roughness
-        ), 0., 10000.); // overflow fallback
+        clamp(
+            SpecularBRDF(
+                directLight.direction,
+                geometry,
+                material.specularColor,
+                material.roughness
+            ),
+            -10000.,
+            10000.
+        ); // overflow fallback
 }
 
 // base: https://qiita.com/kaneta1992/items/df1ae53e352f6813e0cd

@@ -24,6 +24,8 @@ const UNIFORM_FOG_DENSITY_ATTENUATION = 'uFogDensityAttenuation';
 const UNIFORM_FOG_END_HEIGHT = 'uFogEndHeight';
 const UNIFORM_DISTANCE_FOG_START = 'uDistanceFogStart';
 const UNIFORM_DISTANCE_FOG_POWER = 'uDistanceFogPower';
+const UNIFORM_SSS_FOG_RATE = 'uSSSFogRate';
+const UNIFORM_SSS_FOG_COLOR = 'uSSSFogColor';
 
 export type FogPassParametersBase = {
     fogColor: Color;
@@ -33,6 +35,8 @@ export type FogPassParametersBase = {
     fogEndHeight: number;
     distanceFogStart: number;
     distanceFogPower: number;
+    sssFogRate: number;
+    sssFogColor: Color;
     blendRate: number;
 };
 
@@ -58,13 +62,17 @@ export function generateFogPassParameters(params: RequiredToOptional<FogPassPara
         fogEndHeight: params.fogEndHeight ?? 1,
         distanceFogStart: params.distanceFogStart ?? 20,
         distanceFogPower: params.distanceFogPower ?? 0.1,
+        sssFogRate: params.sssFogRate ?? 1,
+        sssFogColor: params.sssFogColor ?? Color.white,
         blendRate: 1,
     };
 }
 
+const lightShaftTextureUniformName = 'uLightShaftTexture';
+const volumetricLightTextureUniformName = 'uVolumetricLightTexture';
+const screenSpaceShadowTextureUniformName = 'uSSSTexture';
+
 export class FogPass extends PostProcessPassBase {
-    private static lightShaftTextureUniformName = 'uLightShaftTexture';
-    private static volumetricLightTextureUniformName = 'uVolumetricLightTexture';
 
     // fogColor: Color = Color.white;
     // fogStrength: number;
@@ -107,12 +115,17 @@ export class FogPass extends PostProcessPassBase {
                     value: null,
                 },
                 {
-                    name: FogPass.lightShaftTextureUniformName,
+                    name: lightShaftTextureUniformName,
                     type: UniformTypes.Texture,
                     value: null,
                 },
                 {
-                    name: FogPass.volumetricLightTextureUniformName,
+                    name: volumetricLightTextureUniformName,
+                    type: UniformTypes.Texture,
+                    value: null,
+                },
+                {
+                    name: screenSpaceShadowTextureUniformName,
                     type: UniformTypes.Texture,
                     value: null,
                 },
@@ -147,6 +160,16 @@ export class FogPass extends PostProcessPassBase {
                     value: parameters.distanceFogPower,
                 },
                 {
+                    name: UNIFORM_SSS_FOG_RATE,
+                    type: UniformTypes.Float,
+                    value: parameters.sssFogRate,
+                },
+                {
+                    name: UNIFORM_SSS_FOG_COLOR,
+                    type: UniformTypes.Color,
+                    value: Color.white,
+                },
+                {
                     name: UniformNames.BlendRate,
                     type: UniformTypes.Float,
                     value: 1,
@@ -171,13 +194,17 @@ export class FogPass extends PostProcessPassBase {
     // TODO: mapの割り当て、renderなりupdateなりで一緒にやった方がいい気がする.
 
     setLightShaftMap(rt: RenderTarget) {
-        this.material.uniforms.setValue(FogPass.lightShaftTextureUniformName, rt.read.texture);
+        this.material.uniforms.setValue(lightShaftTextureUniformName, rt.read.texture);
     }
 
     setVolumetricLightMap(rt: RenderTarget) {
-        this.material.uniforms.setValue(FogPass.volumetricLightTextureUniformName, rt.read.texture);
+        this.material.uniforms.setValue(volumetricLightTextureUniformName, rt.read.texture);
     }
-
+    
+    setScreenSpaceShadowMap(rt: RenderTarget) {
+        this.material.uniforms.setValue(screenSpaceShadowTextureUniformName, rt.read.texture);
+    }
+    
     render(options: PostProcessPassRenderArgs) {
         this.material.uniforms.setValue(UNIFORM_FOG_COLOR, this.parameters.fogColor);
         this.material.uniforms.setValue(UNIFORM_FOG_STRENGTH, this.parameters.fogStrength);
@@ -186,6 +213,8 @@ export class FogPass extends PostProcessPassBase {
         this.material.uniforms.setValue(UNIFORM_FOG_END_HEIGHT, this.parameters.fogEndHeight);
         this.material.uniforms.setValue(UNIFORM_DISTANCE_FOG_START, this.parameters.distanceFogStart);
         this.material.uniforms.setValue(UNIFORM_DISTANCE_FOG_POWER, this.parameters.distanceFogPower);
+        this.material.uniforms.setValue(UNIFORM_SSS_FOG_RATE, this.parameters.sssFogRate);
+        this.material.uniforms.setValue(UNIFORM_SSS_FOG_COLOR, this.parameters.sssFogColor);
         this.material.uniforms.setValue(UniformNames.BlendRate, this.parameters.blendRate);
         super.render(options);
     }

@@ -393,6 +393,16 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             pointLight.intensity = value;
             return;
         }
+        // point light distance
+        if(key === 'pd') {
+            pointLight.distance = value;
+            return;
+        }
+        // point light attenuation
+        if (key === 'pa') {
+            pointLight.attenuation = value;
+            return;
+        }
 
         // point light color.r
         if (key === 'pc.r') {
@@ -520,7 +530,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                 // TODO: ここパラメーター化したい
                 morphFollowersActorController.setInstancePosition(
                     i,
-                    new Vector3(Math.cos(i) * 60, Math.sin(i) * 50, Math.sin(i) * 10)
+                    new Vector3(Math.cos(i) * 60, Math.sin(i) * 50, Math.sin(i) * 20)
                 );
                 morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                 morphFollowersActorController.setInstanceState(i, { morphRate: rate });

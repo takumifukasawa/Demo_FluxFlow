@@ -460,6 +460,18 @@ export function initDebugger({
     });
 
     fogDebuggerGroup.addSliderDebugger({
+        label: 'sss fog rate',
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        initialValue: renderer.fogPass.parameters.sssFogRate,
+        onChange: (value) => {
+            renderer.fogPass.parameters.sssFogRate = value;
+        },
+    });
+
+
+    fogDebuggerGroup.addSliderDebugger({
         label: 'blend rate',
         minValue: 0,
         maxValue: 1,
