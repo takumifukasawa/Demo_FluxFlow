@@ -314,9 +314,9 @@ uniform vec3 uORo; // rot x for origin forge
 
 // displacement metaball
 float diMB(vec3 p) {
-    return sin(p.x * 4. + uTimelineTime * 3.4) * .02 +
-        cos(p.y * 3. + uTimelineTime * 3.2) * .02 +
-        sin(p.z * 3.5 + uTimelineTime * 3.0) * .02;
+    return sin(p.x * 4. + uTimelineTime * 3.4) * .0 +
+        cos(p.y * 3. + uTimelineTime * 3.2) * .0 +
+        sin(p.z * 3.5 + uTimelineTime * 3.0) * .0;
 }
 
 // 真ん中のメタボール

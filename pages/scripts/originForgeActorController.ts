@@ -625,20 +625,13 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             );
         });
 
-        // mesh.materials.forEach((material) => {
-        //     material.uniforms.setValue(UNIFORM_NAME_METABALL_GATHER_SCALE_RATE, statesParameters.gatherScale);
-        // });
-        mesh.materials.forEach((_, i) => {
-            mesh.setUniformValueToPairMaterial(
-                i,
-                UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
-                statesParameters.gatherScale
-            );
-        });
+        mesh.setUniformValueToAllMaterials(
+            UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
+            statesParameters.gatherScale
+        );
 
         //
         // surface
-        // depthは更新しなくていい
         //
 
         mesh.materials.forEach((material) => {
@@ -647,8 +640,9 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         mesh.materials.forEach((material) => {
             material.uniforms.setValue(UniformNames.Roughness, surfaceParameters.roughness);
         });
-        mesh.materials.forEach((material) => {
+        mesh.materials.forEach((material, i) => {
             material.uniforms.setValue(UniformNames.DiffuseColor, surfaceParameters.diffuseColor);
+            mesh.depthMaterials[i].uniforms.setValue(UniformNames.DiffuseColor, surfaceParameters.diffuseColor);
         });
         mesh.materials.forEach((material) => {
             material.uniforms.setValue(UniformNames.EmissiveColor, surfaceParameters.emissiveColor);
