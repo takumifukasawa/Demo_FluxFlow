@@ -6,27 +6,35 @@ vec2 dfScene(vec3 p) {
     // return vec2(distance, 0.);
    
     //
-    // s-s floor
+    // cheap repeat floor
     //
     
     float r = 10.; // repeat
 
-    vec3 q = p;
+    vec3 q1 = p;
     
-    q = opTr(q, vec3(0., -30., 0.));
+    q1 = opTr(q1, vec3(0., -30., 0.));
     
     vec2 id = OP_ID(p.xz, r);
     float hash = rand(id);
     
-    q.xz = OP_RE(q.xz, r);
+    q1.xz = OP_RE(q1.xz, r);
     
     vec3 s = vec3(3., 25., 3.);
-    float d1 = dfBo(q, s);
-   
+    float d1 = dfBo(q1, s);
+ 
+    //
+    // single ground
+    //
+    
     vec3 q2 = p;
     q2 = opTr(q2, vec3(0., -30., 0.));
     vec3 s2 = vec3(100., 30., 100.);
     float d2 = dfBo(q2, s2);
+   
+    //
+    // blend
+    //
     
     float d = mix(d1, d2, 0.);
     
