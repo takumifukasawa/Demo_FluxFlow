@@ -598,9 +598,9 @@ const playDemo = () => {
     renderer.ssrPass.parameters.reflectionRayJitterSizeY = .003;
     
     renderer.volumetricLightPass.parameters.rayStep = 0.496;
-    renderer.volumetricLightPass.parameters.densityMultiplier = 0.9;
-    renderer.volumetricLightPass.parameters.rayJitterSizeX = 0.088;
-    renderer.volumetricLightPass.parameters.rayJitterSizeY = 0.083;
+    renderer.volumetricLightPass.parameters.densityMultiplier = 0.6;
+    renderer.volumetricLightPass.parameters.rayJitterSizeX = 0.1;
+    renderer.volumetricLightPass.parameters.rayJitterSizeY = 0.1;
 
     renderer.screenSpaceShadowPass.parameters.jitterSize = new Vector3(0.09, 0.09, 0);
 

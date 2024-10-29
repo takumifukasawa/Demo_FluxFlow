@@ -1,6 +1,6 @@
 import { Actor } from '@/PaleGL/actors/Actor.ts';
 import { GPU } from '@/PaleGL/core/GPU.ts';
-import {FaceSide, UniformBlockNames, UniformNames} from '@/PaleGL/constants.ts';
+import { FaceSide, UniformBlockNames, UniformNames, UniformTypes } from '@/PaleGL/constants.ts';
 import { ScreenSpaceRaymarchMesh } from '@/PaleGL/actors/ScreenSpaceRaymarchMesh.ts';
 // import {Color} from "@/PaleGL/math/Color.ts";
 import litObjectSpaceRaymarchFragFloorContent from '@/PaleGL/shaders/custom/entry/lit-object-space-raymarch-fragment-floor.glsl';
@@ -14,6 +14,9 @@ import { GBufferMaterial } from '@/PaleGL/materials/GBufferMaterial.ts';
 import { Texture } from '@/PaleGL/core/Texture.ts';
 import { Vector4 } from '@/PaleGL/math/Vector4.ts';
 import {Vector2} from "@/PaleGL/math/Vector2.ts";
+import {Color} from "@/PaleGL/math/Color.ts";
+
+const UNIFORM_NAME_MORPH_RATE = 'uMR';
 
 export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: Texture) {
     // tmp
@@ -35,15 +38,22 @@ export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: T
         fragmentShaderContent: litObjectSpaceRaymarchFragFloorContent,
         depthFragmentShaderContent: gBufferObjectSpaceRaymarchFragFloorContent,
         materialArgs: {
+            diffuseColor: new Color(1, 1, 1),
+            diffuseMap: surfaceMap,
+            metallic: .8, 
+            roughness: .8,
             receiveShadow: true,
             uniformBlockNames: [UniformBlockNames.Timeline],
             faceSide: FaceSide.Double,
+            uniforms: [
+                {
+                    name: UNIFORM_NAME_MORPH_RATE,
+                    type: UniformTypes.Float,
+                    value: 0,
+                },
+            ],
         },
     });
-    
-    material.uniforms.setValue(UniformNames.DiffuseMap, surfaceMap);
-    material.uniforms.setValue(UniformNames.DiffuseMapUvScale, new Vector2(10, 10));
-    
 
     const mesh = new ObjectSpaceRaymarchMesh({
         gpu,
@@ -52,6 +62,24 @@ export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: T
         castShadow: true,
     });
 
+    mesh.materials.forEach((material) => {
+        const tiling = new Vector2(5, 5);
+        material.uniforms.setValue(UniformNames.DiffuseMap, surfaceMap);
+        material.uniforms.setValue(UniformNames.DiffuseMapUvScale, tiling);
+        material.uniforms.setValue(UniformNames.MetallicMap, surfaceMap);
+        material.uniforms.setValue(UniformNames.MetallicMapTiling, tiling);
+        // material.uniforms.setValue(UniformNames.RoughnessMap, surfaceMap);
+        // material.uniforms.setValue(UniformNames.RoughnessMapTiling, tiling);
+    });
+
+    actor.onProcessPropertyBinder = (key: string, value: number) => {
+        // morph rate
+        if (key === 'mr') {
+            mesh.materials.forEach((material) => material.uniforms.setValue(UNIFORM_NAME_MORPH_RATE, value));
+            return;
+        }
+    };
+    
     actor.onPostProcessTimeline = () => {
         mesh.transform.position = actor.transform.position;
         mesh.transform.scale = actor.transform.scale;
@@ -79,6 +107,7 @@ export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: T
         // castShadow: true,
     });
     console.log(sMesh);
+
 
     return mesh;
 }

@@ -127,7 +127,8 @@ float calcSpotLightShadowAttenuation(
     vec4 shadowColor,
     float shadowBlendRate
 ) {
-    float NoL = max(dot(worldNormal, -lightDirection), 0.);
+    float rNoL = dot(worldNormal, -lightDirection);
+    float NoL = max(rNoL, 0.);
     float bias = .005 * tan(acos(NoL));
     bias = clamp(bias, .01, .02); // 大きくすればするほどアクネは少なくなるが、影の領域が少なくなる
 
@@ -179,10 +180,12 @@ float calcSpotLightShadowAttenuation(
     // // return vec4(vec3(shadow * shadowAreaRect), 1.);
     // return vec4(vec3(readDepth * shadowAreaRect), 1.);
     
-    float shadow = (1. - visibility) * shadowAreaRect * shadowBlendRate;
+    float faceSmooth = smoothstep(0., 0.001, rNoL);
+    
+    float shadow = (1. - visibility) * shadowAreaRect * shadowBlendRate * faceSmooth;
     return clamp(shadow, 0., 1.);
 }
-
+ 
 // -----------------------------------------------------------
 // varyings
 // -----------------------------------------------------------
@@ -342,8 +345,8 @@ void main() {
         uDirectionalLight.shadowMapProjectionMatrix,
         uDirectionalLightShadowMap,
         uShadowBias,
-        vec4(0., 0., 0., 1.), // TODO: pass color
-        0.5 // TODO: pass parameter
+        vec4(vec3(.02), 1.), // TODO: pass color
+        .5 // TODO: pass parameter
     );
     RE_Direct(directLight, geometry, material, reflectedLight, shadow);
     
@@ -362,8 +365,8 @@ void main() {
             uSpotLight[UNROLL_i].shadowMapProjectionMatrix,
             uSpotLightShadowMap[UNROLL_i], // constantな必要がある
             uShadowBias,
-            vec4(0., 0., 0., 1.), // TODO: pass color
-            0.5 // TODO: pass parameter
+            vec4(vec3(.02), 1.), // TODO: pass color
+            .65 // TODO: pass parameter
         );
         RE_Direct(directLight, geometry, material, reflectedLight, shadow);
     }
@@ -440,10 +443,18 @@ void main() {
     // vec4 sssRate = texture(uScreenSpaceShadowTexture, uv);
     // outColor = sssRate;
 
-    // vec4 suv = uDirectionalLight.shadowMapProjectionMatrix * vec4(surface.worldPosition, 1.);
-    // vec4 s = texture(uDirectionalLightShadowMap, suv.xy);
-    // vec4 lightPos = shadowMapProjectionMatrix * vec4(worldPosition, 1.);
-    // vec2 uv = lightPos.xy;
-    // float depthFromWorldPos = lightPos.z;
-
+    // vec4 suv = uSpotLight[0].shadowMapProjectionMatrix * vec4(surface.worldPosition, 1.);
+    // vec4 s = texture(uSpotLightShadowMap[0], suv.xy);
+    
+    // float shadow = calcSpotLightShadowAttenuation(
+    //     worldPosition,
+    //     surface.worldNormal,
+    //     uSpotLight[0].direction,
+    //     uSpotLight[0].shadowMapProjectionMatrix,
+    //     uSpotLightShadowMap[0], // constantな必要がある
+    //     uShadowBias,
+    //     vec4(0., 0., 0., 1.), // TODO: pass color
+    //     0.5 // TODO: pass parameter
+    // );
+    // outColor = vec4(shadow);
 }

@@ -311,6 +311,7 @@ uniform float uGS; // gather scale rate
 uniform vec4 uGSs[4]; // gather states [morph rate, state x, state y, ,]
 uniform float uOMR; // origin forge morph rate
 uniform vec3 uORo; // rot x for origin forge
+uniform float uMR; // morph rate
 
 // displacement metaball
 float diMB(vec3 p) {

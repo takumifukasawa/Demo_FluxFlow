@@ -38,7 +38,11 @@ uniform float uSpecularAmount;
 // uniform samplerCube uEnvMap;
 uniform float uAmbientAmount;
 uniform float uMetallic;
+uniform sampler2D uMetallicMap;
+uniform vec4 uMetallicMapTiling;
 uniform float uRoughness;
+uniform sampler2D uRoughnessMap;
+uniform vec4 uRoughnessMapTiling;
 uniform vec4 uEmissiveColor;
 uniform int uShadingModelId;
 
@@ -204,8 +208,14 @@ void main() {
 
     resultColor.rgb = gamma(resultColor.rgb);
 
+    // TODO: metallic map, rough ness map を使う場合、使わない場合で出し分けたい
+    float metallic = uMetallic;
+    metallic *= texture(uMetallicMap, uv * uMetallicMapTiling.xy).r;
+    float roughness = uRoughness;
+    roughness *= texture(uRoughnessMap, uv * uRoughnessMapTiling.xy).r;
+
     outGBufferA = EncodeGBufferA(resultColor.rgb);
     outGBufferB = EncodeGBufferB(worldNormal, uShadingModelId);
-    outGBufferC = EncodeGBufferC(uMetallic, uRoughness);
+    outGBufferC = EncodeGBufferC(metallic, roughness);
     outGBufferD = EncodeGBufferD(emissiveColor.rgb);
 }

@@ -88,7 +88,7 @@ export class ScreenSpaceRaymarchMaterial extends Material {
             depthFragmentShader,
             uniforms: mergedUniforms,
             // depthUniforms: commonUniforms,
-            depthUniforms: mergedUniforms,
+            depthUniforms: mergedUniforms, // TODO: common, uniforms の2つで十分なはず。alpha test をしない限り
             // NOTE: GBufferMaterialの設定
             // useNormalMap: !!normalMap,
             // depthTest: true,

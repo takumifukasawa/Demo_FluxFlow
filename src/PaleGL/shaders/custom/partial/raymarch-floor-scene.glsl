@@ -46,9 +46,9 @@ vec2 dfScene(vec3 p) {
     vec3 q1 = p;
     q1 = opTr(q1, vec3(0., -50., 0.));
     // single floor scale
-    vec3 sf = vec3(10., 49., 10.);
+    vec3 sf = vec3(10., 48., 10.);
     float d1 = dfBo(q1, sf);
-
+    
     // repeat floor
     float r = 4.; // repeat
     vec3 q2 = p;
@@ -64,10 +64,15 @@ vec2 dfScene(vec3 p) {
     //     cos(p.y * 1.2 + uTimelineTime * 3.2) * .1 +
     //     sin(p.z * 1.4 + uTimelineTime * 3.0) * .1;
     // 
-
-
-    // return vec2(d1, 0.);
-    // return vec2(d2, 0.);
     
-    return vec2(mix(d1, d2, 0.), 0.);
+    // static floor
+    vec3 q3 = p;
+    q3 = opTr(q3, vec3(0., -50., 0.));
+    // single floor scale
+    vec3 sf = vec3(100., 48.5, 100.);
+    float d3 = dfBo(q3, sf);
+
+    float d = opTb(uMR, d1, d2, d3);
+    
+    return vec2(d, 0.);
 }

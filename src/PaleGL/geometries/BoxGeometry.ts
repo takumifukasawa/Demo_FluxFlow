@@ -3,6 +3,7 @@ import { AttributeNames } from '@/PaleGL/constants';
 import { Attribute } from '@/PaleGL/core/Attribute';
 import { GPU } from '@/PaleGL/core/GPU';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
+import {easeInOutQuad} from "@/PaleGL/utilities/easingUtilities.ts";
 
 const edgePairs = [
     [0, 1],
@@ -258,12 +259,12 @@ export class BoxGeometry extends Geometry {
         const edgePair = edgePairs[Math.floor(rand1 * edgePairs.length % edgePairs.length)];
         const p0 = this.cornerPositions[edgePair[0]];
         const p1 = this.cornerPositions[edgePair[1]];
-        const t = rand2 % 1;
+        const t = easeInOutQuad(rand2 % 1);
         return Vector3.lerpVectors(new Vector3(p0[0], p0[1], p0[2]), new Vector3(p1[0], p1[1], p1[2]), t);
     }
 
-    getRandomLocalPositionOnSurface(rand1: number, rand2: number, rand3: number): Vector3 {
-        const surfacePair = surfacePairs[Math.floor(rand1 * surfacePairs.length % surfacePairs.length)];
+    getRandomLocalPositionOnSurface(index: number, rand2: number, rand3: number): Vector3 {
+        const surfacePair = surfacePairs[Math.floor(index % surfacePairs.length)];
         const p0 = this.cornerPositions[surfacePair[0]];
         const p1 = this.cornerPositions[surfacePair[1]];
         const p2 = this.cornerPositions[surfacePair[2]];

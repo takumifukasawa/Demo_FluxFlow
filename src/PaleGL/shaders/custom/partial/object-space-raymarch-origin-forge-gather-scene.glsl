@@ -36,5 +36,4 @@ vec2 dfScene(vec3 p) {
     float d = opSm(cs, gd, MS);
 
     return vec2(d, 0.);
-
 }

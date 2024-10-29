@@ -918,21 +918,22 @@ export const createMorphFollowersActor = (
                     const pickIndex = boxIndexPicker[i % boxIndexPicker.length];
                     const attractorTargetBoxActor = _attractorTargetBoxActors[pickIndex];
                     if (attractorTargetBoxActor) {
+                        const seed = _followerSeed * 10;
                         // 1: set edge
                         const lp = _refBoxGeometry.getRandomLocalPositionOnEdge(
-                            generateRandomValue(_followerSeed * 10, i + _followerIndex * 2),
-                            generateRandomValue(_followerSeed * 10, i + _followerIndex * 3)
+                            generateRandomValue(seed, i + _followerIndex * 2),
+                            generateRandomValue(seed, i + _followerIndex * 3)
                         );
                         // // 2: set edge( surface)
                         // const lp = _refBoxGeometry.getRandomLocalPositionOnSurface(
                         //     i,
-                        //     generateRandomValue(_followerSeed * 10, i + _followerIndex + 1),
-                        //     generateRandomValue(_followerSeed * 10, i + _followerIndex + 2)
+                        //     generateRandomValue(seed, i + _followerIndex * 2),
+                        //     generateRandomValue(seed, i + _followerIndex * 3)
                         // );
                         const wp = attractorTargetBoxActor.transform.localPointToWorld(lp);
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
                             p: wp,
-                            attractAmplitude: 0.13,
+                            attractAmplitude: 0.1,
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
