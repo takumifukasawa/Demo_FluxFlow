@@ -55,4 +55,4 @@ vec3 p=vWorldPosition,x=p,z=uIsPerspective>.5?normalize(p-uViewPosition):normali
 #ifdef USE_ALPHA_TEST
 d(f.w,uAlphaTestThreshold);
 #endif
-f.xyz=pow(f.xyz,vec3(2.2));float I=uMetallic;I*=texture(uMetallicMap,m*uMetallicMapTiling.xy).x;float w=uRoughness;w*=texture(uRoughnessMap,m*uRoughnessMapTiling.xy).x;outGBufferA=vec4(f.xyz,1);outGBufferB=s(l,uShadingModelId);outGBufferC=vec4(I,w,0,1);outGBufferD=vec4(r.xyz,1);}`;
+f.xyz=pow(f.xyz,vec3(2.2));float I=uMetallic;I*=texture(uMetallicMap,m*uMetallicMapTiling.xy).x;float C=uRoughness;C*=texture(uRoughnessMap,m*uRoughnessMapTiling.xy).x;outGBufferA=vec4(f.xyz,1);outGBufferB=s(l,uShadingModelId);outGBufferC=vec4(I,C,0,1);outGBufferD=vec4(r.xyz,1);}`;

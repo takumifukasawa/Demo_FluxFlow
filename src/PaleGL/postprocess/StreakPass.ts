@@ -27,6 +27,14 @@ import { Vector2 } from '@/PaleGL/math/Vector2.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Color } from '@/PaleGL/math/Color.ts';
 
+const UNIFORM_NAME_PREV_TEXTURE = 'uPrevTexture';
+const UNIFORM_NAME_DOWN_SAMPLE_TEXTURE = 'uDownSampleTexture';
+const UNIFORM_NAME_STRETCH = 'uStretch';
+const UNIFORM_NAME_HORIZONTAL_SCALE = 'uHorizontalScale';
+const UNIFORM_NAME_STREAK_TEXTURE = 'uStreakTexture';
+const UNIFORM_NAME_COLOR = 'uColor';
+const UNIFORM_NAME_INTENSITY = 'uIntensity';
+
 // const BLUR_PIXEL_NUM = 7;
 
 // ref:
@@ -220,12 +228,12 @@ export class StreakPass implements IPostProcessPass {
                         value: Vector2.zero,
                     },
                     {
-                        name: 'uPrevTexture',
+                        name: UNIFORM_NAME_PREV_TEXTURE,
                         type: UniformTypes.Texture,
                         value: null,
                     },
                     {
-                        name: 'uHorizontalScale',
+                        name: UNIFORM_NAME_HORIZONTAL_SCALE,
                         type: UniformTypes.Float,
                         value: this.parameters.horizontalScale,
                     },
@@ -250,17 +258,17 @@ export class StreakPass implements IPostProcessPass {
                 fragmentShader: streakUpSampleFragmentShader,
                 uniforms: [
                     {
-                        name: 'uDownSampleTexture',
+                        name: UNIFORM_NAME_DOWN_SAMPLE_TEXTURE,
                         type: UniformTypes.Texture,
                         value: null,
                     },
                     {
-                        name: 'uPrevTexture',
+                        name: UNIFORM_NAME_PREV_TEXTURE,
                         type: UniformTypes.Texture,
                         value: null,
                     },
                     {
-                        name: 'uStretch',
+                        name: UNIFORM_NAME_STRETCH,
                         type: UniformTypes.Float,
                         value: this.parameters.stretch,
                     },
@@ -432,23 +440,18 @@ export class StreakPass implements IPostProcessPass {
             gpu,
             fragmentShader: streakCompositeFragmentShader,
             uniforms: [
-                // {
-                //     name: 'uSrcTexture',
-                //     type: UniformTypes.Texture,
-                //     value: null,
-                // },
                 {
-                    name: 'uStreakTexture',
+                    name: UNIFORM_NAME_STREAK_TEXTURE,
                     type: UniformTypes.Texture,
                     value: null,
                 },
                 {
-                    name: 'uColor',
+                    name: UNIFORM_NAME_COLOR,
                     type: UniformTypes.Color,
                     value: this.parameters.color,
                 },
                 {
-                    name: 'uIntensity',
+                    name: UNIFORM_NAME_INTENSITY,
                     type: UniformTypes.Float,
                     value: this.parameters.intensity,
                 },
@@ -532,23 +535,12 @@ export class StreakPass implements IPostProcessPass {
         // down sample
         //
 
-        // const renderDownSample = (pass: FragmentPass, downScale: number) => {
-        //     // const tmpRenderTarget = renderer.renderTarget;
-        //     // const tmpClearColorDirtyFlag = renderer.clearColorDirtyFlag;
-        //     // renderer.setRenderTarget(this.renderTargetDownSampleMip2, true);
-        //     // this.downSampleMaterial.uniforms.setValue(UniformNames.SrcTexture, this.prefilterPass.renderTarget.$getTexture());
-        //     // this.downSampleMaterial.uniforms.setValue(UniformNames.TexelSize, new Vector2(1 / (this.width / 2), 1 / this.halfHeight));
-        //     // renderer.renderMesh(this.geometry, this.downSampleMaterial);
-        //     // renderer.setRenderTarget(tmpRenderTarget, tmpClearColorDirtyFlag);
-        // };
-
         this.downSamplePasses.forEach(({ pass, prevPass, downScale }) => {
             const width = Math.floor(this.width / downScale);
             pass.setSize(width, this.halfHeight);
-            // pass.material.uniforms.setValue('uPrefilterTexture', this.prefilterPass.renderTarget.$getTexture());
             pass.material.uniforms.setValue(UniformNames.TexelSize, new Vector2(1 / width, 1 / this.halfHeight));
-            pass.material.uniforms.setValue('uPrevTexture', prevPass.renderTarget.$getTexture());
-            pass.material.uniforms.setValue('uHorizontalScale', this.parameters.horizontalScale);
+            pass.material.uniforms.setValue(UNIFORM_NAME_PREV_TEXTURE, prevPass.renderTarget.$getTexture());
+            pass.material.uniforms.setValue(UNIFORM_NAME_HORIZONTAL_SCALE, this.parameters.horizontalScale);
             pass.render({
                 gpu,
                 camera,
@@ -567,9 +559,9 @@ export class StreakPass implements IPostProcessPass {
 
         this.upSamplePasses.forEach(({ pass, prevPass, downSamplePass }) => {
             pass.setSize(downSamplePass.width, downSamplePass.height);
-            pass.material.uniforms.setValue('uPrevTexture', prevPass.renderTarget.$getTexture());
-            pass.material.uniforms.setValue('uDownSampleTexture', downSamplePass.renderTarget.$getTexture());
-            pass.material.uniforms.setValue('uStretch', this.parameters.stretch);
+            pass.material.uniforms.setValue(UNIFORM_NAME_PREV_TEXTURE, prevPass.renderTarget.$getTexture());
+            pass.material.uniforms.setValue(UNIFORM_NAME_DOWN_SAMPLE_TEXTURE, downSamplePass.renderTarget.$getTexture());
+            pass.material.uniforms.setValue(UNIFORM_NAME_STRETCH, this.parameters.stretch);
             pass.render({
                 gpu,
                 camera,
@@ -586,18 +578,16 @@ export class StreakPass implements IPostProcessPass {
         // composite
         //
 
-        // this.compositePass.material.uniforms.setValue('uPrefilterTexture', this.prefilterPass.renderTarget.$getTexture());
-        // this.compositePass.material.uniforms.setValue("uSrcTexture", )
         this.compositePass.material.uniforms.setValue(
-            'uStreakTexture',
+            UNIFORM_NAME_STREAK_TEXTURE,
             // correct
             this.upSamplePasses[this.upSamplePasses.length - 1].pass.renderTarget.$getTexture()
             // for debug
             // this.prefilterPass.renderTarget.$getTexture()
             // this.upSamplePasses[2].pass.renderTarget.$getTexture()
         );
-        this.compositePass.material.uniforms.setValue('uColor', this.parameters.color);
-        this.compositePass.material.uniforms.setValue('uIntensity', this.parameters.intensity);
+        this.compositePass.material.uniforms.setValue(UNIFORM_NAME_COLOR, this.parameters.color);
+        this.compositePass.material.uniforms.setValue(UNIFORM_NAME_INTENSITY, this.parameters.intensity);
         this.compositePass.render({
             gpu,
             camera,
@@ -609,90 +599,5 @@ export class StreakPass implements IPostProcessPass {
             gBufferRenderTargets,
             time,
         });
-        return;
-
-        // if (!this.horizontalBlurMaterial.isCompiledShader) {
-        //     this.horizontalBlurMaterial.start({ gpu, attributeDescriptors: this.geometry.getAttributeDescriptors() });
-        // }
-        // if (!this.verticalBlurMaterial.isCompiledShader) {
-        //     this.verticalBlurMaterial.start({ gpu, attributeDescriptors: this.geometry.getAttributeDescriptors() });
-        // }
-
-        // this.extractBrightnessPass.material.uniforms.setValue('uThreshold', this.threshold);
-        // this.extractBrightnessPass.render({
-        //     gpu,
-        //     camera,
-        //     renderer,
-        //     prevRenderTarget,
-        //     isLastPass: false,
-        //     targetCamera,
-        //     time,
-        // });
-
-        // const renderBlur = (
-        //     horizontalRenderTarget: RenderTarget,
-        //     verticalRenderTarget: RenderTarget,
-        //     downSize: number
-        // ) => {
-        //     const w = this.width / downSize;
-        //     const h = this.height / downSize;
-
-        //     renderer.setRenderTarget(horizontalRenderTarget, true);
-        //     // renderer.clearColor(0, 0, 0, 1);
-        //     this.horizontalBlurMaterial.uniforms.setValue(
-        //         UniformNames.SrcTexture,
-        //         this.extractBrightnessPass.renderTarget.$getTexture()
-        //     );
-        //     this.horizontalBlurMaterial.uniforms.setValue('uTargetWidth', w);
-        //     this.horizontalBlurMaterial.uniforms.setValue('uTargetHeight', w);
-        //     renderer.renderMesh(this.geometry, this.horizontalBlurMaterial);
-
-        //     renderer.setRenderTarget(verticalRenderTarget, true);
-        //     // renderer.clearColor(0, 0, 0, 1);
-        //     this.verticalBlurMaterial.uniforms.setValue(UniformNames.SrcTexture, horizontalRenderTarget.$getTexture());
-        //     this.verticalBlurMaterial.uniforms.setValue('uTargetWidth', w);
-        //     this.verticalBlurMaterial.uniforms.setValue('uTargetHeight', h);
-        //     renderer.renderMesh(this.geometry, this.verticalBlurMaterial);
-        // };
-
-        // // 1 / 4
-        // renderBlur(this.renderTargetBlurMip4_Horizontal, this.renderTargetBlurMip4_Vertical, 4);
-        // // 1 / 8
-        // renderBlur(this.renderTargetBlurMip8_Horizontal, this.renderTargetBlurMip8_Vertical, 8);
-        // // 1 / 16
-        // renderBlur(this.renderTargetBlurMip16_Horizontal, this.renderTargetBlurMip16_Vertical, 16);
-        // // 1 / 32
-        // renderBlur(this.renderTargetBlurMip32_Horizontal, this.renderTargetBlurMip32_Vertical, 32);
-        // // 1 / 64
-        // renderBlur(this.renderTargetBlurMip64_Horizontal, this.renderTargetBlurMip64_Vertical, 64);
-
-        // if (prevRenderTarget) {
-        //     this.compositePass.material.uniforms.setValue(UniformNames.SrcTexture, prevRenderTarget.$getTexture());
-        // } else {
-        //     console.error('invalid prev render target');
-        // }
-        // // this.compositePass.material.uniforms.setValue('uBrightnessTexture', this.extractBrightnessPass.renderTarget.$getTexture());
-        // this.compositePass.material.uniforms.setValue('uBlur4Texture', this.renderTargetBlurMip4_Vertical.$getTexture());
-        // this.compositePass.material.uniforms.setValue('uBlur8Texture', this.renderTargetBlurMip8_Vertical.$getTexture());
-        // this.compositePass.material.uniforms.setValue('uBlur16Texture', this.renderTargetBlurMip16_Vertical.$getTexture());
-        // this.compositePass.material.uniforms.setValue('uBlur32Texture', this.renderTargetBlurMip32_Vertical.$getTexture());
-        // this.compositePass.material.uniforms.setValue('uBlur64Texture', this.renderTargetBlurMip64_Vertical.$getTexture());
-        // this.compositePass.material.uniforms.setValue(
-        //     'uExtractTexture',
-        //     this.extractBrightnessPass.renderTarget.$getTexture()
-        // );
-        // this.compositePass.material.uniforms.setValue('uTone', this.tone);
-        // this.compositePass.material.uniforms.setValue('uBloomAmount', this.bloomAmount);
-
-        // this.compositePass.render({
-        //     gpu,
-        //     camera,
-        //     renderer,
-        //     prevRenderTarget: null,
-        //     isLastPass,
-        //     targetCamera,
-        //     gBufferRenderTargets,
-        //     time,
-        // });
     }
 }

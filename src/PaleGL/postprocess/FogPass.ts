@@ -187,14 +187,6 @@ export class FogPass extends PostProcessPassBase {
         });
 
         this.parameters = parameters;
-
-        // this.fogColor = Color.white;
-        // this.fogStrength = fogStrength;
-        // this.fogDensity = fogDensity;
-        // this.fogDensityAttenuation = fogDensityAttenuation;
-        // this.fogEndHeight = fogEndHeight;
-        // this.distanceFogStart = distanceFogStart;
-        // this.distanceFogPower = distanceFogPower;
     }
 
     setTextures(
