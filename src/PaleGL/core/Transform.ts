@@ -10,21 +10,19 @@ import { Actor } from '@/PaleGL/actors/Actor';
 // - NodeBaseを継承
 // - dirtyNeedsUpdate flag
 export class Transform {
-    actor: Actor;
-    // parent: Transform | null = null;
-    // children: Actor[] = [];
-    #inverseWorldMatrix: Matrix4 = Matrix4.identity;
-    #worldMatrix: Matrix4 = Matrix4.identity;
-    #localMatrix: Matrix4 = Matrix4.identity;
-    position: Vector3 = Vector3.zero;
-    rotation: Rotator = Rotator.zero; // degree vector
-    scale: Vector3 = Vector3.one;
+    _actor: Actor;
+    _inverseWorldMatrix: Matrix4 = Matrix4.identity;
+    _worldMatrix: Matrix4 = Matrix4.identity;
+    _localMatrix: Matrix4 = Matrix4.identity;
+    _position: Vector3 = Vector3.zero;
+    _rotation: Rotator = Rotator.zero; // degree vector
+    _scale: Vector3 = Vector3.one;
 
     // どっちかだけセットされるようにする
-    lookAtTarget: Vector3 | null = null; // world v
-    lookAtTargetActor: Actor | null = null;
+    _lookAtTarget: Vector3 | null = null; // world v
+    _lookAtTargetActor: Actor | null = null;
 
-    #normalMatrix: Matrix4 = Matrix4.identity;
+    _normalMatrix: Matrix4 = Matrix4.identity;
 
     // get childCount() {
     //     return this.children.length;
@@ -34,44 +32,68 @@ export class Transform {
     //     return this.childCount > 0;
     // }
 
+    get position() {
+        return this._position;
+    }
+
+    set position(v: Vector3) {
+        this._position = v;
+    }
+
+    get rotation() {
+        return this._rotation;
+    }
+
+    set rotation(v: Rotator) {
+        this._rotation = v;
+    }
+
+    get scale() {
+        return this._scale;
+    }
+
+    set scale(v: Vector3) {
+        this._scale = v;
+    }
+
     get inverseWorldMatrix() {
-        return this.#inverseWorldMatrix;
+        return this._inverseWorldMatrix;
     }
 
     get worldMatrix() {
-        return this.#worldMatrix;
+        return this._worldMatrix;
     }
 
     get normalMatrix() {
-        return this.#normalMatrix;
+        return this._normalMatrix;
     }
 
     get localMatrix() {
-        return this.#localMatrix;
+        return this._localMatrix;
     }
 
     get worldPosition() {
-        return this.#worldMatrix.position;
+        return this._worldMatrix.position;
     }
-    
+
     getWorldScale() {
-        return this.#worldMatrix.getScale();
+        return this._worldMatrix.getScale();
     }
 
     get worldRight() {
-        return new Vector3(this.#worldMatrix.m00, this.#worldMatrix.m10, this.#worldMatrix.m20).normalize();
+        return new Vector3(this._worldMatrix.m00, this._worldMatrix.m10, this._worldMatrix.m20).normalize();
     }
 
     get worldUp() {
-        return new Vector3(this.#worldMatrix.m01, this.#worldMatrix.m11, this.#worldMatrix.m21).normalize();
+        return new Vector3(this._worldMatrix.m01, this._worldMatrix.m11, this._worldMatrix.m21).normalize();
     }
 
     get worldForward() {
-        return new Vector3(this.#worldMatrix.m02, this.#worldMatrix.m12, this.#worldMatrix.m22).normalize();
+        return new Vector3(this._worldMatrix.m02, this._worldMatrix.m12, this._worldMatrix.m22).normalize();
     }
 
     constructor(actor: Actor) {
-        this.actor = actor;
+        this._actor = actor;
     }
 
     // addChild(child: Transform) {
@@ -83,20 +105,20 @@ export class Transform {
 
     // TODO: 引数でworldMatrixとdirty_flagを渡すべきな気がする
     updateMatrix() {
-        if (this.lookAtTarget || this.lookAtTargetActor) {
+        if (this._lookAtTarget || this._lookAtTargetActor) {
             // どっちかはあるのでキャストしちゃう
             const lookAtTarget = (
-                this.lookAtTargetActor ? this.lookAtTargetActor.transform.position : this.lookAtTarget
+                this._lookAtTargetActor ? this._lookAtTargetActor.transform.position : this._lookAtTarget
             ) as Vector3;
             // TODO:
             // - up vector 渡せるようにする
             // - parentがあるとlookatの方向が正しくなくなるので親の回転を打ち消す必要がある
             const lookAtMatrix =
-                this.actor.type === ActorTypes.Camera
+                this._actor.type === ActorTypes.Camera
                     ? Matrix4.getLookAtMatrix(this.position, lookAtTarget, Vector3.up, true)
                     : Matrix4.getLookAtMatrix(this.position, lookAtTarget);
             const scalingMatrix = Matrix4.scalingMatrix(this.scale);
-            this.#localMatrix = Matrix4.multiplyMatrices(lookAtMatrix, scalingMatrix);
+            this._localMatrix = Matrix4.multiplyMatrices(lookAtMatrix, scalingMatrix);
         } else {
             const translationMatrix = Matrix4.translationMatrix(this.position);
             // eulerから回転行列を作る場合
@@ -109,18 +131,18 @@ export class Transform {
             // quaternionから回転を作るケース
             const rotationMatrix = this.rotation.quaternion.toRotationMatrix();
             const scalingMatrix = Matrix4.scalingMatrix(this.scale);
-            this.#localMatrix = Matrix4.multiplyMatrices(translationMatrix, rotationMatrix, scalingMatrix);
+            this._localMatrix = Matrix4.multiplyMatrices(translationMatrix, rotationMatrix, scalingMatrix);
         }
-        this.#worldMatrix = this.actor.parent
-            ? Matrix4.multiplyMatrices(this.actor.parent.transform.worldMatrix, this.#localMatrix)
-            : this.#localMatrix;
-        this.#inverseWorldMatrix = this.#worldMatrix.clone().invert();
+        this._worldMatrix = this._actor.parent
+            ? Matrix4.multiplyMatrices(this._actor.parent.transform.worldMatrix, this._localMatrix)
+            : this._localMatrix;
+        this._inverseWorldMatrix = this._worldMatrix.clone().invert();
 
-        this.#normalMatrix = this.#worldMatrix.clone().invert().transpose();
+        this._normalMatrix = this._worldMatrix.clone().invert().transpose();
     }
 
     setScaling(s: Vector3) {
-        this.scale = s;
+        this._scale = s;
     }
 
     setRotationX(degree: number) {
@@ -136,35 +158,35 @@ export class Transform {
     }
 
     setTranslation(v: Vector3) {
-        this.position = v;
+        this._position = v;
     }
 
     lookAt(lookAtTarget: Vector3 | null) {
-        this.lookAtTarget = lookAtTarget;
-        this.lookAtTargetActor = null;
+        this._lookAtTarget = lookAtTarget;
+        this._lookAtTargetActor = null;
     }
 
     lookAtActor(actor: Actor | null) {
-        this.lookAtTargetActor = actor;
-        this.lookAtTarget = null;
+        this._lookAtTargetActor = actor;
+        this._lookAtTarget = null;
     }
 
     // TODO: Cameraに持たせた方がいい気がする
     // getPositionInScreen(camera: Camera) {
-    //     const matInProjection = Matrix4.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix, this.#worldMatrix);
+    //     const matInProjection = Matrix4.multiplyMatrices(camera.projectionMatrix, camera.viewMatrix, this._worldMatrix);
     //     const clipPosition = matInProjection.position;
     //     const w = matInProjection.m33 === 0 ? 0.0001 : matInProjection.m33; // TODO: cheap NaN fallback
     //     return new Vector3(clipPosition.x / w, clipPosition.y / w, clipPosition.z / w);
     //     // console.log("--------")
-    //     // this.#worldMatrix.position.log();
+    //     // this._worldMatrix.position.log();
     //     // camera.viewMatrix.position.log();
     //     // v.log();
     // }
-    
+
     localPointToWorld(p: Vector3) {
         return p.multiplyMatrix4(this.worldMatrix);
     }
-    
+
     worldToLocalPoint(p: Vector3) {
         return p.multiplyMatrix4(this.inverseWorldMatrix);
     }

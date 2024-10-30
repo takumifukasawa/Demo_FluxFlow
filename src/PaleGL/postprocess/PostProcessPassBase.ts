@@ -68,7 +68,7 @@ export class PostProcessPassBase implements IPostProcessPass {
     mesh: Mesh;
     geometry: PlaneGeometry;
     material: Material;
-    private _renderTarget: RenderTarget;
+    _renderTarget: RenderTarget;
 
     materials: Material[] = [];
 

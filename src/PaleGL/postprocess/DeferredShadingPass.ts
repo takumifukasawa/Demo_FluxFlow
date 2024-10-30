@@ -2,10 +2,11 @@
 import {
     PostProcessPassBase,
     PostProcessPassParametersBase,
-    PostProcessPassRenderArgs
+    PostProcessPassRenderArgs,
 } from '@/PaleGL/postprocess/PostProcessPassBase.ts';
 import {
-    MAX_SPOT_LIGHT_COUNT, PostProcessPassType,
+    MAX_SPOT_LIGHT_COUNT,
+    PostProcessPassType,
     RenderTargetTypes,
     UniformBlockNames,
     UniformNames,
@@ -18,6 +19,7 @@ import { Skybox } from '@/PaleGL/actors/Skybox.ts';
 import { UniformsData } from '@/PaleGL/core/Uniforms.ts';
 // import { Matrix4 } from '@/PaleGL/math/Matrix4.ts';
 import { maton } from '@/PaleGL/utilities/maton.ts';
+import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 export type DeferredShadingParametersBase = PostProcessPassParametersBase;
 
@@ -29,14 +31,12 @@ export class DeferredShadingPass extends PostProcessPassBase {
     constructor(args // name,
     : {
         gpu: GPU;
-        parameters?: DeferredShadingParametersArgs
+        parameters?: DeferredShadingParametersArgs;
     }) {
-        const {
-            gpu
-        } = args;
-        
-        const parameters = { ...(args.parameters) };
-        
+        const { gpu } = args;
+
+        const parameters = { ...args.parameters };
+
         const uniforms: UniformsData = [
             // TODO: passのuniformのいくつかは強制的に全部渡すようにしちゃって良い気がする
             {
@@ -134,49 +134,49 @@ export class DeferredShadingPass extends PostProcessPassBase {
                 UniformBlockNames.Camera,
                 UniformBlockNames.DirectionalLight,
                 UniformBlockNames.SpotLight,
-                UniformBlockNames.PointLight
+                UniformBlockNames.PointLight,
             ],
         });
-        
-        console.log(deferredShadingFragmentShader)
     }
 
     /**
-     * 
+     *
      * @param skybox
      */
     updateSkyboxUniforms(skybox: Skybox) {
-        this.material.uniforms.setValue(UniformNames.Skybox, [
-            {
-                name: 'cubeMap',
-                type: UniformTypes.CubeMap,
-                value: skybox.cubeMap,
-            },
-            {
-                name: 'diffuseIntensity',
-                type: UniformTypes.Float,
-                value: skybox.diffuseIntensity,
-            },
-            {
-                name: 'specularIntensity',
-                type: UniformTypes.Float,
-                value: skybox.specularIntensity,
-            },
-            {
-                name: 'rotationOffset',
-                type: UniformTypes.Float,
-                value: skybox.rotationOffset,
-            },
-            {
-                name: 'maxLodLevel',
-                type: UniformTypes.Float,
-                value: skybox.cubeMap.maxLodLevel,
-            },
-        ]);
+        if (isDevelopment()) {
+            this.material.uniforms.setValue(UniformNames.Skybox, [
+                {
+                    name: 'cubeMap',
+                    type: UniformTypes.CubeMap,
+                    value: skybox.cubeMap,
+                },
+                {
+                    name: 'diffuseIntensity',
+                    type: UniformTypes.Float,
+                    value: skybox.diffuseIntensity,
+                },
+                {
+                    name: 'specularIntensity',
+                    type: UniformTypes.Float,
+                    value: skybox.specularIntensity,
+                },
+                {
+                    name: 'rotationOffset',
+                    type: UniformTypes.Float,
+                    value: skybox.rotationOffset,
+                },
+                {
+                    name: 'maxLodLevel',
+                    type: UniformTypes.Float,
+                    value: skybox.cubeMap.maxLodLevel,
+                },
+            ]);
+        }
     }
 
     /**
-     * 
+     *
      * @param args
      */
     render(args: PostProcessPassRenderArgs) {

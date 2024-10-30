@@ -1,10 +1,10 @@
 type Callback = (lastTime: number, interval: number) => void;
 
 export class TimeAccumulator {
-    targetFPS: number;
-    maxChaseCount: number;
-    private callback: Callback;
-    private lastTime: number = -Infinity;
+    _targetFPS: number;
+    _maxChaseCount: number;
+    _callback: Callback;
+    _lastTime: number = -Infinity;
 
     /**
      *
@@ -13,41 +13,41 @@ export class TimeAccumulator {
      * @param maxChaseCount
      */
     constructor(targetFPS: number, callback: Callback, maxChaseCount: number = 60) {
-        this.targetFPS = targetFPS;
-        this.callback = callback;
-        this.maxChaseCount = maxChaseCount;
+        this._targetFPS = targetFPS;
+        this._callback = callback;
+        this._maxChaseCount = maxChaseCount;
     }
 
     /**
      *
      * @param time [sec]
      */
-    start(time: number) {
-        this.lastTime = time;
+    $start(time: number) {
+        this._lastTime = time;
     }
 
     /**
      *
      * @param time [sec]
      */
-    exec(time: number) {
-        const interval = 1 / this.targetFPS;
+    $exec(time: number) {
+        const interval = 1 / this._targetFPS;
 
-        if (time - interval >= this.lastTime) {
-            const elapsedTime = time - this.lastTime;
+        if (time - interval >= this._lastTime) {
+            const elapsedTime = time - this._lastTime;
             const n = Math.floor(elapsedTime / interval);
 
-            if (n > this.maxChaseCount) {
+            if (n > this._maxChaseCount) {
                 console.warn('[TimeAccumulator.exec] jump frame');
-                this.lastTime += interval * n;
-                this.callback(this.lastTime, interval);
+                this._lastTime += interval * n;
+                this._callback(this._lastTime, interval);
                 return;
             }
 
-            const loopNum = Math.min(this.maxChaseCount, n);
+            const loopNum = Math.min(this._maxChaseCount, n);
             for (let i = 0; i < loopNum; i++) {
-                this.lastTime += interval;
-                this.callback(this.lastTime, interval);
+                this._lastTime += interval;
+                this._callback(this._lastTime, interval);
             }
         }
     }

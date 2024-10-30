@@ -97,14 +97,14 @@ export function applyLightShadowMapUniformValues(
     targetMaterial.uniforms.setValue(
         UniformNames.DirectionalLightShadowMap,
         lightActors.directionalLight && lightActors.directionalLight.shadowMap
-            ? lightActors.directionalLight.shadowMap.read.depthTexture
+            ? lightActors.directionalLight.shadowMap.read.$getDepthTexture()
             : fallbackTexture
     );
 
     // spotlights
     const spotLightShadowMaps = maton.range(MAX_SPOT_LIGHT_COUNT).map((i) => {
         const spotLight = lightActors.spotLights[i];
-        return spotLight && spotLight.shadowMap ? spotLight.shadowMap.read.depthTexture : fallbackTexture;
+        return spotLight && spotLight.shadowMap ? spotLight.shadowMap.read.$getDepthTexture() : fallbackTexture;
     });
     targetMaterial.uniforms.setValue(UniformNames.SpotLightShadowMap, spotLightShadowMaps);
 }
@@ -136,9 +136,127 @@ function applyPostProcessVolumeParameters(renderer: Renderer, postProcessVolumeA
  * - offscreen rendering
  */
 export class Renderer {
-    // --------------------------------------------------------------
-    // constructor
-    // --------------------------------------------------------------
+    _canvas;
+    _pixelRatio;
+    _globalUniformBufferObjects: {
+        uniformBufferObject: UniformBufferObject;
+        data: UniformBufferObjectBlockData;
+    }[] = [];
+
+    _gpu;
+    _realWidth: number = 1;
+    _realHeight: number = 1;
+    _stats: Stats | null = null;
+    _scenePostProcess: PostProcess;
+    _screenQuadCamera: Camera = OrthographicCamera.CreateFullQuadOrthographicCamera();
+    _depthPrePassRenderTarget: RenderTarget;
+    _gBufferRenderTargets: GBufferRenderTargets;
+    _afterDeferredShadingRenderTarget: RenderTarget;
+    _copyDepthSourceRenderTarget: RenderTarget;
+    _copyDepthDestRenderTarget: RenderTarget;
+    _screenSpaceShadowPass: ScreenSpaceShadowPass;
+    _ambientOcclusionPass: SSAOPass;
+    _deferredShadingPass: DeferredShadingPass;
+    _ssrPass: SSRPass;
+    _lightShaftPass: LightShaftPass;
+    _volumetricLightPass: VolumetricLightPass;
+    _fogPass: FogPass;
+    _depthOfFieldPass: DepthOfFieldPass;
+    _bloomPass: BloomPass;
+    _streakPass: StreakPass;
+    _toneMappingPass: ToneMappingPass;
+    _chromaticAberrationPass: ChromaticAberrationPass;
+    _glitchPass: GlitchPass;
+    _vignettePass: VignettePass;
+    _fxaaPass: FXAAPass;
+    
+    get realWidth() {
+        return this._realWidth;
+    }
+    
+    get realHeight() {
+        return this._realHeight;
+    }
+
+    get pixelRatio() {
+        return this._pixelRatio;
+    }
+    
+    getStats() {
+        return this._stats;
+    }
+    
+    setStats(stats: Stats) {
+        this._stats = stats;
+    }
+    
+    get globalUniformBufferObjects() {
+        return this._globalUniformBufferObjects;
+    }
+
+    get depthPrePassRenderTarget() {
+        return this._depthPrePassRenderTarget;
+    }
+
+    get gBufferRenderTargets() {
+        return this._gBufferRenderTargets;
+    }
+
+    get screenSpaceShadowPass() {
+        return this._screenSpaceShadowPass;
+    }
+
+    get ambientOcclusionPass() {
+        return this._ambientOcclusionPass;
+    }
+
+    get ssrPass() {
+        return this._ssrPass;
+    }
+
+    get deferredShadingPass() {
+        return this._deferredShadingPass;
+    }
+
+    get lightShaftPass() {
+        return this._lightShaftPass;
+    }
+
+    get volumetricLightPass() {
+        return this._volumetricLightPass;
+    }
+
+    get fogPass() {
+        return this._fogPass;
+    }
+
+    get depthOfFieldPass() {
+        return this._depthOfFieldPass;
+    }
+
+    get bloomPass() {
+        return this._bloomPass;
+    }
+
+    get streakPass() {
+        return this._streakPass;
+    }
+
+    get chromaticAberrationPass() {
+        return this._chromaticAberrationPass;
+    }
+
+    get glitchPass() {
+        return this._glitchPass;
+    }
+
+    get vignettePass() {
+        return this._vignettePass;
+    }
+
+    get fxaaPass() {
+        return this._fxaaPass;
+    }
 
     /**
      *
@@ -148,9 +266,9 @@ export class Renderer {
      */
     constructor({ gpu, canvas, pixelRatio = 1.5 }: { gpu: GPU; canvas: HTMLCanvasElement; pixelRatio: number }) {
         this._gpu = gpu;
-        this.canvas = canvas;
-        this.pixelRatio = pixelRatio;
-        this._scenePostProcess = new PostProcess(this.screenQuadCamera);
+        this._canvas = canvas;
+        this._pixelRatio = pixelRatio;
+        this._scenePostProcess = new PostProcess(this._screenQuadCamera);
         this._depthPrePassRenderTarget = new RenderTarget({
             gpu,
             type: RenderTargetTypes.Depth,
@@ -286,7 +404,7 @@ export class Renderer {
                 value: Matrix4.identity,
             },
         ];
-        this.globalUniformBufferObjects.push({
+        this._globalUniformBufferObjects.push({
             uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Transformations,
@@ -327,7 +445,7 @@ export class Renderer {
                 value: 0,
             },
         ];
-        this.globalUniformBufferObjects.push({
+        this._globalUniformBufferObjects.push({
             uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Camera,
@@ -364,7 +482,7 @@ export class Renderer {
                 ],
             },
         ];
-        this.globalUniformBufferObjects.push({
+        this._globalUniformBufferObjects.push({
             uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.DirectionalLight,
@@ -426,7 +544,7 @@ export class Renderer {
                 ]),
             },
         ];
-        this.globalUniformBufferObjects.push({
+        this._globalUniformBufferObjects.push({
             uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.SpotLight,
@@ -468,7 +586,7 @@ export class Renderer {
                 ]),
             },
         ];
-        this.globalUniformBufferObjects.push({
+        this._globalUniformBufferObjects.push({
             uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.PointLight,
@@ -489,7 +607,7 @@ export class Renderer {
                 value: 0,
             },
         ];
-        this.globalUniformBufferObjects.push({
+        this._globalUniformBufferObjects.push({
             uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Timeline,
@@ -516,7 +634,7 @@ export class Renderer {
             },
         ];
         // TODO: 一番最初の要素としてpushするとなぜかエラーになる
-        this.globalUniformBufferObjects.push({
+        this._globalUniformBufferObjects.push({
             uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Common,
@@ -527,7 +645,7 @@ export class Renderer {
 
         // for debug
         console.log('===== global uniform buffer objects =====');
-        console.log(this.globalUniformBufferObjects);
+        console.log(this._globalUniformBufferObjects);
         console.log('=========================================');
     }
 
@@ -541,7 +659,7 @@ export class Renderer {
         // for debug
         // console.log("[Renderer.$checkNeedsBindUniformBufferObjectToMaterial]", material.name)
         material.uniformBlockNames.forEach((blockName) => {
-            const targetGlobalUniformBufferObject = this.globalUniformBufferObjects.find(
+            const targetGlobalUniformBufferObject = this._globalUniformBufferObjects.find(
                 ({ uniformBufferObject }) => uniformBufferObject.blockName === blockName
             );
             if (!targetGlobalUniformBufferObject) {
@@ -565,78 +683,6 @@ export class Renderer {
         // });
     }
 
-    // --------------------------------------------------------------
-    // public
-    // --------------------------------------------------------------
-
-    canvas;
-    pixelRatio;
-    globalUniformBufferObjects: { uniformBufferObject: UniformBufferObject; data: UniformBufferObjectBlockData }[] = [];
-
-    get depthPrePassRenderTarget() {
-        return this._depthPrePassRenderTarget;
-    }
-
-    get gBufferRenderTargets() {
-        return this._gBufferRenderTargets;
-    }
-
-    get screenSpaceShadowPass() {
-        return this._screenSpaceShadowPass;
-    }
-
-    get ambientOcclusionPass() {
-        return this._ambientOcclusionPass;
-    }
-
-    get ssrPass() {
-        return this._ssrPass;
-    }
-
-    get deferredShadingPass() {
-        return this._deferredShadingPass;
-    }
-
-    get lightShaftPass() {
-        return this._lightShaftPass;
-    }
-
-    get volumetricLightPass() {
-        return this._volumetricLightPass;
-    }
-
-    get fogPass() {
-        return this._fogPass;
-    }
-
-    get depthOfFieldPass() {
-        return this._depthOfFieldPass;
-    }
-
-    get bloomPass() {
-        return this._bloomPass;
-    }
-
-    get streakPass() {
-        return this._streakPass;
-    }
-
-    get chromaticAberrationPass() {
-        return this._chromaticAberrationPass;
-    }
-
-    get glitchPass() {
-        return this._glitchPass;
-    }
-
-    get vignettePass() {
-        return this._vignettePass;
-    }
-
-    get fxaaPass() {
-        return this._fxaaPass;
-    }
-
     /**
      *
      * @param realWidth
@@ -645,10 +691,10 @@ export class Renderer {
     setSize(realWidth: number, realHeight: number) {
         const w = Math.floor(realWidth);
         const h = Math.floor(realHeight);
-        this.realWidth = w;
-        this.realHeight = h;
-        this.canvas.width = w;
-        this.canvas.height = h;
+        this._realWidth = w;
+        this._realHeight = h;
+        this._canvas.width = w;
+        this._canvas.height = h;
 
         this._gpu.setSize(0, 0, w, h);
 
@@ -689,12 +735,12 @@ export class Renderer {
     setRenderTarget(renderTarget: CameraRenderTargetType, clearColor: boolean = false, clearDepth: boolean = false) {
         if (renderTarget) {
             this.renderTarget = renderTarget;
-            this._gpu.setFramebuffer(renderTarget.framebuffer);
+            this._gpu.setFramebuffer(renderTarget.$getFramebuffer());
             this._gpu.setSize(0, 0, renderTarget.width, renderTarget.height);
         } else {
             this.renderTarget = null;
             this._gpu.setFramebuffer(null);
-            this._gpu.setSize(0, 0, this.realWidth, this.realHeight);
+            this._gpu.setSize(0, 0, this._realWidth, this._realHeight);
         }
         if (clearColor) {
             this._gpu.clearColor(0, 0, 0, 0);
@@ -1137,7 +1183,7 @@ export class Renderer {
         // pattern1: g-buffer depth
         // this._afterDeferredShadingRenderTarget.setDepthTexture(this._gBufferRenderTargets.depthTexture!);
         // pattern2: depth prepass
-        this._afterDeferredShadingRenderTarget.setDepthTexture(this._depthPrePassRenderTarget.depthTexture!);
+        this._afterDeferredShadingRenderTarget.setDepthTexture(this._depthPrePassRenderTarget.$getDepthTexture()!);
 
         this.copyDepthTexture();
 
@@ -1145,7 +1191,7 @@ export class Renderer {
         sortedTransparentRenderMeshInfos.forEach((renderMeshInfo) => {
             renderMeshInfo.actor.material.uniforms.setValue(
                 UniformNames.DepthTexture,
-                this._copyDepthDestRenderTarget.depthTexture
+                this._copyDepthDestRenderTarget.$getDepthTexture()
             );
         });
 
@@ -1215,9 +1261,9 @@ export class Renderer {
         geometry.update();
 
         if (isDevelopment()) {
-            if (this.stats) {
-                this.stats.addDrawVertexCount(geometry);
-                this.stats.incrementDrawCall();
+            if (this._stats) {
+                this._stats.addDrawVertexCount(geometry);
+                this._stats.incrementDrawCall();
             }
         }
 
@@ -1270,42 +1316,6 @@ export class Renderer {
         );
     }
 
-    // --------------------------------------------------------------
-    // private
-    // --------------------------------------------------------------
-
-    _gpu;
-    realWidth: number = 1;
-    realHeight: number = 1;
-    stats: Stats | null = null;
-    private _scenePostProcess: PostProcess;
-    // internal cmmera
-    private screenQuadCamera: Camera = OrthographicCamera.CreateFullQuadOrthographicCamera();
-    // render targets
-    private _depthPrePassRenderTarget: RenderTarget;
-    private _gBufferRenderTargets: GBufferRenderTargets;
-    // private _ambientOcclusionRenderTarget: RenderTarget;
-    private _afterDeferredShadingRenderTarget: RenderTarget;
-    private _copyDepthSourceRenderTarget: RenderTarget;
-    private _copyDepthDestRenderTarget: RenderTarget;
-    // pass
-    private _screenSpaceShadowPass: ScreenSpaceShadowPass;
-    private _ambientOcclusionPass: SSAOPass;
-    private _deferredShadingPass: DeferredShadingPass;
-    private _ssrPass: SSRPass;
-    private _lightShaftPass: LightShaftPass;
-    private _volumetricLightPass: VolumetricLightPass;
-    private _fogPass: FogPass;
-    private _depthOfFieldPass: DepthOfFieldPass;
-    private _bloomPass: BloomPass;
-    private _streakPass: StreakPass;
-
-    private _toneMappingPass: ToneMappingPass;
-    private _chromaticAberrationPass: ChromaticAberrationPass;
-    private _glitchPass: GlitchPass;
-    private _vignettePass: VignettePass;
-    private _fxaaPass: FXAAPass;
-
     /**
      *
      * @param actor
@@ -1329,39 +1339,14 @@ export class Renderer {
      * @param value
      * @private
      */
-    private setUniformBlockValue(blockName: string, uniformName: string, value: UniformBufferObjectValue) {
-        // private setUniformBlockData(blockName: string, uniformBufferObjectBlockData: UniformBufferObjectBlockData) {
-        // private updateUniformBlock(blockName: string) {
-        // const setUniformValueInternal = (type: UniformTypes, name: string, v: UniformValue) => {};
-
-        // const a: UniformValue;
-
-        // const targetUniformBufferObject = this.globalUniformBufferObjects.find((globalUniformBufferObject) => {
-        //     return globalUniformBufferObject.blockName === blockName;
-        // });
-
-        // if (targetUniformBufferObject) {
-        // }
-
-        // if(typeof(value) === 'number') {
-        //     console.log(blockName, uniformName, value);
-        // }
-
-        const targetGlobalUniformBufferObject = this.globalUniformBufferObjects.find(
+    $setUniformBlockValue(blockName: string, uniformName: string, value: UniformBufferObjectValue) {
+        const targetGlobalUniformBufferObject = this._globalUniformBufferObjects.find(
             ({ uniformBufferObject }) => uniformBufferObject.blockName === blockName
         );
         if (!targetGlobalUniformBufferObject) {
             console.error(`[Renderer.setUniformBlockData] invalid uniform block object: ${blockName}`);
             return;
         }
-
-        // const targetBlock = targetUbo.data.find((block) => block.name === uniformName);
-
-        // if (!targetBlock) {
-        //     console.error(`[Renderer.setUniformBlockData] invalid uniform block data: ${uniformName}`);
-        //     return;
-        // }
-
         const targetUbo = targetGlobalUniformBufferObject.uniformBufferObject;
 
         const targetUniformData = targetGlobalUniformBufferObject.data.find((d) => {
@@ -1374,109 +1359,12 @@ export class Renderer {
         }
 
         targetUbo.updateUniformValue(uniformName, targetUniformData.type, value);
-
-        // const getStructValue = (value: UniformStructValue) => {
-        //     const data: number[] = [];
-        //     value.forEach((v) => {
-        //         switch (v.type) {
-        //             case UniformTypes.Float:
-        //             case UniformTypes.Int:
-        //                 data.push(v.value as number);
-        //                 data.push(0);
-        //                 data.push(0);
-        //                 data.push(0);
-        //                 break;
-        //             case UniformTypes.Bool:
-        //                 data.push((v.value as boolean) ? 1 : 0);
-        //                 data.push(0);
-        //                 data.push(0);
-        //                 data.push(0);
-        //                 break;
-        //             default:
-        //                 data.push(...(v.value as Vector2 | Vector3 | Vector4 | Matrix4 | Color).e);
-        //         }
-        //     });
-        //     return data;
-        // };
-
-        // // targetGlobalUniformBufferObject.data.forEach((targetBlock) => {
-        // // const uniformName = targetBlock.name;
-        // // const value = targetBlock.value;
-        // // switch (targetBlock.type) {
-        // switch (targetUniformData.type) {
-        //     // TODO: update struct
-        //     case UniformTypes.Struct:
-        //     case UniformTypes.StructArray:
-        //         if (Array.isArray(value)) {
-        //             const data: number[] = [];
-        //             value.forEach((v) => {
-        //                 data.push(...getStructValue(v as UniformStructValue));
-        //             });
-        //             targetUbo.updateBufferData(uniformName, new Float32Array(data));
-        //         } else {
-        //             const data = getStructValue(value as unknown as UniformStructValue);
-        //             targetUbo.updateBufferData(uniformName, new Float32Array(data));
-        //         }
-        //         break;
-        //     default:
-        //         if (Array.isArray(value)) {
-        //             const data: number[] = [];
-        //             value.forEach((v) => {
-        //                 if (typeof v === 'number') {
-        //                     data.push(v);
-        //                     data.push(0);
-        //                     data.push(0);
-        //                     data.push(0);
-        //                 } else {
-        //                     data.push(...(v as Vector2 | Vector3 | Vector4 | Matrix4 | Color).e);
-        //                 }
-        //             });
-        //             targetUbo.updateBufferData(uniformName, new Float32Array(data));
-        //         } else {
-        //             targetUbo.updateBufferData(
-        //                 uniformName,
-        //                 typeof value === 'number'
-        //                     ? new Float32Array([value])
-        //                     : (value as Vector2 | Vector3 | Vector4 | Matrix4 | Color).e
-        //             );
-        //         }
-        //         break;
-        // }
-        // // });
     }
 
-    /**
-     *
-     * @param actor
-     * @param camera
-     */
-    // updateUniformBlockTransformations(actor: Actor, camera: Camera) {
-    //     this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.WorldMatrix, actor.transform.worldMatrix);
-    //     this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ViewMatrix, camera.viewMatrix);
-    //     this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ProjectionMatrix, camera.projectionMatrix);
-    //     // this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.NormalMatrix, actor.transform.inverseWorldMatrix);
-    //     // this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ViewPosition, camera.transform.worldMatrix.position);
-    //     // depthMaterial.uniforms.setValue(UniformNames.ViewPosition, camera.transform.worldMatrix.position);
-    // }
-
-    /**
-     *
-     * @param depthPrePassRenderMeshInfos
-     * @param camera
-     * @private
-     */
     private depthPrePass(depthPrePassRenderMeshInfos: RenderMeshInfo[], camera: Camera) {
         // console.log("--------- depth pre pass ---------");
 
         this.setRenderTarget(this._depthPrePassRenderTarget, false, true);
-        // this._gpu.clearDepth(0, 0, 0, 1);
-
-        // this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ViewMatrix, camera.viewMatrix);
-        // this.setUniformBlockValue(
-        //     UniformBlockNames.Transformations,
-        //     UniformNames.ProjectionMatrix,
-        //     camera.projectionMatrix
-        // );
         this.updateCameraUniforms(camera);
 
         depthPrePassRenderMeshInfos.forEach(({ actor }) => {
@@ -1499,35 +1387,25 @@ export class Renderer {
                 this.renderMesh(actor.geometry, depthMaterial);
 
                 if (isDevelopment()) {
-                    if (this.stats) {
-                        this.stats.addPassInfo('depth pre pass', actor.name, actor.geometry);
+                    if (this._stats) {
+                        this._stats.addPassInfo('depth pre pass', actor.name, actor.geometry);
                     }
                 }
             });
         });
     }
 
-    /**
-     *
-     * @private
-     */
     private copyDepthTexture() {
-        this._copyDepthSourceRenderTarget.setDepthTexture(this._depthPrePassRenderTarget.depthTexture!);
+        this._copyDepthSourceRenderTarget.setDepthTexture(this._depthPrePassRenderTarget.$getDepthTexture()!);
         RenderTarget.blitDepth({
             gpu: this._gpu,
             sourceRenderTarget: this._copyDepthSourceRenderTarget,
             destRenderTarget: this._copyDepthDestRenderTarget,
-            width: this.realWidth,
-            height: this.realHeight,
+            width: this._realWidth,
+            height: this._realHeight,
         });
     }
 
-    /**
-     *
-     * @param castShadowLightActors
-     * @param castShadowRenderMeshInfos
-     * @private
-     */
     private shadowPass(castShadowLightActors: Light[], castShadowRenderMeshInfos: RenderMeshInfo[]) {
         // console.log("--------- shadow pass ---------");
 
@@ -1569,13 +1447,13 @@ export class Renderer {
 
                     depthMaterial.uniforms.setValue(
                         UniformNames.DepthTexture,
-                        this._copyDepthDestRenderTarget.depthTexture
+                        this._copyDepthDestRenderTarget.$getDepthTexture()
                     );
 
                     this.renderMesh(actor.geometry, depthMaterial);
                     if (isDevelopment()) {
-                        if (this.stats) {
-                            this.stats.addPassInfo('shadow pass', actor.name, actor.geometry);
+                        if (this._stats) {
+                            this._stats.addPassInfo('shadow pass', actor.name, actor.geometry);
                         }
                     }
                 });
@@ -1583,22 +1461,11 @@ export class Renderer {
         });
     }
 
-    /**
-     *
-     * @param sortedRenderMeshInfos
-     * @param camera
-     * @private
-     */
-    private scenePass(
-        sortedRenderMeshInfos: RenderMeshInfo[],
-        camera: Camera
-        // lightActors: LightActors
-        // clear: boolean = true
-    ) {
+    private scenePass(sortedRenderMeshInfos: RenderMeshInfo[], camera: Camera) {
         // console.log("--------- scene pass ---------");
 
         // NOTE: DepthTextureはあるはず
-        this._gBufferRenderTargets.setDepthTexture(this._depthPrePassRenderTarget.depthTexture!);
+        this._gBufferRenderTargets.setDepthTexture(this._depthPrePassRenderTarget.$getDepthTexture()!);
 
         this.setRenderTarget(this._gBufferRenderTargets.write, true);
 
@@ -1641,7 +1508,7 @@ export class Renderer {
             this.updateActorTransformUniforms(actor);
 
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-            targetMaterial.uniforms.setValue(UniformNames.DepthTexture, this._copyDepthDestRenderTarget.depthTexture!);
+            targetMaterial.uniforms.setValue(UniformNames.DepthTexture, this._copyDepthDestRenderTarget.$getDepthTexture()!);
 
             // TODO:
             // - light actor の中で lightの種類別に処理を分ける
@@ -1657,130 +1524,96 @@ export class Renderer {
             this.renderMesh(actor.geometry, targetMaterial);
 
             if (isDevelopment()) {
-                if (this.stats) {
-                    this.stats.addPassInfo('scene pass', actor.name, actor.geometry);
+                if (this._stats) {
+                    this._stats.addPassInfo('scene pass', actor.name, actor.geometry);
                 }
             }
         });
     }
 
-    /**
-     *
-     * @param actor
-     */
     updateActorTransformUniforms(actor: Actor) {
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.WorldMatrix,
             actor.transform.worldMatrix
         );
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.InverseWorldMatrix,
             actor.transform.inverseWorldMatrix
         );
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.NormalMatrix,
             actor.transform.normalMatrix
         );
     }
 
-    /**
-     *
-     * @param camera
-     */
     updateCameraUniforms(camera: Camera) {
-        this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ViewMatrix, camera.viewMatrix);
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ViewMatrix, camera.viewMatrix);
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.ProjectionMatrix,
             camera.projectionMatrix
         );
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Camera,
             UniformNames.ViewPosition,
             camera.transform.worldMatrix.position
         );
-        this.setUniformBlockValue(UniformBlockNames.Camera, UniformNames.ViewDirection, camera.getWorldForward());
-        this.setUniformBlockValue(UniformBlockNames.Camera, UniformNames.CameraNear, camera.near);
-        this.setUniformBlockValue(UniformBlockNames.Camera, UniformNames.CameraFar, camera.far);
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(UniformBlockNames.Camera, UniformNames.ViewDirection, camera.getWorldForward());
+        this.$setUniformBlockValue(UniformBlockNames.Camera, UniformNames.CameraNear, camera.near);
+        this.$setUniformBlockValue(UniformBlockNames.Camera, UniformNames.CameraFar, camera.far);
+        this.$setUniformBlockValue(
             UniformBlockNames.Camera,
             UniformNames.CameraAspect,
             camera.isPerspective() ? (camera as PerspectiveCamera).aspect : (camera as OrthographicCamera).aspect
         );
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Camera,
             UniformNames.CameraFov,
             camera.isPerspective() ? (camera as PerspectiveCamera).fov : 0
         );
-
-        // passMaterial.uniforms.setValue(UniformNames.ViewProjectionMatrix, targetCamera.viewProjectionMatrix);
-        // passMaterial.uniforms.setValue(
-        //     UniformNames.InverseViewProjectionMatrix,
-        //     targetCamera.inverseViewProjectionMatrix
-        // );
-        // passMaterial.uniforms.setValue(UniformNames.InverseViewMatrix, targetCamera.inverseViewMatrix);
-        // passMaterial.uniforms.setValue(UniformNames.InverseProjectionMatrix, targetCamera.inverseProjectionMatrix);
-        // passMaterial.uniforms.setValue(
-        //     UniformNames.TransposeInverseViewMatrix,
-        //     targetCamera.viewMatrix.clone().invert().transpose()
-        // );
-
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.ViewProjectionMatrix,
             camera.viewProjectionMatrix
         );
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.InverseViewMatrix,
             camera.inverseViewMatrix
         );
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.InverseProjectionMatrix,
             camera.inverseProjectionMatrix
         );
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.InverseViewProjectionMatrix,
             camera.inverseViewProjectionMatrix
         );
-        this.setUniformBlockValue(
+        this.$setUniformBlockValue(
             UniformBlockNames.Transformations,
             UniformNames.TransposeInverseViewMatrix,
             camera.viewMatrix.clone().invert().transpose()
         );
     }
 
-    /**
-     *
-     * @param blockName
-     * @param uniformName
-     * @param value
-     */
     $updateUniformBlockValue(
         blockName: string,
         uniformName: string,
         value: UniformBufferObjectValue,
         showLog: boolean = false
     ) {
-        const targetGlobalUniformBufferObject = this.globalUniformBufferObjects.find(
+        const targetGlobalUniformBufferObject = this._globalUniformBufferObjects.find(
             ({ uniformBufferObject }) => uniformBufferObject.blockName === blockName
         );
         if (!targetGlobalUniformBufferObject) {
             console.error(`[Renderer.setUniformBlockData] invalid uniform block object: ${blockName}`);
             return;
         }
-
-        // const targetBlock = targetUbo.data.find((block) => block.name === uniformName);
-
-        // if (!targetBlock) {
-        //     console.error(`[Renderer.setUniformBlockData] invalid uniform block data: ${uniformName}`);
-        //     return;
-        // }
 
         const targetUbo = targetGlobalUniformBufferObject.uniformBufferObject;
 
@@ -1884,10 +1717,6 @@ export class Renderer {
         }
     }
 
-    /**
-     *
-     * @param time
-     */
     $updateCommonUniforms({ time, deltaTime }: { time: number; deltaTime: number }) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
         this.$updateUniformBlockValue(UniformBlockNames.Common, UniformNames.Time, time);
@@ -1895,7 +1724,7 @@ export class Renderer {
         this.$updateUniformBlockValue(
             UniformBlockNames.Common,
             UniformNames.Viewport,
-            new Vector4(this.realWidth, this.realHeight, this.realWidth / this.realHeight, 0)
+            new Vector4(this._realWidth, this._realHeight, this._realWidth / this._realHeight, 0)
         );
     }
 
@@ -1905,10 +1734,6 @@ export class Renderer {
         this.$updateUniformBlockValue(UniformBlockNames.Timeline, UniformNames.TimelineDeltaTime, timelineDeltaTime);
     }
 
-    /**
-     *
-     * @param directionalLight
-     */
     $updateDirectionalLightUniforms(directionalLight: DirectionalLight) {
         this.$updateUniformBlockValue(UniformBlockNames.DirectionalLight, UniformNames.DirectionalLight, [
             {
@@ -1936,10 +1761,6 @@ export class Renderer {
         ]);
     }
 
-    /**
-     *
-     * @param spotLights
-     */
     $updateSpotLightsUniforms(spotLights: SpotLight[]) {
         this.$updateUniformBlockValue(
             UniformBlockNames.SpotLight,
@@ -1996,10 +1817,6 @@ export class Renderer {
         );
     }
 
-    /**
-     *
-     * @param pointLights
-     */
     $updatePointLightsUniforms(pointLights: PointLight[]) {
         this.$updateUniformBlockValue(
             UniformBlockNames.PointLight,
@@ -2047,16 +1864,8 @@ export class Renderer {
 
         // TODO: 常にclearしない、で良い気がする
         // if (clear) {
-        //     // this.clear(camera.clearColor.x, camera.clearColor.y, camera.clearColor.z, camera.clearColor.w);
         //     this._gpu.clear(camera.clearColor.x, camera.clearColor.y, camera.clearColor.z, camera.clearColor.w);
         // }
-
-        // this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ViewMatrix, camera.viewMatrix);
-        // this.setUniformBlockValue(
-        //     UniformBlockNames.Transformations,
-        //     UniformNames.ProjectionMatrix,
-        //     camera.projectionMatrix
-        // );
         this.updateCameraUniforms(camera);
 
         sortedRenderMeshInfos.forEach(({ actor, materialIndex }) => {
@@ -2076,8 +1885,8 @@ export class Renderer {
             this.renderMesh(actor.geometry, targetMaterial);
 
             if (isDevelopment()) {
-                if (this.stats) {
-                    this.stats.addPassInfo('transparent pass', actor.name, actor.geometry);
+                if (this._stats) {
+                    this._stats.addPassInfo('transparent pass', actor.name, actor.geometry);
                 }
             }
         });

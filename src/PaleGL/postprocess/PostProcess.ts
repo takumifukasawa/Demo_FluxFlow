@@ -188,12 +188,12 @@ export class PostProcess {
             // passMaterial.uniforms.setValue(UniformNames.Time, time);
             
             // g-buffers
-            passMaterial.uniforms.setValue(UniformNames.GBufferATexture, renderer.gBufferRenderTargets.gBufferATexture);
-            passMaterial.uniforms.setValue(UniformNames.GBufferBTexture, renderer.gBufferRenderTargets.gBufferBTexture);
-            passMaterial.uniforms.setValue(UniformNames.GBufferCTexture, renderer.gBufferRenderTargets.gBufferCTexture);
-            passMaterial.uniforms.setValue(UniformNames.GBufferDTexture, renderer.gBufferRenderTargets.gBufferDTexture);
+            passMaterial.uniforms.setValue(UniformNames.GBufferATexture, renderer.gBufferRenderTargets.$getGBufferATexture());
+            passMaterial.uniforms.setValue(UniformNames.GBufferBTexture, renderer.gBufferRenderTargets.$getGBufferBTexture());
+            passMaterial.uniforms.setValue(UniformNames.GBufferCTexture, renderer.gBufferRenderTargets.$getGBufferCTexture());
+            passMaterial.uniforms.setValue(UniformNames.GBufferDTexture, renderer.gBufferRenderTargets.$getGBufferDTexture());
             // passMaterial.uniforms.setValue(UniformNames.DepthTexture, renderer.gBufferRenderTargets.depthTexture);
-            passMaterial.uniforms.setValue(UniformNames.DepthTexture, renderer.depthPrePassRenderTarget.depthTexture);
+            passMaterial.uniforms.setValue(UniformNames.DepthTexture, renderer.depthPrePassRenderTarget.$getDepthTexture());
         });
     }
 

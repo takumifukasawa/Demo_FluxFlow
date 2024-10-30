@@ -650,7 +650,7 @@ export class BufferVisualizerPass implements IPostProcessPass {
                     pass.material.uniforms.setValue(
                         tiles.get(DIRECTIONAL_LIGHT_SHADOW_MAP_KEY)!.uniformNameTexture!,
                         // 'uDirectionalLightShadowMap',
-                        lightActors.directionalLight.shadowMap!.read.depthTexture
+                        lightActors.directionalLight.shadowMap!.read.$getDepthTexture()
                     );
                 }
             }
@@ -661,7 +661,7 @@ export class BufferVisualizerPass implements IPostProcessPass {
                         if (spotLight.shadowMap) {
                             pass.material.uniforms.setValue(
                                 tiles.get(key)!.uniformNameTexture!,
-                                spotLight.shadowMap.read.depthTexture
+                                spotLight.shadowMap.read.$getDepthTexture()
                             );
                         }
                     }
@@ -671,35 +671,35 @@ export class BufferVisualizerPass implements IPostProcessPass {
             if (tiles.has(DEPTH_TEXTURE_KEY)) {
                 pass.material.uniforms.setValue(
                     tiles.get(DEPTH_TEXTURE_KEY)!.uniformNameTexture!,
-                    renderer.depthPrePassRenderTarget.depthTexture
+                    renderer.depthPrePassRenderTarget.$getDepthTexture()
                 );
             }
 
             if (tiles.has(GBUFFER_A_TEXTURE_KEY)) {
                 pass.material.uniforms.setValue(
                     tiles.get(GBUFFER_A_TEXTURE_KEY)!.uniformNameTexture!,
-                    renderer.gBufferRenderTargets.gBufferATexture
+                    renderer.gBufferRenderTargets.$getGBufferATexture()
                 );
             }
 
             if (tiles.has(GBUFFER_B_TEXTURE_KEY)) {
                 pass.material.uniforms.setValue(
                     tiles.get(GBUFFER_B_TEXTURE_KEY)!.uniformNameTexture!,
-                    renderer.gBufferRenderTargets.gBufferBTexture
+                    renderer.gBufferRenderTargets.$getGBufferBTexture()
                 );
             }
 
             if (tiles.has(GBUFFER_C_TEXTURE_KEY)) {
                 pass.material.uniforms.setValue(
                     tiles.get(GBUFFER_C_TEXTURE_KEY)!.uniformNameTexture!,
-                    renderer.gBufferRenderTargets.gBufferCTexture
+                    renderer.gBufferRenderTargets.$getGBufferCTexture()
                 );
             }
 
             if (tiles.has(GBUFFER_D_TEXTURE_KEY)) {
                 pass.material.uniforms.setValue(
                     tiles.get(GBUFFER_D_TEXTURE_KEY)!.uniformNameTexture!,
-                    renderer.gBufferRenderTargets.gBufferDTexture
+                    renderer.gBufferRenderTargets.$getGBufferDTexture()
                 );
             }
 
@@ -911,7 +911,6 @@ export class BufferVisualizerPass implements IPostProcessPass {
             // renderer.depthOfFieldPass.dofBokehPass.renderTarget.read.texture
             // renderer.depthOfFieldPass.preFilterPass.renderTarget.read.texture
         );
-
 
         this.compositePass.material.uniforms.setValue(
             'uFullViewTextureEnabled',

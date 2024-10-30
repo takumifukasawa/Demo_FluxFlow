@@ -431,22 +431,6 @@ export class GPU {
                     setUniformValueInternal(uniformData.type, uniformData.name, uniformData.value);
                 }
             });
-
-            // uniform block
-            // for debug
-            // if(this.uniforms.uniformBlocks.length > 0) {
-            //     console.log(this.uniforms.uniformBlocks)
-            // }
-            // NOTE: なくていいかも
-            // this.uniforms.uniformBlocks.forEach(({ uniformBufferObject} ) => {
-            //     this.gl.bindBufferRange(
-            //         gl.UNIFORM_BUFFER,
-            //         uniformBufferObject.bindingPoint,
-            //         uniformBufferObject.glObject,
-            //         0,
-            //         uniformBufferObject.blockSize
-            //     );
-            // });
         }
     }
 

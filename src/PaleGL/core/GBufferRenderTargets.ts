@@ -39,27 +39,27 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
     //     return this._gBufferTextures;
     // }
 
-    get gBufferATexture() {
+    $getGBufferATexture() {
         return this._gBufferATexture;
     }
 
-    get gBufferBTexture() {
+    $getGBufferBTexture() {
         return this._gBufferBTexture;
     }
 
-    get gBufferCTexture() {
+    $getGBufferCTexture() {
         return this._gBufferCTexture;
     }
     
-    get gBufferDTexture() {
+    $getGBufferDTexture() {
         return this._gBufferDTexture;
     }
 
-    get depthTexture() {
+    $getDepthTexture() {
         return this._depthTexture;
     }
 
-    get framebuffer() {
+    $getFramebuffer() {
         return this._framebuffer;
     }
 
@@ -104,7 +104,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
         });
         gl.framebufferTexture2D(GL_FRAMEBUFFER, gBufferAAttachment, GL_TEXTURE_2D, this._gBufferATexture.glObject, 0);
         this._gBufferTextures.push(this._gBufferATexture);
-        this.framebuffer.registerDrawBuffer(gBufferAAttachment as GLColorAttachment);
+        this._framebuffer.registerDrawBuffer(gBufferAAttachment as GLColorAttachment);
 
         //
         // 2: GBufferB
@@ -120,7 +120,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
             magFilter,
         });
         gl.framebufferTexture2D(GL_FRAMEBUFFER, gBufferBAttachment, GL_TEXTURE_2D, this._gBufferBTexture.glObject, 0);
-        this.framebuffer.registerDrawBuffer(gBufferBAttachment as GLColorAttachment);
+        this._framebuffer.registerDrawBuffer(gBufferBAttachment as GLColorAttachment);
         this._gBufferTextures.push(this._gBufferBTexture);
 
         //
@@ -137,7 +137,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
             magFilter,
         });
         gl.framebufferTexture2D(GL_FRAMEBUFFER, gBufferCAttachment, GL_TEXTURE_2D, this._gBufferCTexture.glObject, 0);
-        this.framebuffer.registerDrawBuffer(gBufferCAttachment as GLColorAttachment);
+        this._framebuffer.registerDrawBuffer(gBufferCAttachment as GLColorAttachment);
         this._gBufferTextures.push(this._gBufferCTexture);
 
         //
@@ -154,7 +154,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
             magFilter,
         });
         gl.framebufferTexture2D(GL_FRAMEBUFFER, gBufferDAttachment, GL_TEXTURE_2D, this._gBufferDTexture.glObject, 0);
-        this.framebuffer.registerDrawBuffer(gBufferDAttachment as GLColorAttachment);
+        this._framebuffer.registerDrawBuffer(gBufferDAttachment as GLColorAttachment);
         this._gBufferTextures.push(this._gBufferDTexture);
 
         // 3: depth
@@ -173,7 +173,7 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
 
         // unbind
         gl.bindTexture(GL_TEXTURE_2D, null);
-        this.framebuffer.unbind();
+        this._framebuffer.unbind();
     }
 
     setSize(width: number, height: number) {

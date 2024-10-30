@@ -25,8 +25,9 @@ import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 export type ShaderDefines = {
     receiveShadow: boolean;
-    isSkinning: boolean;
-    gpuSkinning: boolean;
+    // ORIGINAL
+    // isSkinning: boolean;
+    // gpuSkinning: boolean;
     // ORIGINAL
     // useNormalMap: boolean;
     // useEnvMap: boolean;
@@ -49,8 +50,9 @@ const insertShaderPairs: {
 
 const buildShaderDefines = ({
     receiveShadow,
-    isSkinning,
-    gpuSkinning,
+    // ORIGINAL
+    // isSkinning,
+    // gpuSkinning,
     // ORIGINAL
     // useNormalMap,
     // useEnvMap,
@@ -63,13 +65,14 @@ const buildShaderDefines = ({
     if (receiveShadow) {
         arr.push('#define USE_RECEIVE_SHADOW');
     }
-    if (isSkinning) {
-        if (gpuSkinning) {
-            arr.push('#define USE_SKINNING_GPU');
-        } else {
-            arr.push('#define USE_SKINNING_CPU');
-        }
-    }
+    // ORIGINAL
+    // if (isSkinning) {
+    //     if (gpuSkinning) {
+    //         arr.push('#define USE_SKINNING_GPU');
+    //     } else {
+    //         arr.push('#define USE_SKINNING_CPU');
+    //     }
+    // }
     // ORIGINAL
     // if (useNormalMap) {
     //     arr.push('#define USE_NORMAL_MAP');

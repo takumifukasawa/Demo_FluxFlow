@@ -246,9 +246,9 @@ out vec4 o; void main(){o=vec4(1.,0.,0.,1.);}`,
 
         this.material.uniforms.setValue(
             UniformNames.SpotLightShadowMap,
-            this.#spotLights.map((spotLight) => (spotLight.shadowMap ? spotLight.shadowMap?.read.depthTexture : null))
+            this.#spotLights.map((spotLight) => (spotLight.shadowMap ? spotLight.shadowMap?.read.$getDepthTexture() : null))
         );
-        this.material.uniforms.setValue(UNIFORM_VOLUME_DEPTH_TEXTURE, this.renderTargetSpotLightFrustum.depthTexture);
+        this.material.uniforms.setValue(UNIFORM_VOLUME_DEPTH_TEXTURE, this.renderTargetSpotLightFrustum.$getDepthTexture());
         this.material.uniforms.setValue(UNIFORM_NAME_RAY_STEP, this.parameters.rayStep);
         this.material.uniforms.setValue(UNIFORM_NAME_DENSITY_MULTIPLIER, this.parameters.densityMultiplier);
         this.material.uniforms.setValue(UNIFORM_NAME_RAY_JITTER_SIZE, this.parameters.rayJitterSize);

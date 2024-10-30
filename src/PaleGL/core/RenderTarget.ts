@@ -52,21 +52,25 @@ export class RenderTarget extends AbstractRenderTarget {
     width: number;
     height: number;
     type: RenderTargetType;
-    private _framebuffer: Framebuffer;
-    private depthRenderbuffer: Renderbuffer | null = null;
-    private _texture: Texture | null = null;
-    private _depthTexture: Texture | null = null;
-    private gpu;
-
+    _framebuffer: Framebuffer;
+    _depthRenderbuffer: Renderbuffer | null = null;
+    _texture: Texture | null = null;
+    _depthTexture: Texture | null = null;
+    _gpu;
+    
     get texture() {
         return this._texture;
     }
 
-    get depthTexture() {
+    $getTexture() {
+        return this._texture;
+    }
+
+    $getDepthTexture() {
         return this._depthTexture;
     }
 
-    get framebuffer() {
+    $getFramebuffer() {
         return this._framebuffer;
     }
 
@@ -77,7 +81,7 @@ export class RenderTarget extends AbstractRenderTarget {
     get write() {
         return this;
     }
-
+    
     /**
      *
      * @param gpu
@@ -108,8 +112,8 @@ export class RenderTarget extends AbstractRenderTarget {
     }: RenderTargetOptions) {
         super();
 
-        this.gpu = gpu;
-        const gl = this.gpu.gl;
+        this._gpu = gpu;
+        const gl = this._gpu.gl;
 
         this.name = name;
         this.type = type;
@@ -124,16 +128,16 @@ export class RenderTarget extends AbstractRenderTarget {
         // console.log(useDepthBuffer, writeDepthTexture, this.type, writeDepthTexture)
 
         if (useDepthBuffer) {
-            this.depthRenderbuffer = new Renderbuffer({ gpu, type: RenderbufferTypes.Depth, width, height });
+            this._depthRenderbuffer = new Renderbuffer({ gpu, type: RenderbufferTypes.Depth, width, height });
         }
 
         // depth as render buffer
-        if (this.depthRenderbuffer) {
+        if (this._depthRenderbuffer) {
             gl.framebufferRenderbuffer(
                 GL_FRAMEBUFFER,
                 GL_DEPTH_ATTACHMENT,
                 GL_RENDERBUFFER,
-                this.depthRenderbuffer.glObject
+                this._depthRenderbuffer.glObject
             );
         }
 
@@ -274,7 +278,7 @@ export class RenderTarget extends AbstractRenderTarget {
         }
 
         // depth texture と depth render buffer は両立できないので確認のエラー
-        if (this._depthTexture && this.depthRenderbuffer) {
+        if (this._depthTexture && this._depthRenderbuffer) {
             console.error('[RenderTarget.constructor] depth texture and depth render buffer are active.');
         }
 
@@ -284,7 +288,7 @@ export class RenderTarget extends AbstractRenderTarget {
 
         // unbind
         gl.bindTexture(GL_TEXTURE_2D, null);
-        if (this.depthRenderbuffer) {
+        if (this._depthRenderbuffer) {
             gl.bindRenderbuffer(GL_RENDERBUFFER, null);
         }
         // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -308,8 +312,8 @@ export class RenderTarget extends AbstractRenderTarget {
         if (this._depthTexture) {
             this._depthTexture.setSize(this.width, this.height);
         }
-        if (this.depthRenderbuffer) {
-            this.depthRenderbuffer.setSize(width, height);
+        if (this._depthRenderbuffer) {
+            this._depthRenderbuffer.setSize(width, height);
         }
     }
 
@@ -318,7 +322,7 @@ export class RenderTarget extends AbstractRenderTarget {
      * @param texture
      */
     setTexture(texture: Texture) {
-        const gl = this.gpu.gl;
+        const gl = this._gpu.gl;
         this._texture = texture;
         gl.bindFramebuffer(GL_FRAMEBUFFER, this._framebuffer.glObject);
         gl.framebufferTexture2D(
@@ -336,7 +340,7 @@ export class RenderTarget extends AbstractRenderTarget {
      * @param depthTexture
      */
     setDepthTexture(depthTexture: Texture) {
-        const gl = this.gpu.gl;
+        const gl = this._gpu.gl;
         this._depthTexture = depthTexture;
         this._framebuffer.bind();
         // depth as texture
@@ -366,8 +370,8 @@ export class RenderTarget extends AbstractRenderTarget {
         height: number;
     }) {
         const gl = gpu.gl;
-        gl.bindFramebuffer(GL_READ_FRAMEBUFFER, sourceRenderTarget.framebuffer.glObject);
-        gl.bindFramebuffer(GL_DRAW_FRAMEBUFFER, destRenderTarget.framebuffer.glObject);
+        gl.bindFramebuffer(GL_READ_FRAMEBUFFER, sourceRenderTarget.$getFramebuffer().glObject);
+        gl.bindFramebuffer(GL_DRAW_FRAMEBUFFER, destRenderTarget.$getFramebuffer().glObject);
 
         gl.clear(GL_DEPTH_BUFFER_BIT);
 

@@ -119,7 +119,7 @@ export class Engine {
 
         if (isDevelopment()) {
             this._stats = new Stats({ showStats, showPipeline: false }); // 一旦手動で
-            this._renderer.stats = this._stats;
+            this._renderer.setStats(this._stats);
         }
 
         // TODO: 外からfps変えられるようにしたい
@@ -150,8 +150,8 @@ export class Engine {
             this._onBeforeStart();
         }
         const t = performance.now() / 1000;
-        this._fixedUpdateFrameTimer.start(t);
-        this._updateFrameTimer.start(t);
+        this._fixedUpdateFrameTimer.$start(t);
+        this._updateFrameTimer.$start(t);
         if (this._onAfterStart) {
             this._onAfterStart();
         }
@@ -347,7 +347,7 @@ export class Engine {
 
     // time[sec]
     run(time: number) {
-        this._fixedUpdateFrameTimer.exec(time / 1000);
-        this._updateFrameTimer.exec(time / 1000);
+        this._fixedUpdateFrameTimer.$exec(time / 1000);
+        this._updateFrameTimer.$exec(time / 1000);
     }
 }

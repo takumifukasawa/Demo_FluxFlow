@@ -1,7 +1,8 @@
 ﻿import { Transform } from '@/PaleGL/core/Transform';
 import { ActorType, ActorTypes } from '@/PaleGL/constants';
 import { uuidv4 } from '@/PaleGL/utilities/uuid';
-import { Animator } from '@/PaleGL/core/Animator';
+// ORIGINAL
+// import { Animator } from '@/PaleGL/core/Animator';
 import { GPU } from '@/PaleGL/core/GPU';
 import { Component } from '@/PaleGL/core/Component.ts';
 import { Camera } from '@/PaleGL/actors/Camera';
@@ -39,7 +40,8 @@ export class Actor {
     parent: Actor | null = null;
     children: Actor[] = [];
     components: Component[] = [];
-    animator: Animator | null = null; // TODO: いよいよcomponentっぽくしたくなってきた
+    // ORIGINAL
+    // animator: Animator | null = null; // TODO: component化
 
     // lifecycle callback
     _onStart: OnStartCallback[] = [];
@@ -108,9 +110,10 @@ export class Actor {
         this.transform = new Transform(this);
         this.type = type || ActorTypes.Null;
         this.uuid = isDevelopment() ? uuidv4() : Math.floor(Math.random() * 10000); // dummy
-        if(isDevelopment()) {
-        this.animator = new Animator();
-        }
+        // ORIGINAL
+        // if(isDevelopment()) {
+        //     this.animator = new Animator();
+        // }
     }
 
     addChild(child: Actor) {
@@ -161,17 +164,17 @@ export class Actor {
         });
     }
 
-    // fixedUpdate({gpu, fixedTime, fixedDeltaTime}: { gpu: GPU, fixedTime: number, fixedDeltaTime: number } = {}) {
     fixedUpdate({ gpu, scene, fixedTime, fixedDeltaTime }: ActorFixedUpdateArgs) {
         this.$tryStart({ gpu, scene });
         this.components.forEach((component) => {
             component.fixedUpdate({ actor: this, gpu, fixedTime, fixedDeltaTime });
         });
-        if(isDevelopment()) {
-        if (this.animator) {
-            this.animator.update(fixedDeltaTime);
-        }
-        }
+        // ORIGINAL
+        // if(isDevelopment()) {
+        //     if (this.animator) {
+        //         this.animator.update(fixedDeltaTime);
+        //     }
+        // }
         if (this._onFixedUpdate) {
             this._onFixedUpdate({ actor: this, gpu, scene, fixedTime, fixedDeltaTime });
         }

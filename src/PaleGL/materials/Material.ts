@@ -76,10 +76,11 @@ export type MaterialArgs = {
     // env map
     // useEnvMap?: boolean | null;
 
-    // skinning
-    isSkinning?: boolean | null;
-    gpuSkinning?: boolean | null;
-    jointNum?: number | null;
+    // ORIGINAL
+    // // skinning
+    // isSkinning?: boolean | null;
+    // gpuSkinning?: boolean | null;
+    // jointNum?: number | null;
 
     // instancing
     isInstancing?: boolean;
@@ -96,16 +97,18 @@ export type MaterialArgs = {
 
 export type VertexShaderGenerator = ({
     attributeDescriptors,
-    isSkinning,
-    jointNum,
-    gpuSkinning,
+    // ORIGINAL
+    // isSkinning,
+    // jointNum,
+    // gpuSkinning,
     isInstancing,
     useInstanceLookDirection,
 }: {
     attributeDescriptors: AttributeDescriptor[];
-    isSkinning: boolean;
-    jointNum: number | null;
-    gpuSkinning: boolean | null;
+    // ORIGINAL
+    // isSkinning: boolean;
+    // jointNum: number | null;
+    // gpuSkinning: boolean | null;
     isInstancing: boolean;
     useInstanceLookDirection: boolean;
 }) => string;
@@ -156,10 +159,11 @@ export class Material {
     // ORIGINAL
     // useEnvMap: boolean | null;
 
-    // skinning
-    isSkinning: boolean | null;
-    gpuSkinning: boolean | null;
-    jointNum: number | null;
+    // ORIGINAL
+    // // skinning
+    // isSkinning: boolean | null;
+    // gpuSkinning: boolean | null;
+    // jointNum: number | null;
 
     // instancing
     isInstancing: boolean;
@@ -243,10 +247,11 @@ export class Material {
         // ORIGINAL
         // useNormalMap = null,
 
-        // skinning
-        isSkinning = null,
-        gpuSkinning = null,
-        jointNum = null,
+        // ORIGINAL
+        // // skinning
+        // isSkinning = null,
+        // gpuSkinning = null,
+        // jointNum = null,
 
         // instancing
         isInstancing = false,
@@ -341,10 +346,11 @@ export class Material {
             console.error(`[Material.constructor] invalid render queue: ${renderQueue}`);
         }
 
-        // skinning
-        this.isSkinning = !!isSkinning;
-        this.gpuSkinning = !!gpuSkinning;
-        this.jointNum = typeof jointNum == 'number' ? jointNum : null;
+        // // ORIGINAL
+        // // skinning
+        // this.isSkinning = !!isSkinning;
+        // this.gpuSkinning = !!gpuSkinning;
+        // this.jointNum = typeof jointNum == 'number' ? jointNum : null;
 
         this.isInstancing = !!isInstancing;
         this.useInstanceLookDirection = !!useInstanceLookDirection;
@@ -438,8 +444,9 @@ export class Material {
 
         const shaderDefineOptions: ShaderDefines = {
             receiveShadow: !!this.receiveShadow,
-            isSkinning: !!this.isSkinning,
-            gpuSkinning: !!this.gpuSkinning,
+            // ORIGINAL
+            // isSkinning: !!this.isSkinning,
+            // gpuSkinning: !!this.gpuSkinning,
             // ORIGINAL
             // useNormalMap: !!this.useNormalMap,
             // useEnvMap: !!this.useEnvMap,
@@ -454,9 +461,10 @@ export class Material {
             if (!this.vertexShader && this._vertexShaderGenerator) {
                 this.vertexShader = this._vertexShaderGenerator({
                     attributeDescriptors,
-                    isSkinning: !!this.isSkinning,
-                    jointNum: this.jointNum,
-                    gpuSkinning: this.gpuSkinning,
+                    // ORIGINAL
+                    // isSkinning: !!this.isSkinning,
+                    // jointNum: this.jointNum,
+                    // gpuSkinning: this.gpuSkinning,
                     isInstancing: this.isInstancing,
                     useInstanceLookDirection: this.useInstanceLookDirection,
                 });

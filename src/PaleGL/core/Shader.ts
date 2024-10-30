@@ -25,17 +25,17 @@ function createShader(gl: WebGL2RenderingContext, type: number, src: string) {
 }
 
 export class Shader extends GLObject {
-    private program: WebGLProgram | null;
-    private gpu: GPU;
+    _program: WebGLProgram | null;
+    _gpu: GPU;
 
     get glObject(): WebGLProgram {
-        return this.program!;
+        return this._program!;
     }
 
     constructor({ gpu, vertexShader, fragmentShader, transformFeedbackVaryings }: ShaderParams) {
         super();
 
-        this.gpu = gpu;
+        this._gpu = gpu;
 
         const { gl } = gpu;
         const program = gl.createProgram()!;
@@ -90,12 +90,12 @@ export class Shader extends GLObject {
             console.error(programInfo);
         }
 
-        this.program = program;
+        this._program = program;
     }
 
     dispose() {
-        this.gpu.gl.deleteShader(this.program);
-        this.program = null;
+        this._gpu.gl.deleteShader(this._program);
+        this._program = null;
     }
 
     // uniformBlockInfos:{
