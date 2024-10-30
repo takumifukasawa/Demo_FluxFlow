@@ -13,10 +13,14 @@ import { maton } from '@/PaleGL/utilities/maton.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 import {
     generateKeepFlyingInstancePositions,
-    MorphFollowerActorControllerEntity
+    MorphFollowerActorControllerEntity,
 } from './createMorphFollowersActorController.ts';
 import { lerp, saturate } from '@/PaleGL/utilities/mathUtilities.ts';
-import { easeInOutQuad, easeOutCube } from '@/PaleGL/utilities/easingUtilities.ts';
+import {
+    easeInOutQuad, easeOutCube,
+    // easeOutCube,
+    // easeOut,
+} from '@/PaleGL/utilities/easingUtilities.ts';
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
 import { ORIGIN_FORGE_ACTOR_NAME } from './demoConstants.ts';
 import { Material } from '@/PaleGL/materials/Material.ts';
@@ -221,6 +225,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
 
     let morphFollowersActorControllerEntities: MorphFollowerActorControllerEntity[] = [];
     let gatherChildlenActors: Actor[] = [];
+    // let timelineTimeCache = 0;
 
     let metaballPositions = maton.range(METABALL_NUM).map(() => {
         return new Vector3(0, 0, 0);
@@ -287,7 +292,6 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         distance: 15,
         attenuation: 1,
     });
-    
 
     const initialize = (entities: MorphFollowerActorControllerEntity[], _gatherChildrenActors: Actor[]) => {
         morphFollowersActorControllerEntities = entities;
@@ -447,14 +451,15 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     };
 
     const calcEmitInstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
-        const t = easeInOutQuad(r);
+        const t = r
         // TODO: パラメーター化したい
         // TODO: ちょっと回転とかさせたい
         // TODO: 出す速度調整したい
-        const range = lerp(0, 2, t);
         const p = maton.range(METABALL_NUM, true).map((i) => {
+            const delay = (1 - r) * (i / METABALL_NUM);
+            const range = lerp(0, 2, saturate(t - delay));
             const pd = 360 / METABALL_NUM;
-            const rad = i * pd * DEG_TO_RAD;
+            const rad = (90 - i * pd) * DEG_TO_RAD;
             const x = Math.cos(rad) * range;
             const y = Math.sin(rad) * range;
             const v = new Vector3(x, y, 0);
@@ -476,7 +481,10 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         // if rawRate >= 0.5
         // 中央から出現するフェーズ
         // 0.5~1 -> 0~1
-        const rate = rawRate < 0.5 ? saturate(rawRate * 2) : saturate((rawRate - 0.5) * 2);
+        const threshold = 0.9;
+        const invThreshold = 1 / threshold;
+        const otherInvThreshold = 1 / (1 - threshold);
+        const rate = rawRate < threshold ? saturate(rawRate * invThreshold) : saturate((rawRate - threshold) * otherInvThreshold);
 
         // 発生前の段階では、metaballの位置と同期
         // TODO: フレームが飛びまくるとおかしくなる可能性大なので、対象のinstance16個以外は常にmetaballと同期でもいい気がする
@@ -491,7 +499,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             if (i < data.instanceNumStartIndex) {
                 // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
             } else if (i <= data.instanceNumEndIndex) {
-                if (rawRate < 0.5) {
+                if (rawRate < threshold) {
                     // 発生前
                     const positionIndex = i - data.instanceNumStartIndex;
                     const p = hiddenInstancePositions[positionIndex];
@@ -508,23 +516,20 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             } else {
                 // NOTE: 明後日の方向に飛ばす
                 // TODO: ここパラメーター化したい
-                _morphFollowersActorController.setInstancePosition(
-                    i,
-                    generateKeepFlyingInstancePositions(i)
-                );
+                _morphFollowersActorController.setInstancePosition(i, generateKeepFlyingInstancePositions(i));
                 _morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
                 _morphFollowersActorController.setInstanceState(i, { morphRate: rate });
             }
         }
 
-        if (rawRate < 0.5) {
+        if (rawRate < threshold) {
             _morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
             const instancePositions = calcEmitInstancePositions(rate, false);
             metaballPositions = instancePositions;
             // mesh.materials.forEach((_, i) => {
             //     mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
             // });
-            mesh.setUniformValueToAllMaterials(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions)
+            mesh.setUniformValueToAllMaterials(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
         } else {
             _morphFollowersActorController.setInstanceNum(data.instanceNum);
             hideMetaballChildren();
@@ -545,6 +550,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     };
 
     mesh.onPostProcessTimeline = (time: number) => {
+        // timelineTimeCache = time;
+        
         //
         // gatherフェーズの更新
         //
@@ -600,10 +607,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             );
         });
 
-        mesh.setUniformValueToAllMaterials(
-            UNIFORM_NAME_METABALL_GATHER_SCALE_RATE,
-            statesParameters.gatherScale
-        );
+        mesh.setUniformValueToAllMaterials(UNIFORM_NAME_METABALL_GATHER_SCALE_RATE, statesParameters.gatherScale);
 
         //
         // surface
@@ -622,7 +626,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         mesh.materials.forEach((material) => {
             material.uniforms.setValue(UniformNames.EmissiveColor, surfaceParameters.emissiveColor);
         });
-        
+
         //
         // light
         //

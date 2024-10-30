@@ -39,6 +39,7 @@ import {
     buildTimelinePropertyR,
     clipRate,
     isTimeInClip,
+    // tryAssignTimelineProperty,
 } from '@/Marionetter/timelineUtilities.ts';
 import { easeInOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
 import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
@@ -1162,7 +1163,7 @@ export const createMorphFollowersActor = (
             //}
             return;
         }
-        
+
         // attract amplitude
         if (key === 'aa') {
             stateParameters.attractAmplitude = value;
@@ -1202,22 +1203,33 @@ export const createMorphFollowersActor = (
             surfaceParameters.diffuseColor.b = value;
             return;
         }
+        // tryAssignTimelineProperty(key, value, buildTimelinePropertyB(SURFACE_DIFFUSE_PROPERTY_BASE), (v) => {
+        //     surfaceParameters.diffuseColor.b = v;
+        // })
 
         // emissive r
         if (key === buildTimelinePropertyR(SURFACE_EMISSIVE_PROPERTY_BASE)) {
             surfaceParameters.emissiveColor.r = value;
             return;
         }
+        // tryAssignTimelineProperty(key, value, buildTimelinePropertyR(SURFACE_EMISSIVE_PROPERTY_BASE), (v) => {
+        //     surfaceParameters.emissiveColor.r = v;
+        // })
         // emissive g
         if (key === buildTimelinePropertyG(SURFACE_EMISSIVE_PROPERTY_BASE)) {
             surfaceParameters.emissiveColor.g = value;
             return;
         }
+        // tryAssignTimelineProperty(key, value, buildTimelinePropertyG(SURFACE_EMISSIVE_PROPERTY_BASE), (v) => {
+        //     surfaceParameters.emissiveColor.g = v;
+        // })
         // emissive b
         if (key === buildTimelinePropertyB(SURFACE_EMISSIVE_PROPERTY_BASE)) {
-            surfaceParameters.emissiveColor.b = value;
             return;
         }
+        // tryAssignTimelineProperty(key, value, buildTimelinePropertyB(SURFACE_EMISSIVE_PROPERTY_BASE), (v) => {
+        //     surfaceParameters.emissiveColor.b = v;
+        // })
     };
 
     mesh.onPostProcessTimeline = (time: number) => {

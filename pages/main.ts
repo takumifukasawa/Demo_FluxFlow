@@ -543,6 +543,8 @@ const playDemo = () => {
     renderer.volumetricLightPass.parameters.rayJitterSize.z = 0.2;
 
     renderer.screenSpaceShadowPass.parameters.jitterSize = new Vector3(0.09, 0.09, 0);
+    renderer.screenSpaceShadowPass.parameters.sharpness = 1.015;
+    renderer.screenSpaceShadowPass.parameters.strength = 2.973;
 
     renderer.chromaticAberrationPass.parameters.scale = 0.041;
     renderer.chromaticAberrationPass.parameters.power = 1.236;

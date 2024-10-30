@@ -14,6 +14,10 @@ export function easeInOutCubic(t: number) {
     return saturate((t - 1) * (2 * t - 2) * (2 * t - 2) + 1);
 }
 
+export function easeOut(t: number) {
+    return saturate(Math.sin(t * Math.PI / 2));
+}
+
 export function easeOutQuad(t: number) {
     return saturate(1 - Math.pow(1 - t, 2));
 }
