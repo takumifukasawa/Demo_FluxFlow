@@ -23,9 +23,10 @@ import {
     MarionetterObjectMoveAndLookAtClipInfo,
     MarionetterObjectMoveAndLookAtClipInfoProperty,
     MarionetterPlayableDirectorComponentInfo,
-    MarionetterPostProcessBloom,
-    MarionetterPostProcessDepthOfField,
-    MarionetterPostProcessVignette,
+    // MarionetterPostProcessBloom,
+    // MarionetterPostProcessDepthOfField,
+    // MarionetterPostProcessVignette,
+    // MarionetterPostProcessVolumetricLight,
     MarionetterSignalEmitter,
     MarionetterTimeline,
     MarionetterTimelineDefaultTrack,
@@ -60,9 +61,7 @@ import {
 import { Rotator } from '@/PaleGL/math/Rotator.ts';
 import { Quaternion } from '@/PaleGL/math/Quaternion.ts';
 import { Matrix4 } from '@/PaleGL/math/Matrix4.ts';
-import { ActorTypes, DEG_TO_RAD, LightTypes, PostProcessPassType } from '@/PaleGL/constants.ts';
-import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
-import { BloomPassParameters } from '@/PaleGL/postprocess/BloomPass.ts';
+import { ActorTypes, DEG_TO_RAD, LightTypes } from '@/PaleGL/constants.ts';
 import { SpotLight } from '@/PaleGL/actors/SpotLight.ts';
 import { ObjectMoveAndLookAtController } from '@/PaleGL/components/objectMoveAndLookAtController.ts';
 import { isTimeInClip } from '@/Marionetter/timelineUtilities.ts';
@@ -340,22 +339,31 @@ function createMarionetterAnimationClip(
                 case PROPERTY_MATERIAL_BASE_COLOR_A:
                     // TODO: GBufferMaterialとの連携？
                     break;
-                case MarionetterPostProcessBloom.bloomIntensity:
-                    const params = (actor as PostProcessVolume).findParameter<BloomPassParameters>(
-                        PostProcessPassType.Bloom
-                    );
-                    if (params) {
-                        params.bloomAmount = value;
-                    }
-                    break;
-                case MarionetterPostProcessDepthOfField.focusDistance:
-                    // TODO: post process 連携
-                    break;
-                case MarionetterPostProcessVignette.vignetteIntensity:
-                    break;
+                // TODO: marionetter じゃなくてもいいかもしれない
+                // case MarionetterPostProcessBloom.bloomIntensity:
+                //     const bloomParams = (actor as PostProcessVolume).findParameter<BloomPassParameters>(
+                //         PostProcessPassType.Bloom
+                //     );
+                //     if (bloomParams) {
+                //         bloomParams.bloomAmount = value;
+                //     }
+                //     break;
+                // case MarionetterPostProcessDepthOfField.focusDistance:
+                //     break;
+                // case MarionetterPostProcessVignette.vignetteIntensity:
+                //     break;
+                // case MarionetterPostProcessVolumetricLight.volumetricLightRayStep:
+                //     const volumetricLightParams = (
+                //         actor as PostProcessVolume
+                //     ).findParameter<VolumetricLightPassParameters>(PostProcessPassType.VolumetricLight);
+                //     if (volumetricLightParams) {
+                //         volumetricLightParams.rayStep = value;
+                //     }
+                //     console.log(actor)
+                //     break;
                 default:
-                    // 厳しい場合、propertyが紐づいていない場合はエラーを出す
-                    // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}, value: ${value}`);
+                // 厳しい場合、propertyが紐づいていない場合はエラーを出す
+                // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}, value: ${value}`);
             }
 
             // for debug
@@ -379,12 +387,11 @@ function createMarionetterAnimationClip(
             const q = Quaternion.rotationMatrixToQuaternion(rm);
             actor.transform.rotation = new Rotator(
                 // actor.type === ActorTypes.Light && (actor as Light).lightType === LightTypes.Spot ? q.invertAxis() : q
-                (actor.type === ActorTypes.Light) &&
-                    (
-                        (actor as Light).lightType === LightTypes.Spot || 
-                        (actor as Light).lightType === LightTypes.Directional
-                    )
-                ? q.invertAxis() : q
+                actor.type === ActorTypes.Light &&
+                ((actor as Light).lightType === LightTypes.Spot ||
+                    (actor as Light).lightType === LightTypes.Directional)
+                    ? q.invertAxis()
+                    : q
             );
         } else {
             actor.transform.rotation = Rotator.fromQuaternion(Quaternion.identity());

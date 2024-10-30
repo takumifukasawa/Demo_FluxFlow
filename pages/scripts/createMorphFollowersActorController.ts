@@ -25,7 +25,7 @@ import { GPU } from '@/PaleGL/core/GPU.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { Mesh } from '@/PaleGL/actors/Mesh.ts';
 import { Actor } from '@/PaleGL/actors/Actor.ts';
-import {generateRandomValue, randomOnUnitCircle, randomOnUnitSphere} from '@/PaleGL/utilities/mathUtilities.ts';
+import { generateRandomValue, randomOnUnitCircle, randomOnUnitSphere } from '@/PaleGL/utilities/mathUtilities.ts';
 import {
     createObjectSpaceRaymarchMaterial,
     ObjectSpaceRaymarchMaterialArgs,
@@ -40,12 +40,12 @@ import {
     clipRate,
     isTimeInClip,
 } from '@/Marionetter/timelineUtilities.ts';
-import { easeInOutQuad, easeOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
+import { easeInOutQuad } from '@/PaleGL/utilities/easingUtilities.ts';
 import { BoxGeometry } from '@/PaleGL/geometries/BoxGeometry.ts';
 import { MorphSurfaceParameters } from './originForgeActorController.ts';
 // import {DefaultForgeSurfaceParameters} from "./originForgeActorController.ts";
 
-const updateBufferSubDataEnabled = false;
+const UPDATE_BUFFER_SUB_DATA_ENABLED = false;
 
 const MAX_INSTANCE_NUM = 256;
 const INITIAL_INSTANCE_NUM = 0;
@@ -101,7 +101,7 @@ const shaderContentPairs: {
     depth: string;
     uniforms: UniformsData;
 }[] = [
-    // 0: sp -> butterfly -> sp
+    // 0: sp -> butterfly
     {
         morphType: FollowerMorphType.Butterfly,
         fragment: litObjectSpaceRaymarchFragMorphButterflyContent,
@@ -114,7 +114,7 @@ const shaderContentPairs: {
             },
         ],
     },
-    // 1: sp -> primitive -> sp
+    // 1: sp -> primitive
     {
         morphType: FollowerMorphType.Primitive,
         fragment: litObjectSpaceRaymarchFragMorphPrimitiveContent,
@@ -127,7 +127,7 @@ const shaderContentPairs: {
             },
         ],
     },
-    // 2: sp -> flower -> sp
+    // 2: sp -> flower
     {
         morphType: FollowerMorphType.Flower,
         fragment: litObjectSpaceRaymarchFragMorphFlowerContent,
@@ -216,7 +216,6 @@ export type MorphFollowersActorController = {
     setFollowAttractMode: (mode: FollowerAttractMode) => void;
 };
 
-
 //
 // functions
 //
@@ -224,7 +223,6 @@ export type MorphFollowersActorController = {
 export const generateKeepFlyingInstancePositions = (i: number) => {
     return new Vector3(Math.cos(i) * 60, Math.sin(i) * 50, Math.sin(i) * 20);
 };
-
 
 const createInstanceUpdater = ({
     gpu,
@@ -382,6 +380,9 @@ export const createMorphFollowersActor = (
         floorEmitRange: 0,
         attractBasePower: 2,
         attractMinPower: 0.2,
+        // attractPower: 1,
+        attractAmplitude: 0.2,
+        morphRate: 0,
     };
 
     const surfaceParameters: Required<MorphSurfaceParameters> = {
@@ -536,6 +537,7 @@ export const createMorphFollowersActor = (
         tmpInstanceInfo.transformFeedbackStates.push([i, 0, 0, 0]);
     });
 
+    // いろいろとインスタンスの情報を格納しておく部分
     const instancingInfo: {
         position: Float32Array;
         scale: Float32Array;
@@ -654,7 +656,7 @@ export const createMorphFollowersActor = (
         instancingInfo.position[index * 3] = p.x;
         instancingInfo.position[index * 3 + 1] = p.y;
         instancingInfo.position[index * 3 + 2] = p.z;
-        // if (updateBufferSubDataEnabled) {
+        // if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
         // TODO: ここはupdateBufferSubDataせざるを得ないが、dirtyFragでもいいかもしれない
         transformFeedbackDoubleBuffer.updateBufferSubData(TRANSFORM_FEEDBACK_ATTRIBUTE_POSITION_NAME, index, p.e);
         // }
@@ -670,7 +672,7 @@ export const createMorphFollowersActor = (
         instancingInfo.velocity[index * ATTRIBUTE_VELOCITY_ELEMENTS_NUM + 1] = nv.y;
         instancingInfo.velocity[index * ATTRIBUTE_VELOCITY_ELEMENTS_NUM + 2] = nv.z;
         instancingInfo.velocity[index * ATTRIBUTE_VELOCITY_ELEMENTS_NUM + 3] = mag;
-        // if (updateBufferSubDataEnabled) {
+        // if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
         // TODO: ここはupdateBufferSubDataせざるを得ないが、dirtyFragでもいいかもしれない
         transformFeedbackDoubleBuffer.updateBufferSubData(
             TRANSFORM_FEEDBACK_ATTRIBUTE_VELOCITY_NAME,
@@ -685,7 +687,7 @@ export const createMorphFollowersActor = (
         instancingInfo.scale[index * 3] = s.x;
         instancingInfo.scale[index * 3 + 1] = s.y;
         instancingInfo.scale[index * 3 + 2] = s.z;
-        if (updateBufferSubDataEnabled) {
+        if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
             mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceScale, index, s.e);
         }
     };
@@ -696,7 +698,7 @@ export const createMorphFollowersActor = (
         instancingInfo.color[index * 4 + 1] = c.g;
         instancingInfo.color[index * 4 + 2] = c.b;
         instancingInfo.color[index * 4 + 3] = c.a;
-        if (updateBufferSubDataEnabled) {
+        if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
             mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceVertexColor, index, c.e);
         }
     };
@@ -707,7 +709,7 @@ export const createMorphFollowersActor = (
         instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 1] = c.g;
         instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 2] = c.b;
         instancingInfo.emissiveColor[index * ATTRIBUTE_EMISSIVE_COLOR_ELEMENTS_NUM + 3] = c.a;
-        if (updateBufferSubDataEnabled) {
+        if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
             mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceEmissiveColor, index, c.e);
         }
     };
@@ -717,7 +719,7 @@ export const createMorphFollowersActor = (
         instancingInfo.lookDirection[index * ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM + 0] = lookDirection.x;
         instancingInfo.lookDirection[index * ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM + 1] = lookDirection.y;
         instancingInfo.lookDirection[index * ATTRIBUTE_LOOK_DIRECTION_ELEMENTS_NUM + 2] = lookDirection.z;
-        if (updateBufferSubDataEnabled) {
+        if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
             mesh.geometry.vertexArrayObject.updateBufferSubData(AttributeNames.InstanceState, index, lookDirection.e);
         }
     };
@@ -744,7 +746,7 @@ export const createMorphFollowersActor = (
         if (scale !== undefined) {
             instancingInfo.instanceStates[index * ATTRIBUTE_INSTANCE_STATE_ELEMENTS_NUM + 2] = scale;
         }
-        if (updateBufferSubDataEnabled) {
+        if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
             mesh.geometry.vertexArrayObject.updateBufferSubData(
                 AttributeNames.InstanceState,
                 index,
@@ -810,7 +812,7 @@ export const createMorphFollowersActor = (
             instancingInfo.transformFeedbackStates[index * 4 + 3],
         ];
 
-        if (updateBufferSubDataEnabled) {
+        if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
             transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
                 TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
                 index,
@@ -854,7 +856,7 @@ export const createMorphFollowersActor = (
         const py = instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 1];
         const pz = instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 2];
         const amp = instancingInfo.attractPosition[index * TRANSFORM_FEEDBACK_ATTRACT_TARGET_POSITION_ELEMENTS_NUM + 3];
-        if (updateBufferSubDataEnabled) {
+        if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
             transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
                 TRANSFORM_FEEDBACK_ATTRIBUTE_ATTRACT_TARGET_POSITION,
                 index,
@@ -881,7 +883,7 @@ export const createMorphFollowersActor = (
         instancingInfo.transformFeedbackStates[index * 4 + 2] = newState[2];
         instancingInfo.transformFeedbackStates[index * 4 + 3] = newState[3];
 
-        if (updateBufferSubDataEnabled) {
+        if (UPDATE_BUFFER_SUB_DATA_ENABLED) {
             transformFeedbackDoubleBuffer.read.vertexArrayObject.updateBufferSubData(
                 TRANSFORM_FEEDBACK_ATTRIBUTE_STATE_NAME,
                 index,
@@ -896,17 +898,21 @@ export const createMorphFollowersActor = (
         mesh.geometry.instanceCount = n;
     };
 
+    // on post process timeline で上流から呼ばれる
     const updateStatesAndBuffers = () => {
         for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
             //
             // コントロールされていない時の処理
             //
-            if(!_isControlled) {
-                if(i >= instancingInfo.instanceNum) {
-                    setInstancePosition(i, generateKeepFlyingInstancePositions(i))
+            if (!_isControlled) {
+                // 最大instance数より遠い場合は適当な場所に飛ばす
+                if (i >= instancingInfo.instanceNum) {
+                    setInstancePosition(i, generateKeepFlyingInstancePositions(i));
                 }
+                // morph rate
+                setInstanceState(i, { morphRate: stateParameters.morphRate });
             }
-            
+
             //
             // follow mode に応じて追従先の位置を設定
             //
@@ -933,7 +939,7 @@ export const createMorphFollowersActor = (
                         const wp = attractorTargetBoxActor.transform.localPointToWorld(lp);
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
                             p: wp,
-                            attractAmplitude: 0.1,
+                            attractAmplitude: stateParameters.attractAmplitude,
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
@@ -944,13 +950,12 @@ export const createMorphFollowersActor = (
                         // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
                         const pickIndex = sphereIndexPicker[i % sphereIndexPicker.length];
                         const lp = randomOnUnitSphere(_followerSeed + i).scale(0.5);
-                        const wp =
-                            _attractorTargetSphereActors[pickIndex].transform.localPointToWorld(lp); // TODO: timelineの後でやるべき?
+                        const wp = _attractorTargetSphereActors[pickIndex].transform.localPointToWorld(lp); // TODO: timelineの後でやるべき?
                         // for debug
                         // console.log(i, randomOnUnitSphere(i).e, randomOnUnitSphere(i).e, lp.e, wp.e, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.e)
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                             p: wp,
-                            attractAmplitude: 0.1,
+                            attractAmplitude: stateParameters.attractAmplitude,
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     }
@@ -960,7 +965,7 @@ export const createMorphFollowersActor = (
                     const wp = randomOnUnitCircle(_followerSeed + i, stateParameters.floorEmitRange); // TODO: scaleをfloor_actorから引っ張ってきたい
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
-                        attractAmplitude: 0,
+                        attractAmplitude: stateParameters.attractAmplitude,
                     });
                     setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
                     continue;
@@ -977,7 +982,7 @@ export const createMorphFollowersActor = (
                 // attractTypeならTargetは必ずあるはず
                 setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
                     p,
-                    attractAmplitude: 0.3,
+                    attractAmplitude: stateParameters.attractAmplitude,
                 });
                 setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
             }
@@ -1039,7 +1044,7 @@ export const createMorphFollowersActor = (
         // transformFeedbackDoubleBuffer.uniforms.setValue('uTime', gpu.time);
 
         // buffer sub data が有効じゃない場合はバッファを一括で入れ替える
-        if (!updateBufferSubDataEnabled) {
+        if (!UPDATE_BUFFER_SUB_DATA_ENABLED) {
             mesh.geometry.vertexArrayObject.updateBufferData(
                 AttributeNames.InstanceLookDirection,
                 instancingInfo.lookDirection
@@ -1134,7 +1139,14 @@ export const createMorphFollowersActor = (
             stateParameters.attractMinPower = value;
             return;
         }
-        
+
+        // morph rate
+        // controlに関わらずセットはするが、実際にfollower自身で適用するのはcontrolがfalseの時@postProcessTimeline
+        if (key === 'mr') {
+            stateParameters.morphRate = value;
+            return;
+        }
+
         //
         // forgeによる制御を受け付けている場合は以降は無視
         //
@@ -1150,9 +1162,10 @@ export const createMorphFollowersActor = (
             //}
             return;
         }
-        // morph rate
-        if (key === 'mr') {
-            setInstanceState(value, { morphRate: value });
+        
+        // attract amplitude
+        if (key === 'aa') {
+            stateParameters.attractAmplitude = value;
             return;
         }
 
@@ -1214,12 +1227,13 @@ export const createMorphFollowersActor = (
                 if (i >= _internalInstanceNum) {
                     setInstanceAttractPower(i, easeInOutQuad(rr));
                     setInstanceAttractorTarget(i, _orbitFollowTargetActor);
-                    setInstanceState(i, { morphRate: easeOutQuad(rr) });
+                    // timeline側からやるようになったのでいらないはず
+                    // setInstanceState(i, { morphRate: easeOutQuad(rr) });
                 }
             }
         }
     };
-    
+
     // mesh.onLastUpdate = () => {
     //     mesh.geometry.instanceCount = MAX_INSTANCE_NUM;
     // }

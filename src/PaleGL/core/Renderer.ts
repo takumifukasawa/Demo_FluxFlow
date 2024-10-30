@@ -333,11 +333,11 @@ export class Renderer {
         this._toneMappingPass = new ToneMappingPass({ gpu });
         this._scenePostProcess.addPass(this._toneMappingPass);
 
-        this._chromaticAberrationPass = new ChromaticAberrationPass({ gpu });
-        this._scenePostProcess.addPass(this._chromaticAberrationPass);
-
         this._vignettePass = new VignettePass({ gpu });
         this._scenePostProcess.addPass(this._vignettePass);
+
+        this._chromaticAberrationPass = new ChromaticAberrationPass({ gpu });
+        this._scenePostProcess.addPass(this._chromaticAberrationPass);
 
         this._glitchPass = new GlitchPass({ gpu });
         this._scenePostProcess.addPass(this._glitchPass);

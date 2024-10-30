@@ -50,14 +50,14 @@ vec2 dfScene(vec3 p) {
     float d1 = dfBo(q1, sf);
     
     // repeat floor
-    float r = 4.; // repeat
+    float r = 6.; // repeat
     vec3 q2 = p;
     vec3 id2 = OP_ID(p, r);
     q2 = opTr(q2, vec3(0., -50., 0.));
     q2.xz = OP_RE(q2.xz, r);
     float hash = rand(id2.xz);
     // q = OP_LI_RE(q, r, vec3(2., 2., 2.));
-    vec3 s = vec3(1., 44., 1.);
+    vec3 s = vec3(1.5, 44., 1.5);
     float d2 = dfBo(q2, s);
     // float di =
     //     sin(p.x * 1. + uTimelineTime * 3.6) * .1 +
@@ -69,7 +69,7 @@ vec2 dfScene(vec3 p) {
     vec3 q3 = p;
     q3 = opTr(q3, vec3(0., -50., 0.));
     // single floor scale
-    vec3 sf = vec3(100., 48.5, 100.);
+    vec3 sf = vec3(1000., 48.5, 1000.);
     float d3 = dfBo(q3, sf);
 
     float d = opTb(uMR, d1, d2, d3);

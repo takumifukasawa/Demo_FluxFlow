@@ -119,9 +119,6 @@ void main() {
         //     uDeltaTime
         // );
         float attractDelayValue = hash * .5;
-        // float baseAttractPower = 2.;
-        // float attractMinPower = .2;
-        // velocity = diffP * uDeltaTime * attractPower * baseAttractPower;
         vec3 v = diffP
             * uTimelineDeltaTime
             * max(max(attractPower - attractDelayValue, 0.), uAttractMinPower) * uAttractBasePower;

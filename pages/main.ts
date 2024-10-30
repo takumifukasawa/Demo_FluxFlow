@@ -1,27 +1,13 @@
-// actors
 import { DirectionalLight } from '@/PaleGL/actors/DirectionalLight';
 import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera';
-
-// core
 import { Engine } from '@/PaleGL/core/Engine';
 import { Renderer } from '@/PaleGL/core/Renderer';
 import { GPU } from '@/PaleGL/core/GPU';
-import { RenderTarget } from '@/PaleGL/core/RenderTarget';
 import { Scene } from '@/PaleGL/core/Scene';
-
-// loaders
-// materials
-// math
 import { Vector3 } from '@/PaleGL/math/Vector3';
 import { Vector4 } from '@/PaleGL/math/Vector4';
-
-// others
-import { RenderTargetTypes, TextureDepthPrecisionType } from '@/PaleGL/constants';
-
 import sceneJsonUrl from './data/scene.json';
-
 import { Camera } from '@/PaleGL/actors/Camera';
-import { OrthographicCamera } from '@/PaleGL/actors/OrthographicCamera';
 import { PostProcess } from '@/PaleGL/postprocess/PostProcess.ts';
 import soundVertexShader from '@/PaleGL/shaders/sound-vertex-demo.glsl';
 import { wait } from '@/utilities/wait.ts';
@@ -31,17 +17,6 @@ import { Marionetter, MarionetterSceneStructure } from '@/Marionetter/types';
 import { MarionetterScene } from '@/Marionetter/types';
 import { buildMarionetterScene } from '@/Marionetter/buildMarionetterScene.ts';
 import { createPointLightDebugger, initDebugger } from './scripts/initDebugger.ts';
-
-// // textを使う場合
-// import { TextureFilterTypes } from '@/PaleGL/constants';
-// import { loadImg } from '@/PaleGL/loaders/loadImg.ts';
-// import { Texture } from '@/PaleGL/core/Texture.ts';
-// import { TextAlignType, TextMesh } from '@/PaleGL/actors/TextMesh.ts';
-// // for default img
-// // noto sans
-// import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5_compress-256.png?url';
-// // import fontAtlasImgUrl from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.png?url';
-// import fontAtlasJson from '../assets/fonts/NotoSans-Bold-atlas-128_f-16_r-5.json';
 
 import { initGLSLSound } from './scripts/initGLSLSound.ts';
 import { createOriginForgeActorController, OriginForgeActorController } from './scripts/originForgeActorController.ts';
@@ -91,13 +66,14 @@ import { createBlackCurtainPass } from './scripts/createBlackCurtainPass.ts';
 import { SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 import { createStartupLayer } from './scripts/createStartupLayer.ts';
 import { createIngameLayer } from './scripts/createIngameLayer.ts';
+import { createSpotLightController } from './scripts/createSpotLightController.ts';
+import { createDirectionalLightController } from './scripts/createDirectionalLightController.ts';
+import { createPostProcessController } from './scripts/createPostProcessController.ts';
 
-// const wrapperElement = document.getElementById("wrapper")!;
 const wrapperElement = document.createElement('div');
 document.body.appendChild(wrapperElement);
 wrapperElement.setAttribute('id', 'wrapper');
 
-// const canvasElement = document.getElementById("js-canvas")! as HTMLCanvasElement;
 const canvasElement = document.createElement('canvas')!;
 wrapperElement.appendChild(canvasElement);
 
@@ -110,7 +86,6 @@ if (!gl) {
 const gpu = new GPU(gl);
 
 let width: number, height: number;
-let directionalLight: DirectionalLight;
 let captureSceneCamera: PerspectiveCamera | null;
 let marionetterSceneStructure: MarionetterSceneStructure | null = null;
 let cameraPostProcess: PostProcess;
@@ -194,74 +169,29 @@ const buildScene = (sceneJson: MarionetterScene) => {
     // post process
     //
 
-    const postProessActor = captureScene.find(POST_PROCESS_ACTOR_NAME) as Actor;
-    postProessActor.onProcessPropertyBinder = (key, value) => {
-        // color cover pass
-        if (key === 'cbr') {
-            blackCurtainPass.setBlendRate(value);
-        }
-    };
+    createPostProcessController(renderer, captureScene.find(POST_PROCESS_ACTOR_NAME) as Actor, blackCurtainPass);
 
     //
-    // spot light shadow
+    // spot light
     //
 
-    const createSpotLightShadowMap = (spotLight: SpotLight) => {
-        if (spotLight.shadowCamera) {
-            spotLight.shadowCamera.visibleFrustum = false;
-            spotLight.castShadow = true;
-            spotLight.shadowCamera.near = 1;
-            spotLight.shadowCamera.far = spotLight.distance;
-            (spotLight.shadowCamera as PerspectiveCamera).setPerspectiveSize(1); // TODO: いらないかも
-            const shadowMapSize = 1024;
-            spotLight.shadowMap = new RenderTarget({
-                gpu,
-                width: shadowMapSize,
-                height: shadowMapSize,
-                type: RenderTargetTypes.Depth,
-                depthPrecision: TextureDepthPrecisionType.High,
-            });
-        }
-    };
-
-    createSpotLightShadowMap(captureScene.find(SPOT_LIGHT_ACTOR_NAME_A) as SpotLight);
-    createSpotLightShadowMap(captureScene.find(SPOT_LIGHT_ACTOR_NAME_B) as SpotLight);
+    createSpotLightController(gpu, captureScene.find(SPOT_LIGHT_ACTOR_NAME_A) as SpotLight);
+    createSpotLightController(gpu, captureScene.find(SPOT_LIGHT_ACTOR_NAME_B) as SpotLight);
 
     //
     // directional light and shadows
     //
 
-    directionalLight = captureScene.find(DIRECT_LIGHT_ACTOR_NAME) as DirectionalLight;
+    createDirectionalLightController(gpu, captureScene.find(DIRECT_LIGHT_ACTOR_NAME) as DirectionalLight);
 
-    // TODO: directional light は constructor で shadow camera を生成してるのでこのガードいらない
-    if (directionalLight && directionalLight.shadowCamera) {
-        directionalLight.shadowCamera.visibleFrustum = false;
-        directionalLight.castShadow = true;
-        directionalLight.shadowCamera.near = 1;
-        directionalLight.shadowCamera.far = 40;
-        const size = 12.5;
-        (directionalLight.shadowCamera as OrthographicCamera).setOrthoSize(null, null, -size, size, -size, size);
-        directionalLight.shadowMap = new RenderTarget({
-            gpu,
-            width: 1024,
-            height: 1024,
-            type: RenderTargetTypes.Depth,
-        });
-
-        // directionalLight.transform.setTranslation(new Vector3(-9.7, 10.1, -9));
-        // directionalLight.subscribeOnStart(({ actor }) => {
-        //     actor.transform.lookAt(new Vector3(0, 0, 0));
-        // });
-
-        // directionalLight.onUpdate = () => {
-        //     directionalLight.transform.position.log()
-        // }
-    }
+    //
+    // pp
+    //
 
     cameraPostProcess = new PostProcess();
     cameraPostProcess.enabled = true;
 
-    cameraPostProcess.addPass(blackCurtainPass.getPass());
+    cameraPostProcess.addPass(blackCurtainPass);
     captureSceneCamera.setPostProcess(cameraPostProcess);
 
     if (isDevelopment()) {
@@ -551,8 +481,8 @@ const load = async () => {
 };
 
 const playDemo = () => {
-    captureSceneCamera!.near = 0.1;
-    captureSceneCamera!.far = 400;
+    captureSceneCamera!.near = 1;
+    captureSceneCamera!.far = 500;
 
     const tick = (time: number) => {
         engine.run(time);
@@ -588,13 +518,13 @@ const playDemo = () => {
     renderer.vignettePass.parameters.vignetteRadius = 4.159;
     renderer.vignettePass.parameters.vignettePower = 2.714;
 
-    renderer.streakPass.parameters.threshold = 0.448;
-    renderer.streakPass.parameters.verticalScale = 7.611;
+    renderer.streakPass.parameters.threshold = 0.28;
+    renderer.streakPass.parameters.verticalScale = 5.487;
     renderer.streakPass.parameters.horizontalScale = 0.708;
-    renderer.streakPass.parameters.stretch = 0.95;
-    renderer.streakPass.parameters.intensity = 0.106;
+    renderer.streakPass.parameters.stretch = 1;
+    renderer.streakPass.parameters.intensity = 0.124;
 
-    renderer.volumetricLightPass.parameters.rayStep = 1;
+    // renderer.volumetricLightPass.parameters.rayStep = 1;
 
     renderer.depthOfFieldPass.parameters.focusRange = 3.74;
     renderer.depthOfFieldPass.parameters.bokehRadius = 2.898;

@@ -399,10 +399,20 @@ export type MarionetterVolumeLayerVignette = MarionetterVolumeVolumeLayerBase &
               intensity: number;
           });
 
+export type MarionetterVolumeLayerVolumetricLight = MarionetterVolumeVolumeLayerBase &
+    (NeedsShorten extends true
+        ? {
+            vl_rs: number;
+        }
+        : {
+            volumetricLightRayStep: number;
+        });
+
 export type MarionetterVolumeLayerKinds =
     | MarionetterVolumeLayerBloom
     | MarionetterVolumeLayerDepthOfField
-    | MarionetterVolumeLayerVignette;
+    | MarionetterVolumeLayerVignette
+    | MarionetterVolumeLayerVolumetricLight;
 
 export type MarionetterVolumeComponentInfo = MarionetterComponentInfoBase &
     (NeedsShorten extends true
@@ -522,6 +532,12 @@ export const MarionetterPostProcessVignette = {
 } as const;
 export type MarionetterPostProcessVignetteIntensity =
     (typeof MarionetterPostProcessVignette)[keyof typeof MarionetterPostProcessVignette];
+
+export const MarionetterPostProcessVolumetricLight = {
+    volumetricLightRayStep: NeedsShorten ? 'vl_rs' : 'volumetricLightRayStep',
+} as const;
+export type MarionetterPostProcessVolumetricLightRayStep =
+    (typeof MarionetterPostProcessVolumetricLight)[keyof typeof MarionetterPostProcessVolumetricLight];
 
 //
 // timeline

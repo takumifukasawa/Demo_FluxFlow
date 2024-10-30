@@ -12,6 +12,7 @@ out vec4 outColor;
 uniform sampler2D uSrcTexture;
 uniform float uTargetWidth;
 uniform float uTargetHeight;
+uniform float uAspect;
 uniform float uBlendRate;
 
 uniform float uVignetteRadius;
@@ -91,6 +92,13 @@ void main() {
     // centerUv.x *= uAspect;
     // float d = dot(centerUv, centerUv);
     // float factor = 1. - saturate(pow(min(1., d / uVignetteRadius), uVignettePower) * uBlendRate);
+    
+    // rect mask
+    vec2 centerUv = vUv * 2. - 1.;
+    centerUv.x *= uAspect;
+    vec2 rectSize = vec2(.5, .5);
+    vec2 rectArea = step(-rectSize, centerUv) * (1. - step(rectSize, centerUv));
+    float rectmask = rectArea.x * rectArea.y;
 
-    outColor = mix(srcCol, destCol, uBlendRate);
+    outColor = mix(srcCol, destCol, uBlendRate * rectmask);
 }

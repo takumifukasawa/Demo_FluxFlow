@@ -27,19 +27,22 @@ import {
     MarionetterSceneStructure,
     MarionetterSpotLightComponentInfo,
     MarionetterTimeline,
-    MarionetterVolumeComponentInfo,
-    MarionetterVolumeLayerBloom,
-    MarionetterVolumeLayerDepthOfField,
+    // ORIGINAL
+    // MarionetterVolumeComponentInfo,
+    // MarionetterVolumeLayerBloom,
+    // MarionetterVolumeLayerDepthOfField,
 } from '@/Marionetter/types';
 import { buildMarionetterTimeline } from '@/Marionetter/timeline.ts';
-import { ActorTypes, LightTypes, PostProcessPassType } from '@/PaleGL/constants.ts';
+import { ActorTypes, LightTypes } from '@/PaleGL/constants.ts';
+// ORIGINAL
+// import { PostProcessPassType } from '@/PaleGL/constants.ts';
 import { Light } from '@/PaleGL/actors/Light.ts';
-import { generateDefaultBloomPassParameters } from '@/PaleGL/postprocess/BloomPass.ts';
-import { maton } from '@/PaleGL/utilities/maton.ts';
-import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
-import { generateDepthOfFieldPassParameters } from '@/PaleGL/postprocess/DepthOfFieldPass.ts';
+// ORIGINAL
+// import { generateDefaultBloomPassParameters } from '@/PaleGL/postprocess/BloomPass.ts';
+// import { maton } from '@/PaleGL/utilities/maton.ts';
+// import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
+// import { generateDepthOfFieldPassParameters } from '@/PaleGL/postprocess/DepthOfFieldPass.ts';
 import { createObjectMoveAndLookAtController } from '@/PaleGL/components/objectMoveAndLookAtController.ts';
-
 
 export function tryParseJsonString<T>(str: string) {
     let json: T | null = null;
@@ -88,42 +91,43 @@ function findMarionetterComponent<T>(obj: MarionetterObjectInfo, componentType: 
     return (obj.co.find((c) => c.t === componentType) as T) || null;
 }
 
-function buildPostProcessVolumeActor({
-    name,
-    volumeComponent,
-}: {
-    name: string;
-    volumeComponent: MarionetterVolumeComponentInfo;
-}) {
-    console.log(volumeComponent);
-    const parameters = maton(
-        volumeComponent.vl.map((volumeLayer) => {
-            switch (volumeLayer.l) {
-                case 'Bloom':
-                    const bloomLayer = volumeLayer as MarionetterVolumeLayerBloom;
-                    return {
-                        type: PostProcessPassType.Bloom,
-                        parameters: generateDefaultBloomPassParameters({
-                            bloomAmount: bloomLayer.bl_i,
-                        }),
-                    };
-                case 'DepthOfField':
-                    const depthOfFieldLayer = volumeLayer as MarionetterVolumeLayerDepthOfField;
-                    return {
-                        type: PostProcessPassType.DepthOfField,
-                        parameters: generateDepthOfFieldPassParameters({
-                            focusDistance: depthOfFieldLayer.dof_fd,
-                        }),
-                    };
-                default:
-                    return null;
-            }
-        })
-    )
-        .compact()
-        .value();
-    return new PostProcessVolume({ name, parameters });
-}
+// ORIGINAL
+// function buildPostProcessVolumeActor({
+//     name,
+//     volumeComponent,
+// }: {
+//     name: string;
+//     volumeComponent: MarionetterVolumeComponentInfo;
+// }) {
+//     console.log(volumeComponent);
+//     const parameters = maton(
+//         volumeComponent.vl.map((volumeLayer) => {
+//             switch (volumeLayer.l) {
+//                 case 'Bloom':
+//                     const bloomLayer = volumeLayer as MarionetterVolumeLayerBloom;
+//                     return {
+//                         type: PostProcessPassType.Bloom,
+//                         parameters: generateDefaultBloomPassParameters({
+//                             bloomAmount: bloomLayer.bl_i,
+//                         }),
+//                     };
+//                 case 'DepthOfField':
+//                     const depthOfFieldLayer = volumeLayer as MarionetterVolumeLayerDepthOfField;
+//                     return {
+//                         type: PostProcessPassType.DepthOfField,
+//                         parameters: generateDepthOfFieldPassParameters({
+//                             focusDistance: depthOfFieldLayer.dof_fd,
+//                         }),
+//                     };
+//                 default:
+//                     return null;
+//             }
+//         })
+//     )
+//         .compact()
+//         .value();
+//     return new PostProcessVolume({ name, parameters });
+// }
 
 /**
  *
@@ -159,10 +163,11 @@ export function buildMarionetterScene(
             obj,
             MarionetterComponentType.Light
         );
-        const volumeComponent = findMarionetterComponent<MarionetterVolumeComponentInfo>(
-            obj,
-            MarionetterComponentType.Volume
-        );
+        // ORIGINAL
+        // const volumeComponent = findMarionetterComponent<MarionetterVolumeComponentInfo>(
+        //     obj,
+        //     MarionetterComponentType.Volume
+        // );
         const objectMoveAndLookAtControllerComponent =
             findMarionetterComponent<MarionetterObjectMoveAndLookAtControllerComponentInfo>(
                 obj,
@@ -247,8 +252,9 @@ export function buildMarionetterScene(
                 default:
                     console.error(`[buildMarionetterActors] invalid light type: ${light.l}`);
             }
-        } else if (volumeComponent) {
-            actor = buildPostProcessVolumeActor({ name, volumeComponent });
+            // ORIGINAL: volumeも一旦生のactorとみなす
+            // } else if (volumeComponent) {
+            //     actor = buildPostProcessVolumeActor({ name, volumeComponent });
         } else {
             // others
             actor = new Actor({ name });

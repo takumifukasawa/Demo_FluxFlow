@@ -20,7 +20,7 @@ vec2 u(vec2 u,vec2 v){return u.x<v.x?u:v;}mat2 u(float v){float u=sin(v),f=cos(v
 #define FS 1.4
 #define CS.25
 #define MS.35
-uniform vec3 uCP,uBPs[BN],uGPs[4];uniform float uGS;uniform vec4 uGSs[4];uniform float uOMR;uniform vec3 uORo;uniform float uMR;float v(vec3 v){return sin(v.x*4.+uTimelineTime*3.4)*.025+.025+(cos(v.y*3.+uTimelineTime*3.2)*.025+.025)+(sin(v.z*3.5+uTimelineTime*3.)*.025+.025)+.01;}float dfMC(vec3 v){return dfSp(v,FS);}float diMAt(vec3 v){return 1.-smoothstep(1.,1.8,length(v-uCP));}float dfMB(vec3 u,float f){for(int m=0;m<BN;m++){vec3 d=opTr(u,uBPs[m].xyz);float s=dfSp(d,CS*uGS);f=opSm(f,s,MS);}f+=v(u)*diMAt(u)*uGS;return f;}float dfMBs(vec3 v){float u=dfSp(opTr(v,uCP),FS*uGS);return dfMB(v,u);}vec2 opMo(vec2 v,vec2 u,float f){return mix(v,u,f);}vec2 u(vec3 v,float u,float f){vec3 d=mod(v*f,2.)-1.;f*=3.;vec3 m=abs(1.-3.*abs(d));float y=(min(max(m.x,m.y),min(max(m.y,m.z),max(m.z,m.x)))-1.)/f;return vec2(max(u,y),f);}float dfMe(vec3 v,float d){v/=d;v/=.5;float f=dfBo(v,vec3(1));vec2 m=vec2(f,1);m=u(v,m.x,m.y);m=u(v,m.x,m.y);m=u(v,m.x,m.y);return m.x*d;}vec3 opPrf(vec3 v,float f,float d){v=abs(v)-1.18;v=abs(v)-1.2;v.xz*=u(f+.1+uTimelineTime*.8+d);v.xy*=u(f+.8+sin(uTimelineTime)*.4+d);return v;}float dfPr(vec3 v,float d,float f){v/=f;vec3 m=v;m.xy*=u(uTimelineTime*.8+d);float z=dfTo(m,vec2(.8,.05));vec3 i=v;i.yz*=u(uTimelineTime*1.2+d);float s=dfTo(i,vec2(.8,.05)),y=dfOc(v,.6),o=opSm(opSm(z,s,.5),y,.5);return o*f;}
+uniform vec3 uCP,uBPs[BN],uGPs[4];uniform float uGS;uniform vec4 uGSs[4];uniform float uOMR;uniform vec3 uORo;uniform float uMR;float v(vec3 v){return sin(v.x*4.+uTimelineTime*3.4)*.025+.025+(cos(v.y*3.+uTimelineTime*3.2)*.025+.025)+(sin(v.z*3.5+uTimelineTime*3.)*.025+.025)+.01;}float dfMC(vec3 v){return dfSp(v,FS);}float diMAt(vec3 v){return 1.-smoothstep(1.,1.8,length(v-uCP));}float dfMB(vec3 u,float f){for(int m=0;m<BN;m++){vec3 d=opTr(u,uBPs[m].xyz);float z=dfSp(d,CS*uGS);f=opSm(f,z,MS);}f+=v(u)*diMAt(u)*uGS;return f;}float dfMBs(vec3 v){float u=dfSp(opTr(v,uCP),FS*uGS);return dfMB(v,u);}vec2 opMo(vec2 v,vec2 u,float f){return mix(v,u,f);}vec2 u(vec3 v,float u,float f){vec3 d=mod(v*f,2.)-1.;f*=3.;vec3 m=abs(1.-3.*abs(d));float y=(min(max(m.x,m.y),min(max(m.y,m.z),max(m.z,m.x)))-1.)/f;return vec2(max(u,y),f);}float dfMe(vec3 v,float d){v/=d;v/=.5;float f=dfBo(v,vec3(1));vec2 m=vec2(f,1);m=u(v,m.x,m.y);m=u(v,m.x,m.y);m=u(v,m.x,m.y);return m.x*d;}vec3 opPrf(vec3 v,float f,float d){v=abs(v)-1.18;v=abs(v)-1.2;v.xz*=u(f+.1+uTimelineTime*.8+d);v.xy*=u(f+.8+sin(uTimelineTime)*.4+d);return v;}float dfPr(vec3 v,float f,float d){v/=d;vec3 m=v;m.xy*=u(uTimelineTime*.8+f);float z=dfTo(m,vec2(.8,.05));vec3 i=v;i.yz*=u(uTimelineTime*1.2+f);float s=dfTo(i,vec2(.8,.05)),y=dfOc(v,.6),o=opSm(opSm(z,s,.5),y,.5);return o*d;}
 #pragma RAYMARCH_SCENE
 vec3 v(vec3 v,mat4 u,vec3 d){return(u*vec4(v,1)).xyz*d;}vec2 o(vec3 u,mat4 f,vec3 d,float m){vec3 y=mix(v(u,f,d),u,m);return dfScene(y);}vec3 u(vec3 v,mat4 u,vec3 f,float d){vec3 m=vec3(0);for(int i=0;i<4;i++){vec3 y=.5773*(2.*vec3(i+3>>1&1,i>>1&1,i&1)-1.);m+=y*o(v+y*1e-4,u,f,d).x;}return normalize(m);}bool n(vec3 v,vec3 u){return abs(v.x)<u.x*.5+1e-4&&abs(v.y)<u.y*.5+1e-4&&abs(v.z)<u.z*.5+1e-4;}float n(float v,float u,float d){return(v+u)/(u-d);}float d(float v,float u,float f){float d=u*v;return-d/(f*(v-1.)-d);}void d(float v,float u){if(v<u)discard;}uniform vec4 uDiffuseColor;uniform sampler2D uDiffuseMap;uniform vec2 uDiffuseMapUvScale;uniform float uSpecularAmount,uAmbientAmount,uMetallic;uniform sampler2D uMetallicMap;uniform vec4 uMetallicMapTiling;uniform float uRoughness;uniform sampler2D uRoughnessMap;uniform vec4 uRoughnessMapTiling,uEmissiveColor;uniform int uShadingModelId;
 #pragma APPEND_UNIFORMS
@@ -37,22 +37,22 @@ struct GBufferA{vec3 baseColor;};struct GBufferB{vec3 normal;float shadingModelI
 #ifdef USE_NORMAL_MAP
 vec3 d(vec3 v,vec3 u,vec3 f,sampler2D m,vec2 d){vec3 y=texture(m,d).xyz;y=y*2.-1.;return normalize(mat3(normalize(u),normalize(f),normalize(v))*y);}
 #endif
-layout(location=0) out vec4 outGBufferA;layout(location=1) out vec4 outGBufferB;layout(location=2) out vec4 outGBufferC;layout(location=3) out vec4 outGBufferD;void main(){vec4 f=vec4(0,0,0,1);vec2 m=vUv*uDiffuseMapUvScale;vec4 y=uDiffuseColor*texture(uDiffuseMap,m);vec3 i=vNormal;
+layout(location=0) out vec4 outGBufferA;layout(location=1) out vec4 outGBufferB;layout(location=2) out vec4 outGBufferC;layout(location=3) out vec4 outGBufferD;void main(){vec4 f=vec4(0,0,0,1);vec2 m=vUv*uDiffuseMapUvScale;vec4 y=uDiffuseColor*texture(uDiffuseMap,m);vec3 z=vNormal;
 #ifdef USE_NORMAL_MAP
-i=d(vNormal,vTangent,vBinormal,uNormalMap,m);
+z=d(vNormal,vTangent,vBinormal,uNormalMap,m);
 #else
-i=normalize(vNormal);
+z=normalize(vNormal);
 #endif
 
 #ifdef USE_VERTEX_COLOR
 y*=vVertexColor;
 #endif
-vec3 l=uEmissiveColor.xyz;
+vec3 i=uEmissiveColor.xyz;
 #ifdef USE_INSTANCING
-l=vInstanceEmissiveColor.xyz;
+i=vInstanceEmissiveColor.xyz;
 #endif
-vec3 z=vWorldPosition,x=z,e=uIsPerspective>.5?normalize(z-uViewPosition):normalize(-uViewPosition);vec2 r=vec2(0);float U=0.;vec3 p=x;float S=EPS;mat4 P=vInverseWorldMatrix;for(int D=0;D<OI;D++){p=x+e*U;r=o(p,P,uBoundsScale,uUseWorld);U+=r.x;if(!n(v(p,P,uBoundsScale),uBoundsScale))break;if(r.x<=S)break;}if(r.x>S)discard;float D=texelFetch(uDepthTexture,ivec2(gl_FragCoord.xy),0).x,a=d(D,uNearClip,uFarClip);vec4 G=uViewMatrix*vec4(p,1);float O=n(G.z,uNearClip,uFarClip);if(O>=a)discard;vec4 c=uProjectionMatrix*uViewMatrix*vec4(p,1);gl_FragDepth=c.z/c.w*.5+.5;if(r.x>0.)i=u(p,P,uBoundsScale,uUseWorld);f=y;
+vec3 l=vWorldPosition,x=l,e=uIsPerspective>.5?normalize(l-uViewPosition):normalize(-uViewPosition);vec2 r=vec2(0);float U=0.;vec3 p=x;float S=EPS;mat4 P=vInverseWorldMatrix;for(int D=0;D<OI;D++){p=x+e*U;r=o(p,P,uBoundsScale,uUseWorld);U+=r.x;if(!n(v(p,P,uBoundsScale),uBoundsScale))break;if(r.x<=S)break;}if(r.x>S)discard;float D=texelFetch(uDepthTexture,ivec2(gl_FragCoord.xy),0).x,a=d(D,uNearClip,uFarClip);vec4 G=uViewMatrix*vec4(p,1);float O=n(G.z,uNearClip,uFarClip);if(O>=a)discard;vec4 c=uProjectionMatrix*uViewMatrix*vec4(p,1);gl_FragDepth=c.z/c.w*.5+.5;if(r.x>0.)z=u(p,P,uBoundsScale,uUseWorld);f=y;
 #ifdef USE_ALPHA_TEST
 d(f.w,uAlphaTestThreshold);
 #endif
-f.xyz=pow(f.xyz,vec3(2.2));float I=uMetallic;I*=texture(uMetallicMap,m*uMetallicMapTiling.xy).x;float C=uRoughness;C*=texture(uRoughnessMap,m*uRoughnessMapTiling.xy).x;outGBufferA=vec4(f.xyz,1);outGBufferB=s(i,uShadingModelId);outGBufferC=vec4(I,C,0,1);outGBufferD=vec4(l.xyz,1);}`;
+f.xyz=pow(f.xyz,vec3(2.2));float I=uMetallic;I*=texture(uMetallicMap,m*uMetallicMapTiling.xy).x;float w=uRoughness;w*=texture(uRoughnessMap,m*uRoughnessMapTiling.xy).x;outGBufferA=vec4(f.xyz,1);outGBufferB=s(z,uShadingModelId);outGBufferC=vec4(I,w,0,1);outGBufferD=vec4(i.xyz,1);}`;

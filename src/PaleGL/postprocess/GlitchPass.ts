@@ -42,6 +42,11 @@ export class GlitchPass extends PostProcessPassBase {
                     type: UniformTypes.Float,
                     value: parameters.blendRate,
                 },
+                {
+                    name: UniformNames.Aspect,
+                    type: UniformTypes.Float,
+                    value: 1,
+                }
             ],
             uniformBlockNames: [UniformBlockNames.Common],
             parameters,
@@ -54,6 +59,7 @@ export class GlitchPass extends PostProcessPassBase {
         super.setSize(width, height);
         this.material.uniforms.setValue(UniformNames.TargetWidth, width);
         this.material.uniforms.setValue(UniformNames.TargetHeight, height);
+        this.material.uniforms.setValue(UniformNames.Aspect, width / height);
     }
 
     render(options: PostProcessPassRenderArgs) {
