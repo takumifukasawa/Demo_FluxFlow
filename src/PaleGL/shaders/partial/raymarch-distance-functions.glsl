@@ -303,7 +303,7 @@ float opTb(float x, float A, float B, float C) {
 #define BN 16 // メタボールの数
 #define FS 1.4 // 真ん中のメタボールのサイズ
 #define CS .25 // 小さいメタボールのサイズ
-#define MS .25 // メタボールのsmooth
+#define MS .35 // メタボールのsmooth
 uniform vec3 uCP;
 uniform vec3 uBPs[BN];
 uniform vec3 uGPs[4]; // gather children positions

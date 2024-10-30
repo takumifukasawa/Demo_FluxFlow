@@ -43,8 +43,7 @@ uniform float uBlendRate;
 uniform sampler2D uSpotLightShadowMap[MAX_SPOT_LIGHT_COUNT];
 uniform float uDensityMultiplier;
 uniform float uRayStep;
-uniform float uRayJitterSizeX;
-uniform float uRayJitterSizeY;
+uniform vec3 uRayJitterSize;
 
 #include ./partial/depth-functions.glsl
 
@@ -118,10 +117,13 @@ void main() {
     float rawDepth = texture(uDepthTexture, uv).r;
 
     float jitter = rand(uv + uTime) * 2. - 1.;
-    vec2 jitterOffset = vec2(
-        jitter * uRayJitterSizeX,
-        jitter * uRayJitterSizeY * uViewport.z
-    );
+    // vec3 jitterOffset = vec3(
+    //     jitter * uRayJitterSize.x,
+    //     jitter * uRayJitterSize.y * uViewport.z,
+    //     jitter * uRayJitterSize.z
+    // );
+    // vec3 jitterOffset = uRayJitterSize * jitter * vec3(1., uViewport.z, 1.);
+    vec3 jitterOffset = uRayJitterSize * jitter * vec3(1., 1., 1.);
 
     // // pattern_1: geometry from gbuffer
     // vec3 worldPosition = reconstructWorldPositionFromDepth(uv, rawDepth, uInverseViewProjectionMatrix);
@@ -143,8 +145,8 @@ void main() {
     vec3 viewDir = (uInverseProjectionMatrix * vpos.xyzz * uFarClip).xyz;
     vec3 viewDirInWorld = (uInverseViewMatrix * vec4(viewDir, 0.)).xyz;
     vec3 rayDir = normalize(viewDirInWorld);
-    // vec3 rayOrigin = uViewPosition + vec3(jitterOffset * vec2(rayDir.xy), 0.);
-    vec3 rayOrigin = uViewPosition + vec3(jitterOffset * vec2(rayDir.yx), 0.);
+    vec3 rayOrigin = uViewPosition + jitterOffset * rayDir.xyz;
+    // vec3 rayOrigin = uViewPosition + jitterOffset * rayDir.yxz; // TODO: こっちの方がきれいかも
     // pattern_1: end
 
     // //

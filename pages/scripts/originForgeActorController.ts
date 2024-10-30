@@ -449,10 +449,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
     };
 
     const calcEmitInstancePositions = (r: number, needsAddForgeActorPosition: boolean) => {
+        const t = easeInOutQuad(r);
         // TODO: パラメーター化したい
         // TODO: ちょっと回転とかさせたい
         // TODO: 出す速度調整したい
-        const range = lerp(0, 2, r);
+        const range = lerp(0, 2, t);
         const p = maton.range(METABALL_NUM, true).map((i) => {
             const pd = 360 / METABALL_NUM;
             const rad = i * pd * DEG_TO_RAD;
@@ -484,11 +485,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         const hiddenInstancePositions = calcEmitInstancePositions(1, true);
         const entity = morphFollowersActorControllerEntities[data.followerIndex];
         // morphFollowersActorControllerEntities.forEach((entity) => {
-        const { morphFollowersActorController } = entity;
-        if (!morphFollowersActorController.getActor().enabled) {
+        const { _morphFollowersActorController } = entity;
+        if (!_morphFollowersActorController.getActor().enabled) {
             return;
         }
-        for (let i = 0; i < morphFollowersActorController.maxInstanceNum; i++) {
+        for (let i = 0; i < _morphFollowersActorController.maxInstanceNum; i++) {
             if (i < data.instanceNumStartIndex) {
                 // すでにセットしたindexは無視.単一方向に増えるから、という前提のやり方
             } else if (i <= data.instanceNumEndIndex) {
@@ -496,40 +497,38 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
                     // 発生前
                     const positionIndex = i - data.instanceNumStartIndex;
                     const p = hiddenInstancePositions[positionIndex];
-                    morphFollowersActorController.setInstancePosition(i, p);
-                    morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
-                    morphFollowersActorController.setInstanceState(i, { morphRate: 0 });
+                    _morphFollowersActorController.setInstancePosition(i, p);
+                    _morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
+                    _morphFollowersActorController.setInstanceState(i, { morphRate: 0 });
                 } else {
                     const morphRate = rate; // .5がmorphの形なので
                     // インスタンスに切り替わった後
-                    morphFollowersActorController.setInstanceAttractPower(i, easeInOutQuad(rate));
-                    morphFollowersActorController.setInstanceAttractorTarget(i, entity.orbitFollowTargetActor);
-                    morphFollowersActorController.setInstanceState(i, { morphRate });
+                    _morphFollowersActorController.setInstanceAttractPower(i, easeInOutQuad(rate));
+                    _morphFollowersActorController.setInstanceAttractorTarget(i, entity._orbitFollowTargetActor);
+                    _morphFollowersActorController.setInstanceState(i, { morphRate });
                 }
             } else {
                 // NOTE: 明後日の方向に飛ばす
                 // TODO: ここパラメーター化したい
-                morphFollowersActorController.setInstancePosition(
+                _morphFollowersActorController.setInstancePosition(
                     i,
                     generateKeepFlyingInstancePositions(i)
                 );
-                morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
-                morphFollowersActorController.setInstanceState(i, { morphRate: rate });
+                _morphFollowersActorController.setInstanceVelocity(i, Vector3.zero);
+                _morphFollowersActorController.setInstanceState(i, { morphRate: rate });
             }
         }
 
         if (rawRate < 0.5) {
-            morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
-            const instancePositions = calcEmitInstancePositions(easeInOutQuad(rate), false);
+            _morphFollowersActorController.setInstanceNum(data.instanceNumStartIndex);
+            const instancePositions = calcEmitInstancePositions(rate, false);
             metaballPositions = instancePositions;
-            // mesh.materials.forEach((material) => {
-            //     material.uniforms.setValue(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
+            // mesh.materials.forEach((_, i) => {
+            //     mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
             // });
-            mesh.materials.forEach((_, i) => {
-                mesh.setUniformValueToPairMaterial(i, UNIFORM_NAME_METABALL_POSITIONS, metaballPositions);
-            });
+            mesh.setUniformValueToAllMaterials(UNIFORM_NAME_METABALL_POSITIONS, metaballPositions)
         } else {
-            morphFollowersActorController.setInstanceNum(data.instanceNum);
+            _morphFollowersActorController.setInstanceNum(data.instanceNum);
             hideMetaballChildren();
         }
         // });
@@ -635,8 +634,8 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
             // 一番最初のシーケンスは空とみなす
             if (sequenceData.sequenceIndex === 0) {
                 morphFollowersActorControllerEntities.forEach((entity) => {
-                    const { morphFollowersActorController } = entity;
-                    morphFollowersActorController.setInstanceNum(0);
+                    const { _morphFollowersActorController } = entity;
+                    _morphFollowersActorController.setInstanceNum(0);
                 });
                 hideMetaballChildren();
             } else {
@@ -651,11 +650,11 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         const followerControlled = !isOverOccurrenceSequence(time);
         // TODO: followerごとに分けたくない？ 96,80,80のコントロールのために
         morphFollowersActorControllerEntities.forEach((entity) => {
-            entity.morphFollowersActorController.setControlled(followerControlled);
+            entity._morphFollowersActorController.setControlled(followerControlled);
             if (followerControlled) {
-                entity.morphFollowersActorController.setSurfaceParameters(surfaceParameters);
+                entity._morphFollowersActorController.setSurfaceParameters(surfaceParameters);
             }
-            entity.morphFollowersActorController.updateStatesAndBuffers();
+            entity._morphFollowersActorController.updateStatesAndBuffers();
         });
     };
 

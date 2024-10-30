@@ -171,13 +171,13 @@ export type TransformFeedbackAttractMode =
     (typeof TransformFeedbackAttractMode)[keyof typeof TransformFeedbackAttractMode];
 
 export type MorphFollowerActorControllerBinder = {
-    morphFollowersActorController: MorphFollowersActorController;
-    orbitFollowTargetActorName: string;
+    _morphFollowersActorController: MorphFollowersActorController;
+    _orbitFollowTargetActorName: string;
 };
 
 export type MorphFollowerActorControllerEntity = {
-    morphFollowersActorController: MorphFollowersActorController;
-    orbitFollowTargetActor: Actor;
+    _morphFollowersActorController: MorphFollowersActorController;
+    _orbitFollowTargetActor: Actor;
 };
 
 export type MorphFollowersActorController = {

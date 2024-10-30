@@ -56,10 +56,6 @@ struct Material {
     vec3 specularColor;
     float roughness;
     float metallic;
-    // float roughnessSquared;
-    // float reflectivity;
-    // float clearCoat;
-    // float clearCoatRoughness;
 };
 
 // -------------------------------------------------------------------------------
@@ -165,39 +161,33 @@ void getPointLightIrradiance(const in PointLight pointLight, const in GeometricC
 // skybox
 // -------------------------------------------------------------------------------
 
-struct SkyboxLight {
-    // samplerCube cubeMap;
-    float diffuseIntensity;
-    float specularIntensity;
-    float rotationOffset;
-    float maxLodLevel;
-    // vec3 diffuseColor;
-    // vec3 specularColor;
-    // vec3 diffuseDirection;
-    // vec3 specularDirection;
-    // bool visible;
-};
-
-#include ./env-map-fragment-functions.glsl
-
-void getSkyboxLightIrradiance(const in SkyboxLight skyboxLight, const in GeometricContext geometry, out IncidentSkyboxLight directLight) {
-    vec3 envDir = reflect(
-        -geometry.viewDir,
-        // normalize(geometry.position - camera.worldPosition),
-        normalize(geometry.normal)
-    );
-                
-    // TODO: rotatoinを考慮
-    vec3 envDiffuseDir = calcEnvMapSampleDir(geometry.normal, skyboxLight.rotationOffset);
-    vec3 envSpecularDir = calcEnvMapSampleDir(envDir, skyboxLight.rotationOffset);
-
-    // directLight.cubeMap = skyboxLight.cubeMap;
-    directLight.diffuseDirection = envDiffuseDir;
-    directLight.diffuseIntensity = skyboxLight.diffuseIntensity;
-    directLight.specularDirection = envSpecularDir;
-    directLight.specularIntensity = skyboxLight.specularIntensity;
-    directLight.maxLodLevel = skyboxLight.maxLodLevel;
-}
+// ORIGINAL
+// struct SkyboxLight {
+//     float diffuseIntensity;
+//     float specularIntensity;
+//     float rotationOffset;
+//     float maxLodLevel;
+// };
+// 
+// #include ./env-map-fragment-functions.glsl
+// 
+// void getSkyboxLightIrradiance(const in SkyboxLight skyboxLight, const in GeometricContext geometry, out IncidentSkyboxLight directLight) {
+//     vec3 envDir = reflect(
+//         -geometry.viewDir,
+//         // normalize(geometry.position - camera.worldPosition),
+//         normalize(geometry.normal)
+//     );
+//                 
+//     vec3 envDiffuseDir = calcEnvMapSampleDir(geometry.normal, skyboxLight.rotationOffset);
+//     vec3 envSpecularDir = calcEnvMapSampleDir(envDir, skyboxLight.rotationOffset);
+// 
+//     // directLight.cubeMap = skyboxLight.cubeMap;
+//     directLight.diffuseDirection = envDiffuseDir;
+//     directLight.diffuseIntensity = skyboxLight.diffuseIntensity;
+//     directLight.specularDirection = envSpecularDir;
+//     directLight.specularIntensity = skyboxLight.specularIntensity;
+//     directLight.maxLodLevel = skyboxLight.maxLodLevel;
+// }
 
 // -------------------------------------------------------------------------------
 // brdfs

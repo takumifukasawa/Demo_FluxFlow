@@ -16,41 +16,16 @@ type UpdateProxyKeyframe = {
 
 export class AnimationClip {
     name: string;
-    // target;
-    // key;
-    // interpolation: GLTFAnimationSamplerInterpolation;
-    // type; // animation clip type
-    // private data;
-    // start: number;
-    // end: number;
-    // frames: number;
     frameCount: number;
-    // elementSize; // TODO: typeを元に振り分けても良い気がする
-
-    private currentTime: number = 0;
+    currentTime: number = 0;
     currentFrame: number = 0;
-
     loop: boolean = false;
     isPlaying: boolean = false;
-
     speed: number = 1;
-
-    // TODO: fpsをgltfから引っ張ってこれるかどうか
     fps: number = 30; // default
-
     onUpdateProxy: ((keyframe: UpdateProxyKeyframe[]) => void) | null = null;
+    _keyframes: AnimationKeyframes[] = [];
 
-    private _keyframes: AnimationKeyframes[] = [];
-
-    get keyframes() {
-        return this._keyframes;
-    }
-
-    // get data() {
-    //     return this.data;
-    // }
-
-    // constructor({name, start, end, frames, frameCount, keyframes}: {
     constructor({
         name,
         keyframes,

@@ -107,7 +107,7 @@ if (!gl) {
     throw 'invalid gl';
 }
 
-const gpu = new GPU({ gl });
+const gpu = new GPU(gl);
 
 let width: number, height: number;
 let directionalLight: DirectionalLight;
@@ -308,7 +308,7 @@ const load = async () => {
     // morph follower actor controller
     //
     morphFollowersActorControllerBinders.push({
-        morphFollowersActorController: createMorphFollowersActor(
+        _morphFollowersActorController: createMorphFollowersActor(
             FOLLOWERS_ACTOR_NAME_A,
             gpu,
             renderer,
@@ -316,10 +316,10 @@ const load = async () => {
             (rx, ry, rz) => Color.fromRGB(lerp(20, 200, rx), lerp(20, 40, ry), lerp(20, 200, rz)),
             (rx, ry, rz) => Color.fromRGB(lerp(20, 200, rx) * 3, lerp(20, 40, ry), lerp(20, 200, rz) * 3)
         ),
-        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_A,
+        _orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_A,
     });
     morphFollowersActorControllerBinders.push({
-        morphFollowersActorController: createMorphFollowersActor(
+        _morphFollowersActorController: createMorphFollowersActor(
             FOLLOWERS_ACTOR_NAME_B,
             gpu,
             renderer,
@@ -327,10 +327,10 @@ const load = async () => {
             (rx, ry, rz) => Color.fromRGB(lerp(20, 40, rx), lerp(20, 200, ry), lerp(20, 200, rz)),
             (rx, ry, rz) => Color.fromRGB(lerp(20, 40, rx) * 3, lerp(20, 200, ry), lerp(20, 200, rz) * 3)
         ),
-        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_C,
+        _orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_C,
     });
     morphFollowersActorControllerBinders.push({
-        morphFollowersActorController: createMorphFollowersActor(
+        _morphFollowersActorController: createMorphFollowersActor(
             FOLLOWERS_ACTOR_NAME_C,
             gpu,
             renderer,
@@ -338,11 +338,11 @@ const load = async () => {
             (rx, ry, rz) => Color.fromRGB(lerp(20, 200, rx), lerp(20, 200, ry), lerp(20, 40, rz)),
             (rx, ry, rz) => Color.fromRGB(lerp(20, 200, rx) * 3, lerp(20, 200, ry), lerp(20, 40, rz) * 3)
         ),
-        orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_B,
+        _orbitFollowTargetActorName: ATTRACTOR_ORBIT_MOVER_B,
     });
 
     morphFollowersActorControllerBinders.forEach((elem) => {
-        captureScene.add(elem.morphFollowersActorController.getActor());
+        captureScene.add(elem._morphFollowersActorController.getActor());
     });
 
     //
@@ -422,14 +422,14 @@ const load = async () => {
     });
 
     morphFollowersActorControllerBinders.forEach((elem, i) => {
-        const orbitActor = captureScene.find(elem.orbitFollowTargetActorName) as Actor;
+        const orbitActor = captureScene.find(elem._orbitFollowTargetActorName) as Actor;
         orbitActor.addComponent(createOrbitMoverBinder());
 
         morphFollowersActorControllerEntities.push({
-            morphFollowersActorController: elem.morphFollowersActorController,
-            orbitFollowTargetActor: orbitActor,
+            _morphFollowersActorController: elem._morphFollowersActorController,
+            _orbitFollowTargetActor: orbitActor,
         });
-        elem.morphFollowersActorController.initialize(
+        elem._morphFollowersActorController.initialize(
             i,
             i * 2048,
             // originForgeActorController.getDefaultSurfaceParameters(),
@@ -599,8 +599,9 @@ const playDemo = () => {
     
     renderer.volumetricLightPass.parameters.rayStep = 0.496;
     renderer.volumetricLightPass.parameters.densityMultiplier = 0.6;
-    renderer.volumetricLightPass.parameters.rayJitterSizeX = 0.1;
-    renderer.volumetricLightPass.parameters.rayJitterSizeY = 0.1;
+    renderer.volumetricLightPass.parameters.rayJitterSize.x = 0.1;
+    renderer.volumetricLightPass.parameters.rayJitterSize.y = 0.1;
+    renderer.volumetricLightPass.parameters.rayJitterSize.z = 0.2;
 
     renderer.screenSpaceShadowPass.parameters.jitterSize = new Vector3(0.09, 0.09, 0);
 

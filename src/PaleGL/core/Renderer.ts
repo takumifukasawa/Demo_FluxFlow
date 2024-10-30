@@ -66,7 +66,7 @@ import { Texture } from '@/PaleGL/core/Texture.ts';
 import { PostProcessVolume } from '@/PaleGL/actors/PostProcessVolume.ts';
 import { GlitchPass } from '@/PaleGL/postprocess/GlitchPass.ts';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
-import {SharedTextures, SharedTexturesTypes} from "@/PaleGL/core/createSharedTextures.ts";
+import { SharedTextures, SharedTexturesTypes } from '@/PaleGL/core/createSharedTextures.ts';
 
 type RenderMeshInfo = { actor: Mesh; materialIndex: number; queue: RenderQueueType };
 
@@ -892,7 +892,7 @@ export class Renderer {
             const al = Vector3.subVectors(camera.transform.position, a.actor.transform.position).magnitude;
             const bl = Vector3.subVectors(camera.transform.position, b.actor.transform.position).magnitude;
             return al < bl ? -1 : 1;
-        })
+        });
 
         // transparent mesh infos
         const sortedTransparentRenderMeshInfos: RenderMeshInfo[] = sortedRenderMeshInfos.filter(
@@ -902,7 +902,7 @@ export class Renderer {
             const al = Vector3.subVectors(camera.transform.position, a.actor.transform.position).magnitude;
             const bl = Vector3.subVectors(camera.transform.position, b.actor.transform.position).magnitude;
             return al > bl ? -1 : 1;
-        })
+        });
 
         // ------------------------------------------------------------------------------
         // update common uniforms
@@ -1006,12 +1006,14 @@ export class Renderer {
         // deferred lighting pass
         // ------------------------------------------------------------------------------
 
-        // update cubemap to deferred lighting pass
-        // TODO: skyboxは一個だけ想定のいいはず
-        sortedSkyboxRenderMeshInfos.forEach((skyboxRenderMeshInfo) => {
-            const skyboxActor = skyboxRenderMeshInfo.actor as Skybox;
-            this._deferredShadingPass.updateSkyboxUniforms(skyboxActor);
-        });
+        if (isDevelopment()) {
+            // update cubemap to deferred lighting pass
+            // TODO: skyboxは一個だけ想定のいいはず
+            sortedSkyboxRenderMeshInfos.forEach((skyboxRenderMeshInfo) => {
+                const skyboxActor = skyboxRenderMeshInfo.actor as Skybox;
+                this._deferredShadingPass.updateSkyboxUniforms(skyboxActor);
+            });
+        }
 
         applyLightShadowMapUniformValues(this._deferredShadingPass.material, lightActors, this.gpu.dummyTextureBlack);
 
@@ -1122,7 +1124,7 @@ export class Renderer {
             this._volumetricLightPass.renderTarget,
             this._screenSpaceShadowPass.renderTarget,
             sharedTextures[SharedTexturesTypes.FBM_NOISE].texture
-        )
+        );
 
         PostProcess.renderPass({
             pass: this._fogPass,
@@ -1623,18 +1625,20 @@ export class Renderer {
         sortedRenderMeshInfos.forEach(({ actor, materialIndex }) => {
             switch (actor.type) {
                 case ActorTypes.Skybox:
-                    if (!(actor as Skybox).renderMesh) {
-                        return;
+                    if (isDevelopment()) {
+                        if (!(actor as Skybox).renderMesh) {
+                            return;
+                        }
                     }
                     // TODO: skyboxのupdateTransformが2回走っちゃうので、sceneかカメラに持たせて特別扱いさせたい
                     // TODO: engineでやるべき
                     actor.updateTransform(camera);
                     break;
             }
-            
+
             const targetMaterial = actor.materials[materialIndex];
-            
-            if(!targetMaterial.canRender) {
+
+            if (!targetMaterial.canRender) {
                 return;
             }
 
@@ -1645,7 +1649,7 @@ export class Renderer {
                 this.copyDepthTexture();
                 this.setRenderTarget(this._gBufferRenderTargets.write, false, false);
             }
-            
+
             // TODO: material 側でやった方がよい？
             this.updateActorTransformUniforms(actor);
 

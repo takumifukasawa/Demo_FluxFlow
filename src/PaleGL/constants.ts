@@ -1,5 +1,5 @@
-﻿export const MAX_SPOT_LIGHT_COUNT = 4;
-export const MAX_POINT_LIGHT_COUNT = 4;
+﻿export const MAX_SPOT_LIGHT_COUNT = 2;
+export const MAX_POINT_LIGHT_COUNT = 2;
 
 export const DEG_TO_RAD = Math.PI / 180;
 

@@ -389,16 +389,17 @@ void main() {
     // ambient light
     //
 
-// #ifdef USE_ENV_MAP
-    SkyboxLight skyboxLight;
-    skyboxLight.diffuseIntensity = uSkybox.diffuseIntensity;
-    skyboxLight.specularIntensity = uSkybox.specularIntensity;
-    skyboxLight.rotationOffset = uSkybox.rotationOffset;
-    skyboxLight.maxLodLevel = uSkybox.maxLodLevel;
-    IncidentSkyboxLight directSkyboxLight;
-    getSkyboxLightIrradiance(skyboxLight, geometry, directSkyboxLight);
-    RE_DirectSkyboxFakeIBL(uSkybox.cubeMap, directSkyboxLight, geometry, material, reflectedLight);
-// #endif
+// CUSTOM
+// // #ifdef USE_ENV_MAP
+//     SkyboxLight skyboxLight;
+//     skyboxLight.diffuseIntensity = uSkybox.diffuseIntensity;
+//     skyboxLight.specularIntensity = uSkybox.specularIntensity;
+//     skyboxLight.rotationOffset = uSkybox.rotationOffset;
+//     skyboxLight.maxLodLevel = uSkybox.maxLodLevel;
+//     IncidentSkyboxLight directSkyboxLight;
+//     getSkyboxLightIrradiance(skyboxLight, geometry, directSkyboxLight);
+//     RE_DirectSkyboxFakeIBL(uSkybox.cubeMap, directSkyboxLight, geometry, material, reflectedLight);
+// // #endif
 
     //
     // calc render equations

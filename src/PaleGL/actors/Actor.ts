@@ -36,22 +36,22 @@ export class Actor {
     type: ActorType;
     uuid: number;
     isStarted: boolean = false;
-    animator: Animator; // TODO: いよいよcomponentっぽくしたくなってきた
     parent: Actor | null = null;
     children: Actor[] = [];
     components: Component[] = [];
+    animator: Animator | null = null; // TODO: いよいよcomponentっぽくしたくなってきた
 
     // lifecycle callback
-    private _onStart: OnStartCallback[] = [];
-    private _onFixedUpdate: OnFixedUpdateCallback | null = null;
-    private _onUpdate: OnUpdateCallback | null = null;
-    private _onLastUpdate: OnLastUpdateCallback | null = null;
-    // private _onProcessClipFrame: OnProcessPropertyBinder | null = null;
-    private _onBeforeRender: OnBeforeRenderCallback | null = null;
-    private _onProcessPropertyBinder: OnProcessPropertyBinder | null = null;
-    private _onPreProcessTimeline: OnProcessTimeline | null = null;
-    private _onPostProcessTimeline: OnProcessTimeline | null = null;
-    private _enabled: boolean = true;
+    _onStart: OnStartCallback[] = [];
+    _onFixedUpdate: OnFixedUpdateCallback | null = null;
+    _onUpdate: OnUpdateCallback | null = null;
+    _onLastUpdate: OnLastUpdateCallback | null = null;
+    _onProcessClipFrame: OnProcessPropertyBinder | null = null;
+    _onBeforeRender: OnBeforeRenderCallback | null = null;
+    _onProcessPropertyBinder: OnProcessPropertyBinder | null = null;
+    _onPreProcessTimeline: OnProcessTimeline | null = null;
+    _onPostProcessTimeline: OnProcessTimeline | null = null;
+    _enabled: boolean = true;
 
     get childCount() {
         return this.children.length;
@@ -108,7 +108,9 @@ export class Actor {
         this.transform = new Transform(this);
         this.type = type || ActorTypes.Null;
         this.uuid = isDevelopment() ? uuidv4() : Math.floor(Math.random() * 10000); // dummy
+        if(isDevelopment()) {
         this.animator = new Animator();
+        }
     }
 
     addChild(child: Actor) {
@@ -165,8 +167,10 @@ export class Actor {
         this.components.forEach((component) => {
             component.fixedUpdate({ actor: this, gpu, fixedTime, fixedDeltaTime });
         });
+        if(isDevelopment()) {
         if (this.animator) {
             this.animator.update(fixedDeltaTime);
+        }
         }
         if (this._onFixedUpdate) {
             this._onFixedUpdate({ actor: this, gpu, scene, fixedTime, fixedDeltaTime });

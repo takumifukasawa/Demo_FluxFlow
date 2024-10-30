@@ -693,7 +693,7 @@ export async function loadGLTF({ gpu, dir, path }: { gpu: GPU; dir?: string; pat
         const animationClips = createAnimationClips();
         // for debug
         // console.log("animation clips", animationClips);
-        rootActor.animator.setAnimationClips(animationClips);
+        rootActor.animator?.setAnimationClips(animationClips);
     }
 
     // for debug

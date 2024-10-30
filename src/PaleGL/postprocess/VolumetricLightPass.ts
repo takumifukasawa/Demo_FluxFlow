@@ -24,19 +24,18 @@ import { Material } from '@/PaleGL/materials/Material.ts';
 import { RenderTarget } from '@/PaleGL/core/RenderTarget.ts';
 import { AttributeDescriptor } from '@/PaleGL/core/Attribute.ts';
 import { Override } from '@/PaleGL/palegl';
+import {Vector3} from "@/PaleGL/math/Vector3.ts";
 
 const UNIFORM_VOLUME_DEPTH_TEXTURE = 'uVolumetricDepthTexture';
 const UNIFORM_NAME_RAY_STEP = 'uRayStep';
 const UNIFORM_NAME_DENSITY_MULTIPLIER = 'uDensityMultiplier';
-const UNIFORM_NAME_RAY_JITTER_SIZE_X = 'uRayJitterSizeX';
-const UNIFORM_NAME_RAY_JITTER_SIZE_Y = 'uRayJitterSizeY';
+const UNIFORM_NAME_RAY_JITTER_SIZE = 'uRayJitterSize';
 
 export type VolumetricLightPassParametersBase = {
     rayStep: number;
     blendRate: number;
     densityMultiplier: number;
-    rayJitterSizeX: number;
-    rayJitterSizeY: number;
+    rayJitterSize: Vector3;
     ratio: number;
 };
 
@@ -50,19 +49,12 @@ export function generateVolumetricLightParameters(params: VolumetricLightPassPar
         rayStep: params.rayStep ?? 0.62,
         blendRate: params.blendRate ?? 1,
         densityMultiplier: params.densityMultiplier ?? 1,
-        rayJitterSizeX: params.rayJitterSizeX ?? 0.1,
-        rayJitterSizeY: params.rayJitterSizeY ?? 0.1,
+        rayJitterSize: params.rayJitterSize ?? new Vector3(0.1, 0.1, 0.1),
         ratio: params.ratio ?? 0.5,
     };
 }
 
 export class VolumetricLightPass extends PostProcessPassBase {
-    // rayStep: number = 0.5;
-    // blendRate: number = 1;
-    // densityMultiplier: number = 1;
-    // rayJitterSizeX: number = 0.1;
-    // rayJitterSizeY: number = 0.1;
-    // ratio: number = 0.5;
     parameters: Override<PostProcessPassParametersBase, VolumetricLightPassParameters>;
 
     #spotLights: SpotLight[] = [];
@@ -105,14 +97,9 @@ export class VolumetricLightPass extends PostProcessPassBase {
                     value: 0,
                 },
                 {
-                    name: UNIFORM_NAME_RAY_JITTER_SIZE_X,
-                    type: UniformTypes.Float,
-                    value: 0,
-                },
-                {
-                    name: UNIFORM_NAME_RAY_JITTER_SIZE_Y,
-                    type: UniformTypes.Float,
-                    value: 0,
+                    name: UNIFORM_NAME_RAY_JITTER_SIZE,
+                    type: UniformTypes.Vector3,
+                    value: Vector3.zero,
                 },
                 {
                     name: UniformNames.GBufferATexture,
@@ -264,8 +251,7 @@ out vec4 o; void main(){o=vec4(1.,0.,0.,1.);}`,
         this.material.uniforms.setValue(UNIFORM_VOLUME_DEPTH_TEXTURE, this.renderTargetSpotLightFrustum.depthTexture);
         this.material.uniforms.setValue(UNIFORM_NAME_RAY_STEP, this.parameters.rayStep);
         this.material.uniforms.setValue(UNIFORM_NAME_DENSITY_MULTIPLIER, this.parameters.densityMultiplier);
-        this.material.uniforms.setValue(UNIFORM_NAME_RAY_JITTER_SIZE_X, this.parameters.rayJitterSizeX);
-        this.material.uniforms.setValue(UNIFORM_NAME_RAY_JITTER_SIZE_Y, this.parameters.rayJitterSizeY);
+        this.material.uniforms.setValue(UNIFORM_NAME_RAY_JITTER_SIZE, this.parameters.rayJitterSize);
         this.material.uniforms.setValue(UniformNames.BlendRate, this.parameters.blendRate);
         
         // console.log(this.material.uniforms)

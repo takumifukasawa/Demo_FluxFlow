@@ -340,22 +340,32 @@ export function initDebugger({
     });
     volumetricLightDebuggerGroup.addSliderDebugger({
         label: 'jitter size x',
-        initialValue: renderer.volumetricLightPass.parameters.rayJitterSizeX,
+        initialValue: renderer.volumetricLightPass.parameters.rayJitterSize.x,
         minValue: 0,
         maxValue: 1,
         stepValue: 0.001,
         onChange: (value) => {
-            renderer.volumetricLightPass.parameters.rayJitterSizeX = value;
+            renderer.volumetricLightPass.parameters.rayJitterSize.x = value;
         },
     });
     volumetricLightDebuggerGroup.addSliderDebugger({
         label: 'jitter size y',
-        initialValue: renderer.volumetricLightPass.parameters.rayJitterSizeY,
+        initialValue: renderer.volumetricLightPass.parameters.rayJitterSize.y,
         minValue: 0,
         maxValue: 1,
         stepValue: 0.001,
         onChange: (value) => {
-            renderer.volumetricLightPass.parameters.rayJitterSizeY = value;
+            renderer.volumetricLightPass.parameters.rayJitterSize.y = value;
+        },
+    });
+    volumetricLightDebuggerGroup.addSliderDebugger({
+        label: 'jitter size z',
+        initialValue: renderer.volumetricLightPass.parameters.rayJitterSize.z,
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        onChange: (value) => {
+            renderer.volumetricLightPass.parameters.rayJitterSize.z = value;
         },
     });
     volumetricLightDebuggerGroup.addSliderDebugger({

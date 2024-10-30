@@ -90,22 +90,21 @@ export const getAttributeUsage = (usageType: AttributeUsageType) => {
 
 export class GPU {
     gl: WebGL2RenderingContext;
-    private shader: Shader | null = null;
-    // private transformFeedback: TransformFeedback | null = null;
-    private vao: VertexArrayObject | null = null;
-    private uniforms: Uniforms | null = null;
+    _shader: Shader | null = null;
+    _vao: VertexArrayObject | null = null;
+    _uniforms: Uniforms | null = null;
     dummyTexture: Texture;
     dummyTextureBlack: Texture;
-    dummyCubeTexture: CubeMap;
-    private validExtensions: string[] = [];
-    private invalidExtensions: string[] = [];
-    private uboBindingPoint: number = 0;
+    _dummyCubeTexture: CubeMap;
+    _validExtensions: string[] = [];
+    _invalidExtensions: string[] = [];
+    _uboBindingPoint: number = 0;
 
     /**
      *
      * @param gl
      */
-    constructor({ gl }: { gl: WebGL2RenderingContext }) {
+    constructor(gl: WebGL2RenderingContext) {
         this.gl = gl;
         this.dummyTexture = new Texture({
             gpu: this,
@@ -120,7 +119,7 @@ export class GPU {
             wrapT: TextureWrapTypes.Repeat,
         });
 
-        this.dummyCubeTexture = createCubeMap(
+        this._dummyCubeTexture = createCubeMap(
             this,
             create1x1(),
             create1x1(),
@@ -136,7 +135,7 @@ export class GPU {
      * @param shader
      */
     setShader(shader: Shader) {
-        this.shader = shader;
+        this._shader = shader;
     }
 
     /**
@@ -144,7 +143,7 @@ export class GPU {
      * @param vao
      */
     setVertexArrayObject(vao: VertexArrayObject) {
-        this.vao = vao;
+        this._vao = vao;
     }
 
     /**
@@ -152,7 +151,7 @@ export class GPU {
      * @param uniforms
      */
     setUniforms(uniforms: Uniforms) {
-        this.uniforms = uniforms;
+        this._uniforms = uniforms;
     }
 
     /**
@@ -254,20 +253,20 @@ export class GPU {
      * @param extensionName
      */
     checkExtension(extensionName: string): boolean {
-        if (this.validExtensions.includes(extensionName)) {
+        if (this._validExtensions.includes(extensionName)) {
             return true;
         }
 
-        if (this.invalidExtensions.includes(extensionName)) {
+        if (this._invalidExtensions.includes(extensionName)) {
             return false;
         }
 
         const ext = this.gl.getExtension(extensionName) != null;
         if (!ext) {
-            this.invalidExtensions.push(extensionName);
+            this._invalidExtensions.push(extensionName);
             return false;
         }
-        this.validExtensions.push(extensionName);
+        this._validExtensions.push(extensionName);
         return true;
     }
 
@@ -304,7 +303,7 @@ export class GPU {
         let activeTextureIndex = 0;
         // let dummyTextureIndex = 0;
 
-        if (!this.shader) {
+        if (!this._shader) {
             console.error('shader is not set');
             return;
         }
@@ -313,7 +312,7 @@ export class GPU {
             // for debug
             // console.log("setUniformValueInternal", type, uniformName, value);
 
-            const location = gl.getUniformLocation(this.shader!.glObject, uniformName);
+            const location = gl.getUniformLocation(this._shader!.glObject, uniformName);
 
             // TODO:
             // - nullなとき,値がおかしいときはセットしない方がよいけど、あえてエラーを出したいかもしれない
@@ -401,7 +400,7 @@ export class GPU {
                     // }
                     gl.bindTexture(
                         GL_TEXTURE_CUBE_MAP,
-                        value ? (value as CubeMap).glObject : this.dummyCubeTexture.glObject
+                        value ? (value as CubeMap).glObject : this._dummyCubeTexture.glObject
                     );
                     gl.uniform1i(location, activeTextureIndex);
                     activeTextureIndex++;
@@ -412,8 +411,8 @@ export class GPU {
         };
 
         // uniforms
-        if (this.uniforms) {
-            this.uniforms.data.forEach((uniformData) => {
+        if (this._uniforms) {
+            this._uniforms.data.forEach((uniformData) => {
                 if (uniformData.type === UniformTypes.Struct) {
                     const uniformStructValue = uniformData.value as UniformStructValue;
                     uniformStructValue.forEach((structData) => {
@@ -464,15 +463,15 @@ export class GPU {
         vertexArrayObject: VertexArrayObject;
         drawCount: number;
     }) {
-        this.uniforms = uniforms;
-        this.shader = shader;
-        this.vao = vertexArrayObject;
+        this._uniforms = uniforms;
+        this._shader = shader;
+        this._vao = vertexArrayObject;
 
         const gl = this.gl;
 
-        gl.bindVertexArray(this.vao.glObject);
+        gl.bindVertexArray(this._vao.glObject);
 
-        gl.useProgram(this.shader.glObject);
+        gl.useProgram(this._shader.glObject);
 
         this.setUniformValues();
 
@@ -490,9 +489,9 @@ export class GPU {
 
         gl.bindVertexArray(null);
 
-        this.shader = null;
-        this.uniforms = null;
-        this.vao = null;
+        this._shader = null;
+        this._uniforms = null;
+        this._vao = null;
     }
 
     /**
@@ -525,11 +524,11 @@ export class GPU {
         const glPrimitiveType = this.#getGLPrimitive(primitiveType);
         const gl = this.gl;
 
-        if (!this.shader) {
+        if (!this._shader) {
             console.error('shader is not set');
             return;
         }
-        if (!this.vao) {
+        if (!this._vao) {
             console.error('vao is not set');
             return;
         }
@@ -602,15 +601,15 @@ export class GPU {
                 console.error('invalid blend type');
         }
 
-        gl.useProgram(this.shader.glObject);
+        gl.useProgram(this._shader.glObject);
 
         this.setUniformValues();
 
         // set vertex
-        gl.bindVertexArray(this.vao.glObject);
+        gl.bindVertexArray(this._vao.glObject);
 
         // if (this.#ibo) {
-        if (this.vao.hasIndices) {
+        if (this._vao.hasIndices) {
             // draw by indices
             // drawCount ... use indices count
             if (instanceCount !== null) {
@@ -687,10 +686,10 @@ export class GPU {
             indices,
             offsets,
             blockSize,
-            this.uboBindingPoint
+            this._uboBindingPoint
         );
 
-        this.uboBindingPoint++;
+        this._uboBindingPoint++;
         return uniformBufferObject;
     }
 
