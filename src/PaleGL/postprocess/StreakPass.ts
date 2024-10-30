@@ -536,7 +536,7 @@ export class StreakPass implements IPostProcessPass {
         //     // const tmpRenderTarget = renderer.renderTarget;
         //     // const tmpClearColorDirtyFlag = renderer.clearColorDirtyFlag;
         //     // renderer.setRenderTarget(this.renderTargetDownSampleMip2, true);
-        //     // this.downSampleMaterial.uniforms.setValue(UniformNames.SrcTexture, this.prefilterPass.renderTarget.texture);
+        //     // this.downSampleMaterial.uniforms.setValue(UniformNames.SrcTexture, this.prefilterPass.renderTarget.$getTexture());
         //     // this.downSampleMaterial.uniforms.setValue(UniformNames.TexelSize, new Vector2(1 / (this.width / 2), 1 / this.halfHeight));
         //     // renderer.renderMesh(this.geometry, this.downSampleMaterial);
         //     // renderer.setRenderTarget(tmpRenderTarget, tmpClearColorDirtyFlag);
@@ -545,9 +545,9 @@ export class StreakPass implements IPostProcessPass {
         this.downSamplePasses.forEach(({ pass, prevPass, downScale }) => {
             const width = Math.floor(this.width / downScale);
             pass.setSize(width, this.halfHeight);
-            // pass.material.uniforms.setValue('uPrefilterTexture', this.prefilterPass.renderTarget.texture);
+            // pass.material.uniforms.setValue('uPrefilterTexture', this.prefilterPass.renderTarget.$getTexture());
             pass.material.uniforms.setValue(UniformNames.TexelSize, new Vector2(1 / width, 1 / this.halfHeight));
-            pass.material.uniforms.setValue('uPrevTexture', prevPass.renderTarget.texture);
+            pass.material.uniforms.setValue('uPrevTexture', prevPass.renderTarget.$getTexture());
             pass.material.uniforms.setValue('uHorizontalScale', this.parameters.horizontalScale);
             pass.render({
                 gpu,
@@ -567,8 +567,8 @@ export class StreakPass implements IPostProcessPass {
 
         this.upSamplePasses.forEach(({ pass, prevPass, downSamplePass }) => {
             pass.setSize(downSamplePass.width, downSamplePass.height);
-            pass.material.uniforms.setValue('uPrevTexture', prevPass.renderTarget.texture);
-            pass.material.uniforms.setValue('uDownSampleTexture', downSamplePass.renderTarget.texture);
+            pass.material.uniforms.setValue('uPrevTexture', prevPass.renderTarget.$getTexture());
+            pass.material.uniforms.setValue('uDownSampleTexture', downSamplePass.renderTarget.$getTexture());
             pass.material.uniforms.setValue('uStretch', this.parameters.stretch);
             pass.render({
                 gpu,
@@ -586,15 +586,15 @@ export class StreakPass implements IPostProcessPass {
         // composite
         //
 
-        // this.compositePass.material.uniforms.setValue('uPrefilterTexture', this.prefilterPass.renderTarget.texture);
+        // this.compositePass.material.uniforms.setValue('uPrefilterTexture', this.prefilterPass.renderTarget.$getTexture());
         // this.compositePass.material.uniforms.setValue("uSrcTexture", )
         this.compositePass.material.uniforms.setValue(
             'uStreakTexture',
             // correct
-            this.upSamplePasses[this.upSamplePasses.length - 1].pass.renderTarget.texture
+            this.upSamplePasses[this.upSamplePasses.length - 1].pass.renderTarget.$getTexture()
             // for debug
-            // this.prefilterPass.renderTarget.texture
-            // this.upSamplePasses[2].pass.renderTarget.texture
+            // this.prefilterPass.renderTarget.$getTexture()
+            // this.upSamplePasses[2].pass.renderTarget.$getTexture()
         );
         this.compositePass.material.uniforms.setValue('uColor', this.parameters.color);
         this.compositePass.material.uniforms.setValue('uIntensity', this.parameters.intensity);
@@ -641,7 +641,7 @@ export class StreakPass implements IPostProcessPass {
         //     // renderer.clearColor(0, 0, 0, 1);
         //     this.horizontalBlurMaterial.uniforms.setValue(
         //         UniformNames.SrcTexture,
-        //         this.extractBrightnessPass.renderTarget.texture
+        //         this.extractBrightnessPass.renderTarget.$getTexture()
         //     );
         //     this.horizontalBlurMaterial.uniforms.setValue('uTargetWidth', w);
         //     this.horizontalBlurMaterial.uniforms.setValue('uTargetHeight', w);
@@ -649,7 +649,7 @@ export class StreakPass implements IPostProcessPass {
 
         //     renderer.setRenderTarget(verticalRenderTarget, true);
         //     // renderer.clearColor(0, 0, 0, 1);
-        //     this.verticalBlurMaterial.uniforms.setValue(UniformNames.SrcTexture, horizontalRenderTarget.texture);
+        //     this.verticalBlurMaterial.uniforms.setValue(UniformNames.SrcTexture, horizontalRenderTarget.$getTexture());
         //     this.verticalBlurMaterial.uniforms.setValue('uTargetWidth', w);
         //     this.verticalBlurMaterial.uniforms.setValue('uTargetHeight', h);
         //     renderer.renderMesh(this.geometry, this.verticalBlurMaterial);
@@ -667,19 +667,19 @@ export class StreakPass implements IPostProcessPass {
         // renderBlur(this.renderTargetBlurMip64_Horizontal, this.renderTargetBlurMip64_Vertical, 64);
 
         // if (prevRenderTarget) {
-        //     this.compositePass.material.uniforms.setValue(UniformNames.SrcTexture, prevRenderTarget.texture);
+        //     this.compositePass.material.uniforms.setValue(UniformNames.SrcTexture, prevRenderTarget.$getTexture());
         // } else {
         //     console.error('invalid prev render target');
         // }
-        // // this.compositePass.material.uniforms.setValue('uBrightnessTexture', this.extractBrightnessPass.renderTarget.texture);
-        // this.compositePass.material.uniforms.setValue('uBlur4Texture', this.renderTargetBlurMip4_Vertical.texture);
-        // this.compositePass.material.uniforms.setValue('uBlur8Texture', this.renderTargetBlurMip8_Vertical.texture);
-        // this.compositePass.material.uniforms.setValue('uBlur16Texture', this.renderTargetBlurMip16_Vertical.texture);
-        // this.compositePass.material.uniforms.setValue('uBlur32Texture', this.renderTargetBlurMip32_Vertical.texture);
-        // this.compositePass.material.uniforms.setValue('uBlur64Texture', this.renderTargetBlurMip64_Vertical.texture);
+        // // this.compositePass.material.uniforms.setValue('uBrightnessTexture', this.extractBrightnessPass.renderTarget.$getTexture());
+        // this.compositePass.material.uniforms.setValue('uBlur4Texture', this.renderTargetBlurMip4_Vertical.$getTexture());
+        // this.compositePass.material.uniforms.setValue('uBlur8Texture', this.renderTargetBlurMip8_Vertical.$getTexture());
+        // this.compositePass.material.uniforms.setValue('uBlur16Texture', this.renderTargetBlurMip16_Vertical.$getTexture());
+        // this.compositePass.material.uniforms.setValue('uBlur32Texture', this.renderTargetBlurMip32_Vertical.$getTexture());
+        // this.compositePass.material.uniforms.setValue('uBlur64Texture', this.renderTargetBlurMip64_Vertical.$getTexture());
         // this.compositePass.material.uniforms.setValue(
         //     'uExtractTexture',
-        //     this.extractBrightnessPass.renderTarget.texture
+        //     this.extractBrightnessPass.renderTarget.$getTexture()
         // );
         // this.compositePass.material.uniforms.setValue('uTone', this.tone);
         // this.compositePass.material.uniforms.setValue('uBloomAmount', this.bloomAmount);

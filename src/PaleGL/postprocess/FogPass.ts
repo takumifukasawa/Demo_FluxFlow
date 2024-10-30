@@ -203,9 +203,9 @@ export class FogPass extends PostProcessPassBase {
         screenSpaceShadowRt: RenderTarget,
         noiseTexture: Texture
     ) {
-        this.material.uniforms.setValue(lightShaftTextureUniformName, lightShaftRt.read.texture);
-        this.material.uniforms.setValue(volumetricLightTextureUniformName, volumetricLightRt.read.texture);
-        this.material.uniforms.setValue(screenSpaceShadowTextureUniformName, screenSpaceShadowRt.read.texture);
+        this.material.uniforms.setValue(lightShaftTextureUniformName, lightShaftRt.read.$getTexture());
+        this.material.uniforms.setValue(volumetricLightTextureUniformName, volumetricLightRt.read.$getTexture());
+        this.material.uniforms.setValue(screenSpaceShadowTextureUniformName, screenSpaceShadowRt.read.$getTexture());
         this.material.uniforms.setValue(UNIFORM_NOISE_TEXTURE, noiseTexture);
     }
 

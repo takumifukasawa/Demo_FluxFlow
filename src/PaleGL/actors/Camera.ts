@@ -282,8 +282,8 @@ out vec4 o; void main() {o=vec4(0,1.,0,1.);}
     /**
      *
      */
-    updateTransform() {
-        super.updateTransform();
+    $updateTransform() {
+        super.$updateTransform();
         this.viewMatrix = this.transform.worldMatrix.clone().invert();
         this.inverseProjectionMatrix = this.projectionMatrix.clone().invert();
         this.inverseViewMatrix = this.viewMatrix.clone().invert();

@@ -267,7 +267,7 @@ export class PostProcessPassBase implements IPostProcessPass {
         this.setRenderTarget(renderer, targetCamera, isLastPass);
 
         // ppの場合はいらない気がする
-        this.mesh.updateTransform();
+        this.mesh.$updateTransform();
 
         // if (!this.material.isCompiledShader) {
         //     this.material.start({ gpu, attributeDescriptors: this.geometry.getAttributeDescriptors() });
@@ -283,7 +283,7 @@ export class PostProcessPassBase implements IPostProcessPass {
         // 渡してない場合はなにもしない. src texture がいらないとみなす
         // TODO: 無理やり渡しちゃっても良い気もしなくもない
         if (prevRenderTarget) {
-            this.material.uniforms.setValue(UniformNames.SrcTexture, prevRenderTarget.texture);
+            this.material.uniforms.setValue(UniformNames.SrcTexture, prevRenderTarget.$getTexture());
         }
 
         if (this.beforeRender) {

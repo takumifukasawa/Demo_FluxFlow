@@ -386,7 +386,7 @@ export class LightShaftPass implements IPostProcessPass {
         // light shaft composite pass
         //
 
-        this.compositePass.material.uniforms.setValue('uLightShaftTexture', this.blur3Pass.renderTarget.read.texture);
+        this.compositePass.material.uniforms.setValue('uLightShaftTexture', this.blur3Pass.renderTarget.read.$getTexture());
         this.compositePass.material.uniforms.setValue(UniformNames.BlendRate, this.parameters.blendRate);
 
         this.compositePass.render({

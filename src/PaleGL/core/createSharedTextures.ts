@@ -282,7 +282,7 @@ export function createSharedTextures({ gpu, renderer }: { gpu: GPU; renderer: Re
 
         tmpMaterial.start({ gpu, attributeDescriptors: planeGeometryAttributeDescriptors });
         ppMaterial.start({ gpu, attributeDescriptors: planeGeometryAttributeDescriptors });
-        ppMaterial.uniforms.setValue(UniformNames.SrcTexture, tmpRenderTarget.texture);
+        ppMaterial.uniforms.setValue(UniformNames.SrcTexture, tmpRenderTarget.$getTexture());
 
         const render = () => {
             renderMaterial(tmpRenderTarget, tmpMaterial);
@@ -294,7 +294,7 @@ export function createSharedTextures({ gpu, renderer }: { gpu: GPU; renderer: Re
         acc[key] = (() => {
             let needsUpdate: boolean = false;
             return {
-                texture: ppRenderTarget.texture!,
+                texture: ppRenderTarget.$getTexture()!,
                 needsUpdate: false,
                 update: (time: number) => {
                     needsUpdate = false;

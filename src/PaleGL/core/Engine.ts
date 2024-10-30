@@ -203,7 +203,7 @@ export class Engine {
         // - skyboxのupdateTransformが2回走っちゃうので、sceneかカメラに持たせて特別扱いさせたい
         // - やっぱりcomponentシステムにした方が良い気もする
         this._scene?.traverse((actor) => {
-            actor.updateTransform();
+            actor.$updateTransform();
         });
         // this._scenes.forEach((scene) => {
         //     scene.traverse((actor) => actor.updateTransform());
@@ -265,7 +265,7 @@ export class Engine {
         //
 
         this._scene?.traverse((actor) => {
-            actor.updateTransform();
+            actor.$updateTransform();
         });
 
         //

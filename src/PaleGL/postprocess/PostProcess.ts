@@ -275,7 +275,7 @@ export class PostProcess {
         //     console.error('[PostProcess.render] scene render target is empty.');
         // }
 
-        this.#postProcessCamera.updateTransform();
+        this.#postProcessCamera.$updateTransform();
         // TODO: render target を外から渡したほうが分かりやすいかも
         // let prevRenderTarget = sceneRenderTarget || this.renderTarget;
         // let prevRenderTarget = sceneRenderTarget;

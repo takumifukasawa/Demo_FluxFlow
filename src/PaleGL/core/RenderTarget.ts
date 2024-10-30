@@ -58,10 +58,6 @@ export class RenderTarget extends AbstractRenderTarget {
     _depthTexture: Texture | null = null;
     _gpu;
     
-    get texture() {
-        return this._texture;
-    }
-
     $getTexture() {
         return this._texture;
     }

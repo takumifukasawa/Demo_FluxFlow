@@ -376,7 +376,7 @@ export class DepthOfFieldPass implements IPostProcessPass {
         // 1: render prefilter pass
         //
 
-        this.preFilterPass.material.uniforms.setValue(UNIFORM_NAME_COC_TEXTURE, this.circleOfConfusionPass.renderTarget.texture);
+        this.preFilterPass.material.uniforms.setValue(UNIFORM_NAME_COC_TEXTURE, this.circleOfConfusionPass.renderTarget.$getTexture());
 
         this.preFilterPass.material.uniforms.setValue(
             UniformNames.TexelSize,
@@ -398,7 +398,7 @@ export class DepthOfFieldPass implements IPostProcessPass {
         // 2: render dof bokeh pass
         //
 
-        // this.dofBokehPass.material.uniforms.setValue('uCocTexture', this.circleOfConfusionPass.renderTarget.texture);
+        // this.dofBokehPass.material.uniforms.setValue('uCocTexture', this.circleOfConfusionPass.renderTarget.$getTexture());
         this.dofBokehPass.material.uniforms.setValue(
             'uTexelSize',
             new Vector2(1 / this.preFilterPass.width, 1 / this.preFilterPass.height)
@@ -444,9 +444,9 @@ export class DepthOfFieldPass implements IPostProcessPass {
         // 4: render composite pass
         //
 
-        // this.compositePass.material.uniforms.setValue('uCocTexture', this.preFilterPass.renderTarget.texture);
-        this.compositePass.material.uniforms.setValue(UNIFORM_NAME_COC_TEXTURE, this.circleOfConfusionPass.renderTarget.texture);
-        this.compositePass.material.uniforms.setValue(UNIFORM_NAME_DOF_TEXTURE, this.bokehBlurPass.renderTarget.texture);
+        // this.compositePass.material.uniforms.setValue('uCocTexture', this.preFilterPass.renderTarget.$getTexture());
+        this.compositePass.material.uniforms.setValue(UNIFORM_NAME_COC_TEXTURE, this.circleOfConfusionPass.renderTarget.$getTexture());
+        this.compositePass.material.uniforms.setValue(UNIFORM_NAME_DOF_TEXTURE, this.bokehBlurPass.renderTarget.$getTexture());
 
         this.compositePass.render({
             gpu,

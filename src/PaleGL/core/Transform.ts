@@ -104,7 +104,7 @@ export class Transform {
     // }
 
     // TODO: 引数でworldMatrixとdirty_flagを渡すべきな気がする
-    updateMatrix() {
+    $updateMatrix() {
         if (this._lookAtTarget || this._lookAtTargetActor) {
             // どっちかはあるのでキャストしちゃう
             const lookAtTarget = (

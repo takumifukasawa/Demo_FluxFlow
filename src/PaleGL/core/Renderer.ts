@@ -1053,13 +1053,13 @@ export class Renderer {
         // set sss texture
         this._deferredShadingPass.material.uniforms.setValue(
             'uScreenSpaceShadowTexture',
-            this._screenSpaceShadowPass.renderTarget.read.texture
+            this._screenSpaceShadowPass.renderTarget.read.$getTexture()
         );
 
         // set ao texture
         this._deferredShadingPass.material.uniforms.setValue(
             'uAmbientOcclusionTexture',
-            this._ambientOcclusionPass.renderTarget.read.texture
+            this._ambientOcclusionPass.renderTarget.read.$getTexture()
         );
 
         PostProcess.renderPass({
@@ -1178,7 +1178,7 @@ export class Renderer {
         // ------------------------------------------------------------------------------
 
         // TODO: 直前のパスを明示的に指定する必要があるのはめんどうなのでうまいこと管理したい
-        this._afterDeferredShadingRenderTarget.setTexture(this._fogPass.renderTarget.read.texture!);
+        this._afterDeferredShadingRenderTarget.setTexture(this._fogPass.renderTarget.read.$getTexture()!);
 
         // pattern1: g-buffer depth
         // this._afterDeferredShadingRenderTarget.setDepthTexture(this._gBufferRenderTargets.depthTexture!);
@@ -1486,7 +1486,7 @@ export class Renderer {
                     }
                     // TODO: skyboxのupdateTransformが2回走っちゃうので、sceneかカメラに持たせて特別扱いさせたい
                     // TODO: engineでやるべき
-                    actor.updateTransform(camera);
+                    actor.$updateTransform(camera);
                     break;
             }
 
