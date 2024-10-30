@@ -201,9 +201,6 @@ export const buildVertexShader = (
     });
 
     return replacedShader;
-
-    // TODO: なくて大丈夫？
-    // return joinShaderLines(resultShaderLines);
 };
 
 /**
@@ -245,9 +242,6 @@ export const buildFragmentShader = (
     });
 
     return replacedShader;
-
-    // TODO: なくて大丈夫？
-    // return joinShaderLines(resultShaderLines);
 };
 
 export const defaultDepthFragmentShader = () => defaultDepthFragment;

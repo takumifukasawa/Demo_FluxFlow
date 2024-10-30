@@ -149,15 +149,6 @@ export class PostProcess {
         fallbackTextureBlack: Texture
     }) {
         pass.materials.forEach((passMaterial) => {
-            //
-            // light
-            //
-            // if (lightActors) {
-            //     // TODO: light情報はまとめてから渡したい
-            //     lightActors.forEach((light) => {
-            //         light.applyUniformsValues(passMaterial);
-            //     });
-            // }
             // TODO: 必要なのだけ割り当てたいが・・・
             if (lightActors) {
                 applyLightShadowMapUniformValues(passMaterial, lightActors, fallbackTextureBlack);
@@ -166,12 +157,6 @@ export class PostProcess {
             //
             // basic
             //
-
-            // passMaterial.uniforms.setValue(UniformNames.CameraNear, targetCamera.near);
-            // passMaterial.uniforms.setValue(UniformNames.CameraFar, targetCamera.far);
-            // passMaterial.uniforms.setValue(UniformNames.ViewPosition, targetCamera.transform.position);
-            // passMaterial.uniforms.setValue(UniformNames.ViewMatrix, targetCamera.viewMatrix);
-            // passMaterial.uniforms.setValue(UniformNames.ProjectionMatrix, targetCamera.projectionMatrix);
             
             passMaterial.uniforms.setValue(UniformNames.ViewProjectionMatrix, targetCamera.viewProjectionMatrix);
             passMaterial.uniforms.setValue(
