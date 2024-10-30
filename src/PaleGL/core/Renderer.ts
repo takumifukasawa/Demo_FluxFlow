@@ -125,7 +125,7 @@ function applyPostProcessVolumeParameters(renderer: Renderer, postProcessVolumeA
 
 /**
  * 描画パイプライン的な役割
- * TODO: pass
+ * TODO: memo pass
  * - depth pre-pass
  * - g-buffer pass (color, normal, material info)
  * - ao pass
@@ -133,7 +133,6 @@ function applyPostProcessVolumeParameters(renderer: Renderer, postProcessVolumeA
  * - post process pass
  * TODO:
  * - depth prepass 使わない場合。offscreen する時とか
- * TODO:
  * - offscreen rendering
  */
 export class Renderer {
@@ -148,7 +147,7 @@ export class Renderer {
      * @param pixelRatio
      */
     constructor({ gpu, canvas, pixelRatio = 1.5 }: { gpu: GPU; canvas: HTMLCanvasElement; pixelRatio: number }) {
-        this.gpu = gpu;
+        this._gpu = gpu;
         this.canvas = canvas;
         this.pixelRatio = pixelRatio;
         this._scenePostProcess = new PostProcess(this.screenQuadCamera);
@@ -199,6 +198,9 @@ export class Renderer {
         this._volumetricLightPass = new VolumetricLightPass({ gpu });
         this._fogPass = new FogPass({ gpu });
 
+        this._fxaaPass = new FXAAPass({ gpu });
+        this._scenePostProcess.addPass(this._fxaaPass);
+
         this._depthOfFieldPass = new DepthOfFieldPass({ gpu });
         this._scenePostProcess.addPass(this._depthOfFieldPass);
 
@@ -221,9 +223,6 @@ export class Renderer {
 
         this._glitchPass = new GlitchPass({ gpu });
         this._scenePostProcess.addPass(this._glitchPass);
-
-        this._fxaaPass = new FXAAPass({ gpu });
-        this._scenePostProcess.addPass(this._fxaaPass);
 
         //
         // initialize global uniform buffer objects
@@ -288,7 +287,7 @@ export class Renderer {
             },
         ];
         this.globalUniformBufferObjects.push({
-            uniformBufferObject: this.gpu.createUniformBufferObject(
+            uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Transformations,
                 transformationsUniformBlockData
@@ -329,7 +328,7 @@ export class Renderer {
             },
         ];
         this.globalUniformBufferObjects.push({
-            uniformBufferObject: this.gpu.createUniformBufferObject(
+            uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Camera,
                 cameraUniformBufferData
@@ -366,7 +365,7 @@ export class Renderer {
             },
         ];
         this.globalUniformBufferObjects.push({
-            uniformBufferObject: this.gpu.createUniformBufferObject(
+            uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.DirectionalLight,
                 directionalLightUniformBufferData
@@ -428,7 +427,7 @@ export class Renderer {
             },
         ];
         this.globalUniformBufferObjects.push({
-            uniformBufferObject: this.gpu.createUniformBufferObject(
+            uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.SpotLight,
                 spotLightUniformBufferData
@@ -470,7 +469,7 @@ export class Renderer {
             },
         ];
         this.globalUniformBufferObjects.push({
-            uniformBufferObject: this.gpu.createUniformBufferObject(
+            uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.PointLight,
                 pointLightUniformBufferData
@@ -491,7 +490,7 @@ export class Renderer {
             },
         ];
         this.globalUniformBufferObjects.push({
-            uniformBufferObject: this.gpu.createUniformBufferObject(
+            uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Timeline,
                 timelineUniformBufferData
@@ -518,7 +517,7 @@ export class Renderer {
         ];
         // TODO: 一番最初の要素としてpushするとなぜかエラーになる
         this.globalUniformBufferObjects.push({
-            uniformBufferObject: this.gpu.createUniformBufferObject(
+            uniformBufferObject: this._gpu.createUniformBufferObject(
                 uniformBufferObjectShader,
                 UniformBlockNames.Common,
                 commonUniformBlockData
@@ -548,7 +547,7 @@ export class Renderer {
             if (!targetGlobalUniformBufferObject) {
                 return;
             }
-            const blockIndex = this.gpu.bindUniformBlockAndGetBlockIndex(
+            const blockIndex = this._gpu.bindUniformBlockAndGetBlockIndex(
                 targetGlobalUniformBufferObject.uniformBufferObject,
                 material.shader!,
                 blockName
@@ -651,7 +650,7 @@ export class Renderer {
         this.canvas.width = w;
         this.canvas.height = h;
 
-        this.gpu.setSize(0, 0, w, h);
+        this._gpu.setSize(0, 0, w, h);
 
         // render targets
         this._depthPrePassRenderTarget.setSize(w, h);
@@ -690,49 +689,37 @@ export class Renderer {
     setRenderTarget(renderTarget: CameraRenderTargetType, clearColor: boolean = false, clearDepth: boolean = false) {
         if (renderTarget) {
             this.renderTarget = renderTarget;
-            this.gpu.setFramebuffer(renderTarget.framebuffer);
-            this.gpu.setSize(0, 0, renderTarget.width, renderTarget.height);
+            this._gpu.setFramebuffer(renderTarget.framebuffer);
+            this._gpu.setSize(0, 0, renderTarget.width, renderTarget.height);
         } else {
             this.renderTarget = null;
-            this.gpu.setFramebuffer(null);
-            this.gpu.setSize(0, 0, this.realWidth, this.realHeight);
+            this._gpu.setFramebuffer(null);
+            this._gpu.setSize(0, 0, this.realWidth, this.realHeight);
         }
         if (clearColor) {
-            this.gpu.clearColor(0, 0, 0, 0);
+            this._gpu.clearColor(0, 0, 0, 0);
             this.clearColorDirtyFlag = true;
         } else {
             this.clearColorDirtyFlag = false;
         }
         if (clearDepth) {
-            this.gpu.clearDepth(1, 1, 1, 1);
+            this._gpu.clearDepth(1, 1, 1, 1);
         }
     }
 
-    /**
-     *
-     */
-    flush() {
-        this.gpu.flush();
-    }
-
-    /**
-     *
-     * @param r
-     * @param g
-     * @param b
-     * @param a
-     */
-    // TODO: pass Color
-    clearColor(r: number, g: number, b: number, a: number) {
-        this.gpu.clearColor(r, g, b, a);
-    }
-
-    clearDepth(r: number, g: number, b: number, a: number) {
-        this.gpu.clearDepth(r, g, b, a);
-    }
+    // ORIGINAL
+    // flush() {
+    //     this._gpu.flush();
+    // }
+    // clearColor(r: number, g: number, b: number, a: number) {
+    //     this._gpu.clearColor(r, g, b, a);
+    // }
+    // clearDepth(r: number, g: number, b: number, a: number) {
+    //     this._gpu.clearDepth(r, g, b, a);
+    // }
 
     beforeRender(time: number, deltaTime: number) {
-        this.updateCommonUniforms({ time, deltaTime });
+        this.$updateCommonUniforms({ time, deltaTime });
     }
 
     /**
@@ -978,7 +965,7 @@ export class Renderer {
             pass: this._screenSpaceShadowPass,
             renderer: this,
             targetCamera: camera,
-            gpu: this.gpu,
+            gpu: this._gpu,
             camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             prevRenderTarget: null,
             isLastPass: false,
@@ -994,7 +981,7 @@ export class Renderer {
             pass: this._ambientOcclusionPass,
             renderer: this,
             targetCamera: camera,
-            gpu: this.gpu,
+            gpu: this._gpu,
             camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             prevRenderTarget: null,
             isLastPass: false,
@@ -1015,7 +1002,7 @@ export class Renderer {
             });
         }
 
-        applyLightShadowMapUniformValues(this._deferredShadingPass.material, lightActors, this.gpu.dummyTextureBlack);
+        applyLightShadowMapUniformValues(this._deferredShadingPass.material, lightActors, this._gpu.dummyTextureBlack);
 
         // set sss texture
         this._deferredShadingPass.material.uniforms.setValue(
@@ -1033,7 +1020,7 @@ export class Renderer {
             pass: this._deferredShadingPass,
             renderer: this,
             targetCamera: camera,
-            gpu: this.gpu,
+            gpu: this._gpu,
             camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             prevRenderTarget: null,
             isLastPass: false,
@@ -1049,7 +1036,7 @@ export class Renderer {
             pass: this._ssrPass,
             renderer: this,
             targetCamera: camera,
-            gpu: this.gpu,
+            gpu: this._gpu,
             camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             prevRenderTarget: this._deferredShadingPass.renderTarget,
             isLastPass: false,
@@ -1083,7 +1070,7 @@ export class Renderer {
                 pass: this._lightShaftPass,
                 renderer: this,
                 targetCamera: camera,
-                gpu: this.gpu,
+                gpu: this._gpu,
                 camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
                 prevRenderTarget: this._deferredShadingPass.renderTarget,
                 isLastPass: false,
@@ -1103,7 +1090,7 @@ export class Renderer {
                 pass: this._volumetricLightPass,
                 renderer: this,
                 targetCamera: camera,
-                gpu: this.gpu,
+                gpu: this._gpu,
                 camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
                 prevRenderTarget: this._deferredShadingPass.renderTarget,
                 isLastPass: false,
@@ -1130,7 +1117,7 @@ export class Renderer {
             pass: this._fogPass,
             renderer: this,
             targetCamera: camera,
-            gpu: this.gpu,
+            gpu: this._gpu,
             camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             // prevRenderTarget: this._deferredShadingPass.renderTarget,
             prevRenderTarget: this._ssrPass.renderTarget,
@@ -1186,7 +1173,7 @@ export class Renderer {
         const isCameraLastPassAndHasNotPostProcess = !camera.renderTarget && !camera.hasEnabledPostProcessPass;
         this._scenePostProcess.update();
         this._scenePostProcess.render({
-            gpu: this.gpu,
+            gpu: this._gpu,
             renderer: this,
             prevRenderTarget,
             gBufferRenderTargets: this._gBufferRenderTargets,
@@ -1205,7 +1192,7 @@ export class Renderer {
         if (camera.hasEnabledPostProcessPass) {
             camera.postProcess?.update();
             camera.postProcess?.render({
-                gpu: this.gpu,
+                gpu: this._gpu,
                 renderer: this,
                 prevRenderTarget,
                 // tone mapping 挟む場合
@@ -1235,15 +1222,15 @@ export class Renderer {
         }
 
         // vertex
-        this.gpu.setVertexArrayObject(geometry.vertexArrayObject);
+        this._gpu.setVertexArrayObject(geometry.vertexArrayObject);
         // material
         if (!material.shader) {
             console.error('invalid material shader');
             return;
         }
-        this.gpu.setShader(material.shader);
+        this._gpu.setShader(material.shader);
         // uniforms
-        this.gpu.setUniforms(material.uniforms);
+        this._gpu.setUniforms(material.uniforms);
 
         // setup depth write (depth mask)
         let depthWrite;
@@ -1271,7 +1258,7 @@ export class Renderer {
         const depthFuncType = material.depthFuncType;
 
         // draw
-        this.gpu.draw(
+        this._gpu.draw(
             geometry.drawCount,
             material.primitiveType,
             depthTest,
@@ -1287,7 +1274,7 @@ export class Renderer {
     // private
     // --------------------------------------------------------------
 
-    private gpu;
+    _gpu;
     realWidth: number = 1;
     realHeight: number = 1;
     stats: Stats | null = null;
@@ -1482,7 +1469,7 @@ export class Renderer {
         // console.log("--------- depth pre pass ---------");
 
         this.setRenderTarget(this._depthPrePassRenderTarget, false, true);
-        // this.gpu.clearDepth(0, 0, 0, 1);
+        // this._gpu.clearDepth(0, 0, 0, 1);
 
         // this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ViewMatrix, camera.viewMatrix);
         // this.setUniformBlockValue(
@@ -1527,7 +1514,7 @@ export class Renderer {
     private copyDepthTexture() {
         this._copyDepthSourceRenderTarget.setDepthTexture(this._depthPrePassRenderTarget.depthTexture!);
         RenderTarget.blitDepth({
-            gpu: this.gpu,
+            gpu: this._gpu,
             sourceRenderTarget: this._copyDepthSourceRenderTarget,
             destRenderTarget: this._copyDepthDestRenderTarget,
             width: this.realWidth,
@@ -1555,7 +1542,7 @@ export class Renderer {
             }
             this.setRenderTarget(lightActor.shadowMap.write, false, true);
             // this.clear(0, 0, 0, 1);
-            // this.gpu.clearDepth(0, 0, 0, 1);
+            // this._gpu.clearDepth(0, 0, 0, 1);
 
             if (castShadowRenderMeshInfos.length < 1) {
                 return;
@@ -1901,7 +1888,7 @@ export class Renderer {
      *
      * @param time
      */
-    updateCommonUniforms({ time, deltaTime }: { time: number; deltaTime: number }) {
+    $updateCommonUniforms({ time, deltaTime }: { time: number; deltaTime: number }) {
         // passMaterial.uniforms.setValue(UniformNames.Time, time);
         this.$updateUniformBlockValue(UniformBlockNames.Common, UniformNames.Time, time);
         this.$updateUniformBlockValue(UniformBlockNames.Common, UniformNames.DeltaTime, deltaTime);
@@ -2061,7 +2048,7 @@ export class Renderer {
         // TODO: 常にclearしない、で良い気がする
         // if (clear) {
         //     // this.clear(camera.clearColor.x, camera.clearColor.y, camera.clearColor.z, camera.clearColor.w);
-        //     this.gpu.clear(camera.clearColor.x, camera.clearColor.y, camera.clearColor.z, camera.clearColor.w);
+        //     this._gpu.clear(camera.clearColor.x, camera.clearColor.y, camera.clearColor.z, camera.clearColor.w);
         // }
 
         // this.setUniformBlockValue(UniformBlockNames.Transformations, UniformNames.ViewMatrix, camera.viewMatrix);
@@ -2084,7 +2071,7 @@ export class Renderer {
             //     light.applyUniformsValues(targetMaterial);
             // });
             // TODO: transparentで必要？使わないことを強制してもいい気がする
-            applyLightShadowMapUniformValues(targetMaterial, lightActors, this.gpu.dummyTextureBlack);
+            applyLightShadowMapUniformValues(targetMaterial, lightActors, this._gpu.dummyTextureBlack);
 
             this.renderMesh(actor.geometry, targetMaterial);
 

@@ -69,19 +69,13 @@ export type UniformBufferObjectStructValue = UniformBufferObjectData[];
 
 export type UniformBufferObjectStructArrayValue = UniformBufferObjectStructValue[];
 
+export type UniformBufferObjectElementValueNeedsPadding = boolean | number;
 
-export type UniformBufferObjectElementValueNeedsPadding =
-    | boolean
-    | number;
+export type UniformBufferObjectElementValueNoNeedsPadding = Vector2 | Vector3 | Vector4 | Matrix4 | Color;
 
-export type UniformBufferObjectElementValueNoNeedsPadding =
-    | Vector2
-    | Vector3
-    | Vector4
-    | Matrix4
-    | Color;
-
-export type UniformBufferObjectElementValue = UniformBufferObjectElementValueNeedsPadding | UniformBufferObjectElementValueNoNeedsPadding;
+export type UniformBufferObjectElementValue =
+    | UniformBufferObjectElementValueNeedsPadding
+    | UniformBufferObjectElementValueNoNeedsPadding;
 
 export type UniformBufferObjectElementValueArray = UniformBufferObjectElementValue[];
 
@@ -101,54 +95,51 @@ export type UniformBufferObjectBlockData = UniformBufferObjectData[];
  */
 export class Uniforms {
     // TODO: 配列じゃなくて uniform name を key とした Map objectの方がいいかも
-    data: UniformsData;
-    uniformBlocks: {
+    _data: UniformsData;
+    _uniformBlocks: {
         blockIndex: number;
         uniformBufferObject: UniformBufferObject;
         data: UniformBufferObjectBlockData;
         // elements: Float32Array
     }[] = [];
+    
+    get data() {
+        return this._data;
+    }
 
     constructor(...dataArray: UniformsData[]) {
-        this.data = [];
+        this._data = [];
         for (let i = 0; i < dataArray.length; i++) {
             for (let j = 0; j < dataArray[i].length; j++) {
                 const elem = dataArray[i][j];
-                const elemIndex = this.data.findIndex((d) => d.name === elem.name);
+                const elemIndex = this._data.findIndex((d) => d.name === elem.name);
                 if (elemIndex < 0) {
-                    this.data.push(elem);
+                    this._data.push(elem);
                 } else {
-                    this.data[elemIndex].value = elem.value;
+                    this._data[elemIndex].value = elem.value;
                 }
             }
         }
     }
 
     find(name: string) {
-        return this.data.find((d) => d.name === name);
+        return this._data.find((d) => d.name === name);
     }
 
-    /**
-     * 新しい要素を追加
-     * @param name
-     * @param type
-     * @param value
-     */
+    // 新しい要素を追加
     addValue(name: string, type: UniformTypes, value: UniformValue) {
-        this.data.push({
+        this._data.push({
             name,
             type,
-            value
+            value,
         });
     }
 
-    /**
-     * uniformの値を上書き。
-     * 対象のuniformが存在する場合にのみ上書きをする。
-     * struct, struct array の場合はその中身まで探索し上書き
-     * @param name
-     * @param newValue
-     */
+    /// uniformの値を上書き。
+    // 対象のuniformが存在する場合にのみ上書きをする。
+    // struct, struct array の場合はその中身まで探索し上書き
+    // @param name
+    // @param newValue
     setValue(name: string, newValue: UniformValue, log: boolean = false) {
         const data = this.find(name);
         if (log) {
@@ -188,6 +179,6 @@ export class Uniforms {
         //     this.shader.glObject,
         // //     uniformBufferObject.blockName
         // );
-        this.uniformBlocks.push({ blockIndex, uniformBufferObject, data });
+        this._uniformBlocks.push({ blockIndex, uniformBufferObject, data });
     }
 }

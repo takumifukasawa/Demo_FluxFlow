@@ -133,13 +133,13 @@ export class Material {
     type: MaterialTypes = MaterialTypes.Misc;
 
     shader: Shader | null = null;
-    primitiveType: PrimitiveType;
+    _primitiveType: PrimitiveType;
     blendType: BlendType;
     renderQueue: RenderQueue;
     uniforms: Uniforms;
     depthUniforms: Uniforms;
     uniformBlockNames: string[] = [];
-    isAddedUniformBlock: boolean = false;
+    // isAddedUniformBlock: boolean = false;
     depthTest: boolean | null;
     depthWrite: boolean | null;
     depthFuncType: DepthFuncType;
@@ -175,17 +175,17 @@ export class Material {
     rawVertexShader: string | null = null;
     rawFragmentShader: string | null = null;
 
-    rawDepthFragmentShader: string | null = null;
+    // rawDepthFragmentShader: string | null = null;
 
     showLog: boolean;
 
     boundUniformBufferObjects: boolean = false;
 
-    private vertexShaderGenerator: VertexShaderGenerator | null = null;
-    private fragmentShaderGenerator: FragmentShaderGenerator | null = null;
-    private depthFragmentShaderGenerator: DepthFragmentShaderGenerator | null = null;
-    private _vertexShaderModifier: VertexShaderModifier = {};
-    private _fragmentShaderModifier: FragmentShaderModifier = {};
+    _vertexShaderGenerator: VertexShaderGenerator | null = null;
+    _fragmentShaderGenerator: FragmentShaderGenerator | null = null;
+    _depthFragmentShaderGenerator: DepthFragmentShaderGenerator | null = null;
+    _vertexShaderModifier: VertexShaderModifier = {};
+    _fragmentShaderModifier: FragmentShaderModifier = {};
 
     get isCompiledShader() {
         return !!this.shader;
@@ -197,6 +197,10 @@ export class Material {
 
     get fragmentShaderModifier() {
         return this._fragmentShaderModifier;
+    }
+    
+    get primitiveType() {
+        return this._primitiveType;
     }
 
     // ORIGINAL
@@ -287,13 +291,13 @@ export class Material {
         }
 
         if (vertexShaderGenerator) {
-            this.vertexShaderGenerator = vertexShaderGenerator;
+            this._vertexShaderGenerator = vertexShaderGenerator;
         }
         if (fragmentShaderGenerator) {
-            this.fragmentShaderGenerator = fragmentShaderGenerator;
+            this._fragmentShaderGenerator = fragmentShaderGenerator;
         }
         if (depthFragmentShaderGenerator) {
-            this.depthFragmentShaderGenerator = depthFragmentShaderGenerator;
+            this._depthFragmentShaderGenerator = depthFragmentShaderGenerator;
         }
 
         if (vertexShaderModifier) {
@@ -303,7 +307,7 @@ export class Material {
             this._fragmentShaderModifier = fragmentShaderModifier;
         }
 
-        this.primitiveType = primitiveType || PrimitiveTypes.Triangles;
+        this._primitiveType = primitiveType || PrimitiveTypes.Triangles;
         this.blendType = blendType || BlendTypes.Opaque;
 
         // this.depthTest = depthTest ? !!depthTest : true;
@@ -428,8 +432,8 @@ export class Material {
         // for debug
         // console.log("[Material.start] attributeDescriptors", attributeDescriptors)
 
-        if (!this.depthFragmentShader && this.depthFragmentShaderGenerator) {
-            this.depthFragmentShader = this.depthFragmentShaderGenerator();
+        if (!this.depthFragmentShader && this._depthFragmentShaderGenerator) {
+            this.depthFragmentShader = this._depthFragmentShaderGenerator();
         }
 
         const shaderDefineOptions: ShaderDefines = {
@@ -447,8 +451,8 @@ export class Material {
         };
 
         if (!this.rawVertexShader) {
-            if (!this.vertexShader && this.vertexShaderGenerator) {
-                this.vertexShader = this.vertexShaderGenerator({
+            if (!this.vertexShader && this._vertexShaderGenerator) {
+                this.vertexShader = this._vertexShaderGenerator({
                     attributeDescriptors,
                     isSkinning: !!this.isSkinning,
                     jointNum: this.jointNum,
@@ -467,8 +471,8 @@ export class Material {
         }
 
         if (!this.rawFragmentShader) {
-            if (!this.fragmentShader && this.fragmentShaderGenerator) {
-                this.fragmentShader = this.fragmentShaderGenerator({
+            if (!this.fragmentShader && this._fragmentShaderGenerator) {
+                this.fragmentShader = this._fragmentShaderGenerator({
                     attributeDescriptors,
                 });
             }

@@ -6,11 +6,20 @@ import {
     PostProcessPassParametersBase,
     PostProcessPassRenderArgs,
 } from '@/PaleGL/postprocess/PostProcessPassBase';
+import { Override } from '@/PaleGL/palegl';
 
-const UNIFORM_NAME_CHROMATIC_ABERRATION_SCALE = 'uChromaticAberrationScale';
+const UNIFORM_NAME_CHROMATIC_ABERRATION_SCALE = 'uScale';
 const UNIFORM_VALUE_CHROMATIC_ABERRATION_SCALE = 0.015;
 
-export type ChromaticAberrationPassParameters = PostProcessPassParametersBase;
+const UNIFORM_NAME_CHROMATIC_ABERRATION_POWER = 'uPower';
+const UNIFORM_VALUE_CHROMATIC_ABERRATION_POWER = 1;
+
+export type ChromaticAberrationPassParametersBase = {
+    scale: number;
+    power: number;
+    blendRate: number;
+};
+export type ChromaticAberrationPassParameters = PostProcessPassParametersBase & ChromaticAberrationPassParametersBase;
 
 export type ChromaticAberrationPassParametersArgs = Partial<ChromaticAberrationPassParameters>;
 
@@ -19,11 +28,14 @@ export function generateChromaticAberrationPassParameters(
 ): ChromaticAberrationPassParameters {
     return {
         enabled: params.enabled ?? true,
+        scale: params.scale ?? UNIFORM_VALUE_CHROMATIC_ABERRATION_SCALE,
+        power: params.power ?? UNIFORM_VALUE_CHROMATIC_ABERRATION_POWER,
+        blendRate: params.blendRate ?? 1,
     };
 }
 
 export class ChromaticAberrationPass extends PostProcessPassBase {
-    chromaticAberrationScale: number;
+    parameters: Override<PostProcessPassParametersBase, ChromaticAberrationPassParameters>;
 
     constructor(args: { gpu: GPU; parameters?: ChromaticAberrationPassParametersArgs }) {
         const { gpu } = args;
@@ -42,11 +54,16 @@ export class ChromaticAberrationPass extends PostProcessPassBase {
                     type: UniformTypes.Float,
                     value: UNIFORM_VALUE_CHROMATIC_ABERRATION_SCALE,
                 },
+                {
+                    name: UNIFORM_NAME_CHROMATIC_ABERRATION_POWER,
+                    type: UniformTypes.Float,
+                    value: UNIFORM_VALUE_CHROMATIC_ABERRATION_POWER,
+                },
             ],
             parameters,
         });
 
-        this.chromaticAberrationScale = UNIFORM_VALUE_CHROMATIC_ABERRATION_SCALE;
+        this.parameters = parameters;
     }
 
     setSize(width: number, height: number) {
@@ -56,7 +73,14 @@ export class ChromaticAberrationPass extends PostProcessPassBase {
     }
 
     render(options: PostProcessPassRenderArgs) {
-        this.material.uniforms.setValue(UNIFORM_NAME_CHROMATIC_ABERRATION_SCALE, this.chromaticAberrationScale);
+        this.material.uniforms.setValue(
+            UNIFORM_NAME_CHROMATIC_ABERRATION_SCALE,
+            this.parameters.scale
+        );
+        this.material.uniforms.setValue(
+            UNIFORM_NAME_CHROMATIC_ABERRATION_POWER,
+            this.parameters.power
+        );
 
         super.render(options);
     }

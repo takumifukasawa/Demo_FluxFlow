@@ -9,7 +9,8 @@ out vec4 outColor;
 uniform sampler2D uSrcTexture;
 uniform float uTargetWidth;
 uniform float uTargetHeight;
-uniform float uChromaticAberrationScale;
+uniform float uScale;
+uniform float uPower;
 
 const int ARRAY_NUM = 5;
 
@@ -26,7 +27,7 @@ void main() {
     vec2 centerUv = vUv * 2. - 1.; // -1 ~ 1
     outColor = vec4(0.);
     for(int i = 0; i < ARRAY_NUM; i++) {
-        vec2 tempUv = centerUv * (1. - uChromaticAberrationScale * (float(i) + 1.) / float(ARRAY_NUM));
+        vec2 tempUv = centerUv * (1. - pow(uScale * (float(i) + 1.) / float(ARRAY_NUM), uPower));
         tempUv = (tempUv + 1.) * .5; // 0 ~ 1
         vec3 mask = chromaticAberrationFilter[i];
         vec4 color = texture(uSrcTexture, tempUv);

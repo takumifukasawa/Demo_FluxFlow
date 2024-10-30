@@ -3,28 +3,28 @@ import { RenderbufferType, RenderbufferTypes } from '@/PaleGL/constants';
 import { GPU } from '@/PaleGL/core/GPU';
 
 export class Renderbuffer extends GLObject {
-    #gpu: GPU;
-    #type: RenderbufferType;
-    #renderbuffer: WebGLRenderbuffer;
+    _gpu: GPU;
+    _type: RenderbufferType;
+    _renderbuffer: WebGLRenderbuffer;
 
     get glObject() {
-        return this.#renderbuffer;
+        return this._renderbuffer;
     }
 
     constructor({ gpu, type, width, height }: { gpu: GPU; type: RenderbufferType; width: number; height: number }) {
         super();
 
-        this.#gpu = gpu;
-        this.#type = type;
+        this._gpu = gpu;
+        this._type = type;
 
-        const gl = this.#gpu.gl;
+        const gl = this._gpu.gl;
 
         const rb = gl.createRenderbuffer()!;
-        this.#renderbuffer = rb;
+        this._renderbuffer = rb;
 
-        gl.bindRenderbuffer(gl.RENDERBUFFER, this.#renderbuffer);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderbuffer);
 
-        switch (this.#type) {
+        switch (this._type) {
             case RenderbufferTypes.Depth:
                 gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
                 break;
@@ -37,11 +37,11 @@ export class Renderbuffer extends GLObject {
     }
 
     setSize(width: number, height: number) {
-        const gl = this.#gpu.gl;
+        const gl = this._gpu.gl;
 
-        gl.bindRenderbuffer(gl.RENDERBUFFER, this.#renderbuffer);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this._renderbuffer);
 
-        switch (this.#type) {
+        switch (this._type) {
             case RenderbufferTypes.Depth:
                 gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, width, height);
                 break;

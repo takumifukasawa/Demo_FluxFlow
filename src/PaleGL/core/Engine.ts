@@ -40,26 +40,25 @@ export type EngineOnLastUpdateCallback = (args: EngineOnLastUpdateCallbackArgs) 
 export type EngineOnRenderCallback = (time: number, deltaTime: number) => void;
 
 export class Engine {
-    #gpu: GPU;
-    #stats: Stats | null = null;
-    #renderer: Renderer;
-    #scene: Scene | null = null;
-    // #scenes: Scene[] = [];
+    _gpu: GPU;
+    _stats: Stats | null = null;
+    _renderer: Renderer;
+    _scene: Scene | null = null;
+    // _scenes: Scene[] = [];
     // timers
-    #fixedUpdateFrameTimer: TimeAccumulator;
-    #updateFrameTimer: TimeSkipper;
+    _fixedUpdateFrameTimer: TimeAccumulator;
+    _updateFrameTimer: TimeSkipper;
     // callbacks
-    #onBeforeStart: EngineOnBeforeStartCallback | null = null;
-    #onAfterStart: EngineOnAfterStartCallback | null = null;
-    #onBeforeFixedUpdate: EngineOnBeforeFixedUpdateCallback | null = null;
-    #onBeforeUpdate: EngineOnBeforeUpdateCallback | null = null;
-    #onLastUpdate: EngineOnLastUpdateCallback | null = null;
-    private _onRender: EngineOnRenderCallback | null = null;
-
-    private _sharedTextures: SharedTextures;
+    _onBeforeStart: EngineOnBeforeStartCallback | null = null;
+    _onAfterStart: EngineOnAfterStartCallback | null = null;
+    _onBeforeFixedUpdate: EngineOnBeforeFixedUpdateCallback | null = null;
+    _onBeforeUpdate: EngineOnBeforeUpdateCallback | null = null;
+    _onLastUpdate: EngineOnLastUpdateCallback | null = null;
+    _onRender: EngineOnRenderCallback | null = null;
+    _sharedTextures: SharedTextures;
 
     get renderer() {
-        return this.#renderer;
+        return this._renderer;
     }
 
     get sharedTextures() {
@@ -67,19 +66,19 @@ export class Engine {
     }
 
     set onBeforeStart(cb: EngineOnBeforeStartCallback) {
-        this.#onBeforeStart = cb;
+        this._onBeforeStart = cb;
     }
 
     set onAfterStart(cb: EngineOnAfterStartCallback) {
-        this.#onAfterStart = cb;
+        this._onAfterStart = cb;
     }
 
     set onBeforeUpdate(cb: EngineOnBeforeUpdateCallback) {
-        this.#onBeforeUpdate = cb;
+        this._onBeforeUpdate = cb;
     }
 
     set onBeforeFixedUpdate(cb: EngineOnBeforeFixedUpdateCallback) {
-        this.#onBeforeFixedUpdate = cb;
+        this._onBeforeFixedUpdate = cb;
     }
 
     set onRender(cb: EngineOnRenderCallback) {
@@ -115,20 +114,20 @@ export class Engine {
         onRender?: EngineOnRenderCallback;
         showStats?: boolean;
     }) {
-        this.#gpu = gpu;
-        this.#renderer = renderer;
+        this._gpu = gpu;
+        this._renderer = renderer;
 
         if (isDevelopment()) {
-            this.#stats = new Stats({ showStats, showPipeline: false }); // 一旦手動で
-            this.#renderer.stats = this.#stats;
+            this._stats = new Stats({ showStats, showPipeline: false }); // 一旦手動で
+            this._renderer.stats = this._stats;
         }
 
         // TODO: 外からfps変えられるようにしたい
-        this.#fixedUpdateFrameTimer = new TimeAccumulator(fixedUpdateFps, this.fixedUpdate.bind(this));
-        this.#updateFrameTimer = new TimeSkipper(updateFps, this.update.bind(this));
+        this._fixedUpdateFrameTimer = new TimeAccumulator(fixedUpdateFps, this.fixedUpdate.bind(this));
+        this._updateFrameTimer = new TimeSkipper(updateFps, this.update.bind(this));
 
-        this.#onBeforeFixedUpdate = onBeforeFixedUpdate || null;
-        this.#onBeforeUpdate = onBeforeUpdate || null;
+        this._onBeforeFixedUpdate = onBeforeFixedUpdate || null;
+        this._onBeforeUpdate = onBeforeUpdate || null;
         this._onRender = onRender || null;
 
         this._sharedTextures = createSharedTextures({ gpu, renderer });
@@ -139,22 +138,22 @@ export class Engine {
      * @param scene
      */
     setScene(scene: Scene) {
-        this.#scene = scene;
-        // this.#scenes.push(scene);
+        this._scene = scene;
+        // this._scenes.push(scene);
     }
 
     /**
      *
      */
     start() {
-        if (this.#onBeforeStart) {
-            this.#onBeforeStart();
+        if (this._onBeforeStart) {
+            this._onBeforeStart();
         }
         const t = performance.now() / 1000;
-        this.#fixedUpdateFrameTimer.start(t);
-        this.#updateFrameTimer.start(t);
-        if (this.#onAfterStart) {
-            this.#onAfterStart();
+        this._fixedUpdateFrameTimer.start(t);
+        this._updateFrameTimer.start(t);
+        if (this._onAfterStart) {
+            this._onAfterStart();
         }
     }
 
@@ -168,12 +167,12 @@ export class Engine {
         const rh = height * this.renderer.pixelRatio;
         const w = Math.floor(rw);
         const h = Math.floor(rh);
-        this.#scene?.traverse((actor) => actor.setSize(w, h));
-        // this.#scenes.forEach((scene) => {
+        this._scene?.traverse((actor) => actor.setSize(w, h));
+        // this._scenes.forEach((scene) => {
         //     scene.traverse((actor) => actor.setSize(w, h));
         // });
-        // this.#renderer.setSize(w, h, rw, rh);
-        this.#renderer.setSize(rw, rh);
+        // this._renderer.setSize(w, h, rw, rh);
+        this._renderer.setSize(rw, rh);
     }
 
     /**
@@ -182,20 +181,20 @@ export class Engine {
      * @param fixedDeltaTime
      */
     fixedUpdate(fixedTime: number, fixedDeltaTime: number) {
-        if (this.#onBeforeFixedUpdate) {
-            this.#onBeforeFixedUpdate({ fixedTime, fixedDeltaTime });
+        if (this._onBeforeFixedUpdate) {
+            this._onBeforeFixedUpdate({ fixedTime, fixedDeltaTime });
         }
 
-        this.#scene?.traverse((actor) =>
+        this._scene?.traverse((actor) =>
             actor.fixedUpdate({
-                gpu: this.#gpu,
-                scene: this.#scene!,
+                gpu: this._gpu,
+                scene: this._scene!,
                 fixedTime,
                 fixedDeltaTime,
             })
         );
-        // this.#scenes.forEach((scene) => {
-        //     scene.traverse((actor) => actor.fixedUpdate({ gpu: this.#gpu, fixedTime, fixedDeltaTime }));
+        // this._scenes.forEach((scene) => {
+        //     scene.traverse((actor) => actor.fixedUpdate({ gpu: this._gpu, fixedTime, fixedDeltaTime }));
         // });
 
         // update all actors matrix
@@ -203,10 +202,10 @@ export class Engine {
         // - scene 側でやった方がよい？
         // - skyboxのupdateTransformが2回走っちゃうので、sceneかカメラに持たせて特別扱いさせたい
         // - やっぱりcomponentシステムにした方が良い気もする
-        this.#scene?.traverse((actor) => {
+        this._scene?.traverse((actor) => {
             actor.updateTransform();
         });
-        // this.#scenes.forEach((scene) => {
+        // this._scenes.forEach((scene) => {
         //     scene.traverse((actor) => actor.updateTransform());
         // });
     }
@@ -221,8 +220,8 @@ export class Engine {
         // before update
         //
 
-        if (this.#onBeforeUpdate) {
-            this.#onBeforeUpdate({ time, deltaTime });
+        if (this._onBeforeUpdate) {
+            this._onBeforeUpdate({ time, deltaTime });
         }
 
         //
@@ -230,13 +229,13 @@ export class Engine {
         //
 
         // 本当はあんまりgpu渡したくないけど、渡しちゃったほうがいろいろと楽
-        this.#scene?.traverse((actor) => {
-            actor.update({ gpu: this.#gpu, scene: this.#scene!, time, deltaTime });
+        this._scene?.traverse((actor) => {
+            actor.update({ gpu: this._gpu, scene: this._scene!, time, deltaTime });
             switch (actor.type) {
                 case ActorTypes.Skybox:
                 case ActorTypes.Mesh:
                 case ActorTypes.SkinnedMesh:
-                    actor.beforeRender({ gpu: this.#gpu });
+                    actor.beforeRender({ gpu: this._gpu });
                     const mesh = actor as Mesh;
                     mesh.materials.forEach((mat) => {
                         this.renderer.$checkNeedsBindUniformBufferObjectToMaterial(mat);
@@ -254,18 +253,18 @@ export class Engine {
         // last update
         //
 
-        if (this.#onLastUpdate) {
-            this.#onLastUpdate({ time, deltaTime });
+        if (this._onLastUpdate) {
+            this._onLastUpdate({ time, deltaTime });
         }
-        this.#scene?.traverse((actor) => {
-            actor.lastUpdate({ gpu: this.#gpu, scene: this.#scene!, time, deltaTime });
+        this._scene?.traverse((actor) => {
+            actor.lastUpdate({ gpu: this._gpu, scene: this._scene!, time, deltaTime });
         });
 
         //
         // update transform
         //
 
-        this.#scene?.traverse((actor) => {
+        this._scene?.traverse((actor) => {
             actor.updateTransform();
         });
 
@@ -282,7 +281,7 @@ export class Engine {
      * @param deltaTime
      */
     lastUpdate(time: number, deltaTime: number) {
-        this.#scene?.traverse((actor) => actor.lastUpdate({ gpu: this.#gpu, scene: this.#scene!, time, deltaTime }));
+        this._scene?.traverse((actor) => actor.lastUpdate({ gpu: this._gpu, scene: this._scene!, time, deltaTime }));
     }
 
     /**
@@ -295,7 +294,7 @@ export class Engine {
         // console.log(`[Engine.render]`);
 
         if (isDevelopment()) {
-            this.#stats?.clear();
+            this._stats?.clear();
         }
 
         this.renderer.beforeRender(time, deltaTime);
@@ -311,10 +310,10 @@ export class Engine {
         }
 
         // TODO: ここにrenderer.renderを書く
-        // this.#renderer.renderScene(this.#scene!);
+        // this._renderer.renderScene(this._scene!);
 
         if (isDevelopment()) {
-            this.#stats?.update(time);
+            this._stats?.update(time);
         }
     }
 
@@ -324,7 +323,7 @@ export class Engine {
 
         // 描画させたいので全部中央に置いちゃう
         const tmpTransformPair: { actor: Actor; p: Vector3; r: Rotator }[] = [];
-        this.#scene?.traverse((actor) => {
+        this._scene?.traverse((actor) => {
             const tmpP = actor.transform.position.clone();
             const tmpR = actor.transform.rotation.clone();
             // TODO: mainカメラだけ抽出したい
@@ -346,12 +345,9 @@ export class Engine {
         });
     }
 
-    /**
-     *
-     * @param time[sec]
-     */
+    // time[sec]
     run(time: number) {
-        this.#fixedUpdateFrameTimer.exec(time / 1000);
-        this.#updateFrameTimer.exec(time / 1000);
+        this._fixedUpdateFrameTimer.exec(time / 1000);
+        this._updateFrameTimer.exec(time / 1000);
     }
 }

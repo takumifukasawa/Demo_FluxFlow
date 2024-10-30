@@ -524,9 +524,13 @@ const load = async () => {
             //
             // render
             //
-            
-            renderer.updateTimelineUniforms(timelineTime, timelineDeltaTime);
-            renderer.render(captureScene, captureSceneCamera, engine.sharedTextures, { time, timelineTime, timelineDeltaTime });
+
+            renderer.updateTimelineUniforms(timelineTime, timelineDeltaTime); // TODO: engineかなにかに組み込みたい
+            renderer.render(captureScene, captureSceneCamera, engine.sharedTextures, {
+                time,
+                timelineTime,
+                timelineDeltaTime,
+            });
         }
     };
 
@@ -571,7 +575,7 @@ const playDemo = () => {
     // override pp values
     // なぜか debugger の前だとうまくいかない
     //
-    
+
     renderer.fogPass.parameters.sssFogColor = originForgeActorController.getPointLight().color;
 
     renderer.fogPass.parameters.distanceFogStart = 28;
@@ -579,8 +583,8 @@ const playDemo = () => {
     renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
     renderer.fogPass.parameters.sssFogRate = 0.029;
 
-    renderer.vignettePass.parameters.vignetteRadius = 2.743;
-    renderer.vignettePass.parameters.vignettePower = 1.251;
+    renderer.vignettePass.parameters.vignetteRadius = 4.159;
+    renderer.vignettePass.parameters.vignettePower = 2.714;
 
     renderer.streakPass.parameters.threshold = 0.448;
     renderer.streakPass.parameters.verticalScale = 7.611;
@@ -588,15 +592,18 @@ const playDemo = () => {
     renderer.streakPass.parameters.stretch = 0.95;
     renderer.streakPass.parameters.intensity = 0.106;
 
-    renderer.volumetricLightPass.parameters.rayStep = 1.;
-    
-    renderer.ssrPass.parameters.rayDepthBias = .047;
-    renderer.ssrPass.parameters.rayNearestDistance = .089;
-    renderer.ssrPass.parameters.rayMaxDistance = 2.;
-    renderer.ssrPass.parameters.reflectionRayThickness = .579;
-    renderer.ssrPass.parameters.reflectionRayJitterSizeY = .003;
-    renderer.ssrPass.parameters.reflectionRayJitterSizeY = .003;
-    
+    renderer.volumetricLightPass.parameters.rayStep = 1;
+
+    renderer.depthOfFieldPass.parameters.focusRange = 3.74;
+    renderer.depthOfFieldPass.parameters.bokehRadius = 2.898;
+
+    renderer.ssrPass.parameters.rayDepthBias = 0.047;
+    renderer.ssrPass.parameters.rayNearestDistance = 0.089;
+    renderer.ssrPass.parameters.rayMaxDistance = 2;
+    renderer.ssrPass.parameters.reflectionRayThickness = 0.579;
+    renderer.ssrPass.parameters.reflectionRayJitterSizeY = 0.003;
+    renderer.ssrPass.parameters.reflectionRayJitterSizeY = 0.003;
+
     renderer.volumetricLightPass.parameters.rayStep = 0.496;
     renderer.volumetricLightPass.parameters.densityMultiplier = 0.6;
     renderer.volumetricLightPass.parameters.rayJitterSize.x = 0.1;
@@ -604,6 +611,9 @@ const playDemo = () => {
     renderer.volumetricLightPass.parameters.rayJitterSize.z = 0.2;
 
     renderer.screenSpaceShadowPass.parameters.jitterSize = new Vector3(0.09, 0.09, 0);
+
+    renderer.chromaticAberrationPass.parameters.scale = 0.041;
+    renderer.chromaticAberrationPass.parameters.power = 1.236;
 
     //
     // exec

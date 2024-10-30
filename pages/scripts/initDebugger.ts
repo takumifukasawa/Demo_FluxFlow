@@ -857,6 +857,44 @@ export function initDebugger({
 
     debuggerGUI.addBorderSpacer();
 
+    const chromaticAberrationDebuggerGroup = debuggerGUI.addGroup('chromatic aberration', false);
+
+    chromaticAberrationDebuggerGroup.addSliderDebugger({
+        label: 'scale',
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        initialValue: renderer.chromaticAberrationPass.parameters.scale,
+        onChange: (value) => {
+            renderer.chromaticAberrationPass.parameters.scale = value;
+        },
+    });
+    chromaticAberrationDebuggerGroup.addSliderDebugger({
+        label: 'power',
+        minValue: 0.01,
+        maxValue: 8,
+        stepValue: 0.001,
+        initialValue: renderer.chromaticAberrationPass.parameters.power,
+        onChange: (value) => {
+            renderer.chromaticAberrationPass.parameters.power = value;
+        },
+    });
+    chromaticAberrationDebuggerGroup.addSliderDebugger({
+        label: 'blend rate',
+        minValue: 0,
+        maxValue: 1,
+        stepValue: 0.001,
+        initialValue: renderer.chromaticAberrationPass.parameters.blendRate,
+        onChange: (value) => {
+            renderer.chromaticAberrationPass.parameters.blendRate = value;
+        },
+    });
+    //
+    // glitch
+    //
+
+    debuggerGUI.addBorderSpacer();
+
     const glitchDebuggerGroup = debuggerGUI.addGroup('glitch', false);
 
     glitchDebuggerGroup.addToggleDebugger({
@@ -875,6 +913,7 @@ export function initDebugger({
             renderer.glitchPass.parameters.blendRate = value;
         },
     });
+
 
     //
     // add debugger ui

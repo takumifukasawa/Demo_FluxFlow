@@ -1,4 +1,4 @@
-﻿import {PostProcessPassType, UniformNames, UniformTypes} from '@/PaleGL/constants';
+﻿import {PostProcessPassType, RenderTargetTypes, UniformNames, UniformTypes} from '@/PaleGL/constants';
 import { GPU } from '@/PaleGL/core/GPU';
 import fxaaFragmentShader from '@/PaleGL/shaders/fxaa-fragment.glsl';
 import {PostProcessPassBase, PostProcessPassParametersBase} from '@/PaleGL/postprocess/PostProcessPassBase';
@@ -31,6 +31,7 @@ export class FXAAPass extends PostProcessPassBase {
             type: PostProcessPassType.FXAA,
             parameters,
             fragmentShader,
+            renderTargetType: RenderTargetTypes.R11F_G11F_B10F,
             uniforms: [
                 // uTargetWidth: {
                 //     type: UniformTypes.Float,

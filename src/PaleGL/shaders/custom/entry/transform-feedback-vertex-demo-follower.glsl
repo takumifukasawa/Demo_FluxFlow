@@ -126,10 +126,17 @@ void main() {
             * uTimelineDeltaTime
             * max(max(attractPower - attractDelayValue, 0.), uAttractMinPower) * uAttractBasePower;
         velocity = diffDir * max(length(v), .003); // fallback. ちょっとだけ動かすと回転バグらない
-      
-        // lerpする場合
-        // float r = max(uTimelineDeltaTime * 10., 1.);
-        // velocity = mix(currentVelocity, velocity, r * saturate(uAttractBasePower)); // 速度制限
+        
+        // // TEST: lerpする場合
+        // float r = min(uTimelineDeltaTime * 10., 1.);
+        // // velocity = mix(currentVelocity, velocity, r * saturate(uAttractBasePower)); // 速度制限
+        // float s = step(.0001, uTimelineDeltaTime);
+        // velocity = mix(
+        //     currentVelocity * s,
+        //     velocity,
+        //     r * s
+        // ); // 速度制限
+        // // velocity = diffDir * max(length(v), .003); // fallback. ちょっとだけ動かすと回転バグらない
 
         // attract: 簡易版_等速
         // velocity = diffDir * uDeltaTime;

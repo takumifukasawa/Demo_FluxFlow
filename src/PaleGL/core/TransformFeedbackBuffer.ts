@@ -39,7 +39,7 @@ export class TransformFeedbackBuffer {
 
     transformFeedback: TransformFeedback;
 
-    outputs: {
+    _outputs: {
         // name: string;
         buffer: WebGLBuffer;
         // size: number
@@ -87,7 +87,7 @@ export class TransformFeedbackBuffer {
             gl.bindBuffer(GL_ARRAY_BUFFER, buffer);
             gl.bufferData(GL_ARRAY_BUFFER, data, getAttributeUsage(usageType || AttributeUsageType.DynamicDraw));
             gl.bindBuffer(GL_ARRAY_BUFFER, null);
-            this.outputs.push({
+            this._outputs.push({
                 // name,
                 buffer: buffer!,
             });

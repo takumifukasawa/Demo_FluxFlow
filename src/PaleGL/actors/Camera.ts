@@ -26,14 +26,14 @@ import { GBufferRenderTargets } from '@/PaleGL/core/GBufferRenderTargets';
 import { isDevelopment } from '@/PaleGL/utilities/envUtilities.ts';
 
 export const FrustumDirection = {
-    nearLeftTop: 'nearLeftTop',
-    nearRightTop: 'nearRightTop',
-    nearLeftBottom: 'nearLeftBottom',
-    nearRightBottom: 'nearRightBottom',
-    farLeftTop: 'farLeftTop',
-    farRightTop: 'farRightTop',
-    farLeftBottom: 'farLeftBottom',
-    farRightBottom: 'farRightBottom',
+    nlt: 'nlt',
+    nrt: 'nrt',
+    nlb: 'nlb',
+    nrb: 'nrb',
+    flt: 'flt',
+    frt: 'frt',
+    flb: 'flb',
+    frb: 'frb',
 } as const;
 export type FrustumDirectionType = (typeof FrustumDirection)[keyof typeof FrustumDirection];
 
@@ -50,9 +50,9 @@ export class Camera extends Actor {
     inverseViewProjectionMatrix = Matrix4.identity;
     inverseViewMatrix = Matrix4.identity;
     inverseProjectionMatrix = Matrix4.identity;
-    #renderTarget: CameraRenderTargetType = null;
+    _renderTarget: CameraRenderTargetType = null;
     clearColor: Vector4; // TODO: color class
-    #postProcess: PostProcess | null;
+    _postProcess: PostProcess | null;
     near: number = 1;
     far: number = 10;
     visibleFrustum: boolean = false;
@@ -72,7 +72,7 @@ export class Camera extends Actor {
     }
 
     get postProcess() {
-        return this.#postProcess;
+        return this._postProcess;
     }
 
     get enabledPostProcess() {
@@ -97,13 +97,13 @@ export class Camera extends Actor {
     // }
 
     get renderTarget() {
-        return this.#renderTarget;
+        return this._renderTarget;
     }
 
     get writeRenderTarget() {
-        if (this.#renderTarget) {
+        if (this._renderTarget) {
             // for double buffer
-            return this.#renderTarget.isSwappable ? this.#renderTarget.write : this.#renderTarget;
+            return this._renderTarget.isSwappable ? this._renderTarget.write : this._renderTarget;
         }
         return null;
     }
@@ -123,7 +123,7 @@ export class Camera extends Actor {
         super({ name, type: ActorTypes.Camera });
         this.cameraType = cameraType;
         this.clearColor = clearColor || new Vector4(0, 0, 0, 1);
-        this.#postProcess = postProcess || null;
+        this._postProcess = postProcess || null;
     }
 
     /**
@@ -132,19 +132,19 @@ export class Camera extends Actor {
      * @param height
      */
     setSize(width: number, height: number) {
-        // if (!this.#postProcess) {
+        // if (!this._postProcess) {
         //     return;
         // }
-        // if (this.#renderTarget) {
-        //     this.#postProcess.setSize(this.#renderTarget.width, this.#renderTarget.height);
+        // if (this._renderTarget) {
+        //     this._postProcess.setSize(this._renderTarget.width, this._renderTarget.height);
         // } else {
-        //     this.#postProcess.setSize(width, height);
+        //     this._postProcess.setSize(width, height);
         // }
-        if (this.#renderTarget) {
-            this.#renderTarget.setSize(width, height);
+        if (this._renderTarget) {
+            this._renderTarget.setSize(width, height);
         }
-        if (this.#postProcess) {
-            this.#postProcess.setSize(width, height);
+        if (this._postProcess) {
+            this._postProcess.setSize(width, height);
         }
     }
 
@@ -153,7 +153,7 @@ export class Camera extends Actor {
      * @param postProcess
      */
     setPostProcess(postProcess: PostProcess) {
-        this.#postProcess = postProcess;
+        this._postProcess = postProcess;
     }
 
     /**
@@ -263,15 +263,15 @@ out vec4 o; void main() {o=vec4(0,1.,0,1.);}
                     AttributeNames.Position,
                     new Float32Array([
                         // near clip
-                        ...frustumPositions.nearLeftTop.e,
-                        ...frustumPositions.nearLeftBottom.e,
-                        ...frustumPositions.nearRightTop.e,
-                        ...frustumPositions.nearRightBottom.e,
+                        ...frustumPositions.nlt.e,
+                        ...frustumPositions.nlb.e,
+                        ...frustumPositions.nrt.e,
+                        ...frustumPositions.nrb.e,
                         // far clip
-                        ...frustumPositions.farLeftTop.e,
-                        ...frustumPositions.farLeftBottom.e,
-                        ...frustumPositions.farRightTop.e,
-                        ...frustumPositions.farRightBottom.e,
+                        ...frustumPositions.flt.e,
+                        ...frustumPositions.flb.e,
+                        ...frustumPositions.frt.e,
+                        ...frustumPositions.frb.e,
                     ])
                 );
                 this.visibleFrustumMesh.enabled = this.visibleFrustum;
@@ -315,7 +315,7 @@ out vec4 o; void main() {o=vec4(0,1.,0,1.);}
      * @param renderTarget
      */
     setRenderTarget(renderTarget: RenderTarget | GBufferRenderTargets | null) {
-        this.#renderTarget = renderTarget;
+        this._renderTarget = renderTarget;
     }
 
     /**
@@ -330,15 +330,15 @@ out vec4 o; void main() {o=vec4(0,1.,0,1.);}
      */
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
-    getFrustumLocalPositions(): FrustumVectors {
-        console.error('[Camera.getFrustumLocalPosition] should implementation');
+    getFrustumLocalPositions(): FrustumVectors | null {
+        // console.error('[Camera.getFrustumLocalPosition] should implementation');
     }
 
     /**
      *
      */
     getFrustumWorldPositions() {
-        console.error('[Camera.getFrustumWorldPositions] should implementation');
+        // console.error('[Camera.getFrustumWorldPositions] should implementation');
     }
 
     /**

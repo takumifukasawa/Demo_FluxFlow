@@ -17,31 +17,16 @@ type TransformFeedbackBuffer = {
 };
 
 export class TransformFeedbackDoubleBuffer {
-    // private gpu: GPU;
-
     shader: Shader;
-    // srcAttributes: Attribute[] = [];
-    // outputAttributes: Attribute[] = [];
-    // vertexCount: number = 0;
-    // vertexArrayObject: VertexArrayObject;
     drawCount: number;
-
-    // transformFeedback: TransformFeedback;
-
-    private transformFeedbackBuffers: TransformFeedbackBuffer[] = [];
-
+    _transformFeedbackBuffers: TransformFeedbackBuffer[] = [];
     uniforms: Uniforms;
     uniformBlockNames: string[] = [];
-
-    // outputs: {
-    //     buffer: WebGLBuffer;
-    //     // size: number
-    // }[] = [];
 
     // NOTE: readもwriteも実態は同じだがapiとして分ける
 
     get read() {
-        const buffer = this.transformFeedbackBuffers[0];
+        const buffer = this._transformFeedbackBuffers[0];
         return {
             vertexArrayObject: buffer.srcVertexArrayObject,
             transformFeedback: buffer.transformFeedback,
@@ -49,7 +34,7 @@ export class TransformFeedbackDoubleBuffer {
     }
 
     get write() {
-        const buffer = this.transformFeedbackBuffers[0];
+        const buffer = this._transformFeedbackBuffers[0];
         return {
             vertexArrayObject: buffer.srcVertexArrayObject,
             transformFeedback: buffer.transformFeedback,
@@ -107,14 +92,14 @@ export class TransformFeedbackDoubleBuffer {
             buffers: vertexArrayObject2.getBuffers(),
         });
 
-        this.transformFeedbackBuffers.push({
+        this._transformFeedbackBuffers.push({
             attributes: attributes1,
             srcVertexArrayObject: vertexArrayObject1,
             transformFeedback: transformFeedback2,
             outputVertexArrayobject: vertexArrayObject2,
         });
 
-        this.transformFeedbackBuffers.push({
+        this._transformFeedbackBuffers.push({
             attributes: attributes2,
             srcVertexArrayObject: vertexArrayObject2,
             transformFeedback: transformFeedback1,
@@ -123,13 +108,13 @@ export class TransformFeedbackDoubleBuffer {
     }
 
     swap() {
-        const tmp = this.transformFeedbackBuffers[0];
-        this.transformFeedbackBuffers[0] = this.transformFeedbackBuffers[1];
-        this.transformFeedbackBuffers[1] = tmp;
+        const tmp = this._transformFeedbackBuffers[0];
+        this._transformFeedbackBuffers[0] = this._transformFeedbackBuffers[1];
+        this._transformFeedbackBuffers[1] = tmp;
     }
     
     updateBufferSubData(key: string, index: number, data: ArrayBufferView | BufferSource) {
-        this.transformFeedbackBuffers.forEach((buffer) => {
+        this._transformFeedbackBuffers.forEach((buffer) => {
             buffer.srcVertexArrayObject.updateBufferSubData(key, index, data);
         });
     }

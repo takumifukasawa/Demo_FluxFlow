@@ -56,14 +56,18 @@ function getStructElementValue(type: UniformTypes, value: UniformBufferObjectVal
 export class UniformBufferObject extends GLObject {
     gpu: GPU;
     ubo: WebGLBuffer;
-    blockName: string;
-    blockSize: number;
-    dataSize: number;
+    _blockName: string;
+    _blockSize: number;
+    _dataSize: number;
     bindingPoint: number;
-    variableInfo: { name: string; index: number; offset: number }[];
+    _variableInfo: { name: string; index: number; offset: number }[];
 
     get glObject() {
         return this.ubo;
+    }
+    
+    get blockName() {
+        return this._blockName;
     }
 
     constructor(
@@ -78,9 +82,9 @@ export class UniformBufferObject extends GLObject {
     ) {
         super();
         this.gpu = gpu;
-        this.blockName = blockName;
-        this.blockSize = blockSize;
-        this.dataSize = dataSize;
+        this._blockName = blockName;
+        this._blockSize = blockSize;
+        this._dataSize = dataSize;
         this.bindingPoint = bindingPoint;
         const { gl } = this.gpu;
 
@@ -89,7 +93,7 @@ export class UniformBufferObject extends GLObject {
         this.bind();
 
         // 必要なbyte数を確保しておく
-        gl.bufferData(GL_UNIFORM_BUFFER, this.dataSize, GL_DYNAMIC_DRAW);
+        gl.bufferData(GL_UNIFORM_BUFFER, this._dataSize, GL_DYNAMIC_DRAW);
 
         this.unbind();
 
@@ -98,7 +102,7 @@ export class UniformBufferObject extends GLObject {
 
         // console.log(gpu, blockName, blockSize, variableNames, indices, offsets, dataSize, bindingPoint);
 
-        this.variableInfo = variableNames.map((name, i) => {
+        this._variableInfo = variableNames.map((name, i) => {
             return {
                 name,
                 index: indices[i],
@@ -116,9 +120,9 @@ export class UniformBufferObject extends GLObject {
         const { gl } = this.gpu;
         gl.bindBuffer(GL_UNIFORM_BUFFER, null);
     }
-
+    
     updateBufferData(variableName: string, data: Float32Array | Uint16Array, showLog: boolean = false) {
-        const info = this.variableInfo.find((v) => v.name === variableName);
+        const info = this._variableInfo.find((v) => v.name === variableName);
         if (showLog) {
             // console.log("updateBufferData", info);
         }

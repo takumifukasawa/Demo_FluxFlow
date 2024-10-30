@@ -16,7 +16,6 @@ type PostProcessVolumeArgs = ActorArgs & {
 export class PostProcessVolume extends Volume {
     parameters: PostProcessVolumeParameterSet[] = [];
 
-    // passes: IPostProcessPass[] = [];
     constructor(args: PostProcessVolumeArgs) {
         super({
             ...args,
@@ -32,12 +31,4 @@ export class PostProcessVolume extends Volume {
         }
         return result.parameters as T;
     }
-
-    // setParameter<T>(type: PostProcessPassType, parameter: PostProcessPassBase) {
-    // }
-
-    // updateParameter<T extends PostProcessPassParametersBase>(type: PostProcessPassType, newParameter: T): void {
-    //     const targetParameter = this.findParameter(type);
-    //     targetParameter?.update?.(newParameter);
-    // }
 }

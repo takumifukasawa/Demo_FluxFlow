@@ -1,22 +1,22 @@
 import { Matrix4 } from '@/PaleGL/math/Matrix4.ts';
 
 export class Quaternion {
-    elements: Float32Array = new Float32Array(4);
+    e: Float32Array = new Float32Array(4);
 
     get x() {
-        return this.elements[0];
+        return this.e[0];
     }
 
     get y() {
-        return this.elements[1];
+        return this.e[1];
     }
 
     get z() {
-        return this.elements[2];
+        return this.e[2];
     }
 
     get w() {
-        return this.elements[3];
+        return this.e[3];
     }
 
     constructor(x: number, y: number, z: number, w: number) {
@@ -24,12 +24,12 @@ export class Quaternion {
     }
 
     set(x: number, y: number, z: number, w: number) {
-        this.elements = new Float32Array([x, y, z, w]);
+        this.e = new Float32Array([x, y, z, w]);
         return this;
     }
     
     copy(q: Quaternion) {
-        this.elements = new Float32Array(q.elements);
+        this.e = new Float32Array(q.e);
         return this;
     }
   

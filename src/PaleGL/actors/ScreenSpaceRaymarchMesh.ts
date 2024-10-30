@@ -15,9 +15,7 @@ import {
 } from '@/PaleGL/materials/ScreenSpaceRaymarchMaterial.ts';
 import { PostProcessPassBase } from '@/PaleGL/postprocess/PostProcessPassBase.ts';
 import { Vector3 } from '@/PaleGL/math/Vector3.ts';
-// import { ActorUpdateArgs } from '@/PaleGL/actors/Actor.ts';
 import { Camera } from '@/PaleGL/actors/Camera.ts';
-// import { PerspectiveCamera } from '@/PaleGL/actors/PerspectiveCamera.ts';
 import { MaterialArgs } from '@/PaleGL/materials/Material.ts';
 import { gbufferScreenSpaceRaymarchDepthFragmentTemplate } from '@/PaleGL/shaders/templates/gbuffer-screen-space-raymarch-depth-fragment-template.ts';
 import { litScreenSpaceRaymarchFragmentTemplate } from '@/PaleGL/shaders/templates/lit-screen-space-raymarch-fragment-template.ts';

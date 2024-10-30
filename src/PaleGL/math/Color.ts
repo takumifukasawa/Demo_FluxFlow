@@ -29,13 +29,15 @@
         return this.e[2] * 255;
     }
 
-    get a255() {
-        return this.e[3] * 255;
-    }
+    // ORIGINAL
+    // get a255() {
+    //     return this.e[3] * 255;
+    // }
 
-    get rgbArray() {
-        return [this.r, this.g, this.b];
-    }
+    // ORIGINAL
+    // get rgbArray() {
+    //     return [this.r, this.g, this.b];
+    // }
 
     set r(value) {
         this.e[0] = value;

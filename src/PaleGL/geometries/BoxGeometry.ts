@@ -150,7 +150,7 @@ export function createBoxGeometryData(size: number) {
 
 export class BoxGeometry extends Geometry {
     // localPositions: number[];
-    cornerPositions: number[][];
+    _cornerPositions: number[][];
 
     constructor({ gpu, size = 1 }: { gpu: GPU; size?: number }) {
         const s = size / 2;
@@ -243,7 +243,7 @@ export class BoxGeometry extends Geometry {
             drawCount: 6 * 6, // indices count
         });
 
-        this.cornerPositions = [
+        this._cornerPositions = [
             boxPosition_0,
             boxPosition_1,
             boxPosition_2,
@@ -257,18 +257,18 @@ export class BoxGeometry extends Geometry {
 
     getRandomLocalPositionOnEdge(rand1: number, rand2: number): Vector3 {
         const edgePair = edgePairs[Math.floor(rand1 * edgePairs.length % edgePairs.length)];
-        const p0 = this.cornerPositions[edgePair[0]];
-        const p1 = this.cornerPositions[edgePair[1]];
+        const p0 = this._cornerPositions[edgePair[0]];
+        const p1 = this._cornerPositions[edgePair[1]];
         const t = easeInOutQuad(rand2 % 1);
         return Vector3.lerpVectors(new Vector3(p0[0], p0[1], p0[2]), new Vector3(p1[0], p1[1], p1[2]), t);
     }
 
     getRandomLocalPositionOnSurface(index: number, rand2: number, rand3: number): Vector3 {
         const surfacePair = surfacePairs[Math.floor(index % surfacePairs.length)];
-        const p0 = this.cornerPositions[surfacePair[0]];
-        const p1 = this.cornerPositions[surfacePair[1]];
-        const p2 = this.cornerPositions[surfacePair[2]];
-        const p3 = this.cornerPositions[surfacePair[3]];
+        const p0 = this._cornerPositions[surfacePair[0]];
+        const p1 = this._cornerPositions[surfacePair[1]];
+        const p2 = this._cornerPositions[surfacePair[2]];
+        const p3 = this._cornerPositions[surfacePair[3]];
         const v1 = Vector3.lerpVectors(new Vector3(p0[0], p0[1], p0[2]), new Vector3(p1[0], p1[1], p1[2]), rand2);
         const v2 = Vector3.lerpVectors(new Vector3(p2[0], p2[1], p2[2]), new Vector3(p3[0], p3[1], p3[2]), rand2);
         return Vector3.lerpVectors(v1, v2, rand3);

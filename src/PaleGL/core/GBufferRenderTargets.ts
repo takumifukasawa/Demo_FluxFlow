@@ -27,13 +27,13 @@ export class GBufferRenderTargets extends AbstractRenderTarget {
     name: string;
     width: number;
     height: number;
-    private _framebuffer: Framebuffer;
-    private _gBufferTextures: Texture[] = [];
-    private _gBufferATexture: Texture;
-    private _gBufferBTexture: Texture;
-    private _gBufferCTexture: Texture;
-    private _gBufferDTexture: Texture;
-    private _depthTexture: Texture | null = null;
+    _framebuffer: Framebuffer;
+    _gBufferTextures: Texture[] = [];
+    _gBufferATexture: Texture;
+    _gBufferBTexture: Texture;
+    _gBufferCTexture: Texture;
+    _gBufferDTexture: Texture;
+    _depthTexture: Texture | null = null;
 
     // get textures() {
     //     return this._gBufferTextures;

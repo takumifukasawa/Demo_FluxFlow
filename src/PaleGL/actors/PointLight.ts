@@ -9,9 +9,6 @@ type PointLightParams = {
 
 type PointLightArgs = LightArgs & PointLightParams;
 
-/**
- *
- */
 export class PointLight extends Light {
     distance: number;
     attenuation: number;
@@ -23,10 +20,6 @@ export class PointLight extends Light {
 
     }
 
-    /**
-     *
-     * @param args
-     */
     update(args: ActorUpdateArgs) {
         super.update(args);
     }

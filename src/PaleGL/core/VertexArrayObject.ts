@@ -15,36 +15,36 @@ type VertexBufferObject = {
 };
 
 export class VertexArrayObject extends GLObject {
-    private gpu: GPU;
-    private vao: WebGLVertexArrayObject;
-    private vboList: VertexBufferObject[] = [];
-    private ibo: IndexBufferObject | null = null;
+    _gpu: GPU;
+    _vao: WebGLVertexArrayObject;
+    _vboList: VertexBufferObject[] = [];
+    _ibo: IndexBufferObject | null = null;
 
     /**
      *
      */
     get hasIndices() {
-        return !!this.ibo;
+        return !!this._ibo;
     }
 
     /**
      *
      */
     get glObject() {
-        return this.vao;
+        return this._vao;
     }
 
     constructor({ gpu, attributes = [], indices }: { gpu: GPU; attributes: Attribute[]; indices?: number[] | null }) {
         super();
 
-        this.gpu = gpu;
+        this._gpu = gpu;
 
-        const gl = this.gpu.gl;
+        const gl = this._gpu.gl;
         const vao = gl.createVertexArray()!;
         // if (!vao) {
         //     console.error('invalid vao');
         // }
-        this.vao = vao;
+        this._vao = vao;
 
         // bind vertex array to webgl context
         // gl.bindVertexArray(this.vao);
@@ -56,7 +56,7 @@ export class VertexArrayObject extends GLObject {
         });
 
         if (indices) {
-            this.ibo = new IndexBufferObject({ gpu, indices });
+            this._ibo = new IndexBufferObject({ gpu, indices });
         }
 
         // set attribute の方でやってるのでいらないはず
@@ -68,8 +68,8 @@ export class VertexArrayObject extends GLObject {
         this.unbind();
 
         // unbind index buffer
-        if (this.ibo) {
-            this.ibo.unbind();
+        if (this._ibo) {
+            this._ibo.unbind();
         }
     }
 
@@ -78,7 +78,7 @@ export class VertexArrayObject extends GLObject {
      *
      */
     bind() {
-        const { gl } = this.gpu;
+        const { gl } = this._gpu;
         gl.bindVertexArray(this.glObject);
     }
 
@@ -86,7 +86,7 @@ export class VertexArrayObject extends GLObject {
      *
      */
     unbind() {
-        const { gl } = this.gpu;
+        const { gl } = this._gpu;
         gl.bindVertexArray(null);
     }
 
@@ -97,15 +97,15 @@ export class VertexArrayObject extends GLObject {
      */
     // setAttribute(attribute: Attribute, push = false) {
     setAttribute(attribute: Attribute) {
-        const gl = this.gpu.gl;
+        const gl = this._gpu.gl;
 
         // if (push) {
         // bind vertex array to webgl context
-        gl.bindVertexArray(this.vao);
+        gl.bindVertexArray(this._vao);
         // }
 
         const { name, data, size, location, usageType, divisor } = attribute;
-        const newLocation = location !== null && location !== undefined ? location : this.vboList.length;
+        const newLocation = location !== null && location !== undefined ? location : this._vboList.length;
         const vbo = gl.createBuffer()!;
         gl.bindBuffer(GL_ARRAY_BUFFER, vbo);
         const usage = getAttributeUsage(usageType);
@@ -130,7 +130,7 @@ export class VertexArrayObject extends GLObject {
             gl.vertexAttribDivisor(newLocation, divisor);
         }
 
-        this.vboList.push({ name, vbo, usage, location, size, divisor });
+        this._vboList.push({ name, vbo, usage, location, size, divisor });
 
         // if (push) {
         gl.bindVertexArray(null);
@@ -139,7 +139,7 @@ export class VertexArrayObject extends GLObject {
     }
     
     getBufferSubData(key: string, index: number, elementsNum: number) {
-        const { gl } = this.gpu;
+        const { gl } = this._gpu;
         const vboInfo = this.findVertexBufferObjectInfo(key);
         const offset = index * elementsNum * Float32Array.BYTES_PER_ELEMENT;
         const data = new Float32Array(elementsNum);
@@ -155,7 +155,7 @@ export class VertexArrayObject extends GLObject {
      * @param data
      */
     updateBufferData(key: string, data: ArrayBufferView | BufferSource) {
-        const { gl } = this.gpu;
+        const { gl } = this._gpu;
         const vboInfo = this.findVertexBufferObjectInfo(key);
 
         // performance overhead
@@ -170,7 +170,7 @@ export class VertexArrayObject extends GLObject {
     }
 
     updateBufferSubData(key: string, index: number, data: ArrayBufferView | BufferSource) {
-        const { gl } = this.gpu;
+        const { gl } = this._gpu;
         const vboInfo = this.findVertexBufferObjectInfo(key);
         const offset = index * data.byteLength;
         gl.bindBuffer(GL_ARRAY_BUFFER, vboInfo!.vbo);
@@ -184,14 +184,14 @@ export class VertexArrayObject extends GLObject {
      * @param buffer
      */
     replaceBuffer(key: string, buffer: WebGLBuffer) {
-        const { gl } = this.gpu;
+        const { gl } = this._gpu;
 
         // const { location, size } = this.findVertexBufferObjectInfo(key);
         const index = this.findVertexBufferObjectInfoIndex(key);
         if(index === null) {
             console.error('invalid target vbo');
         }
-        const { location, size } = this.vboList[index!];
+        const { location, size } = this._vboList[index!];
 
         this.bind();
 
@@ -208,14 +208,14 @@ export class VertexArrayObject extends GLObject {
         this.unbind();
 
         // replace buffer
-        this.vboList[index!].vbo = buffer;
+        this._vboList[index!].vbo = buffer;
     }
 
     /**
      *
      */
     getBuffers() {
-        return this.vboList.map(({ vbo }) => vbo);
+        return this._vboList.map(({ vbo }) => vbo);
     }
     
     /**
@@ -232,7 +232,7 @@ export class VertexArrayObject extends GLObject {
         //         break;
         //     }
         // }
-        const vboInfo = this.vboList.find(({ name }) => key === name);
+        const vboInfo = this._vboList.find(({ name }) => key === name);
         // const vbo = this.vboList.find(({ name }) => key === name);
         if (!vboInfo) {
             console.error('invalid target vbo');
@@ -242,8 +242,8 @@ export class VertexArrayObject extends GLObject {
     }
 
     findVertexBufferObjectInfoIndex(key: string): number | null {
-        for (let i = 0; i < this.vboList.length; i++) {
-            if (key === this.vboList[i].name) {
+        for (let i = 0; i < this._vboList.length; i++) {
+            if (key === this._vboList[i].name) {
                 return i;
             }
         }

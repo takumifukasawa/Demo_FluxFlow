@@ -21,15 +21,32 @@ export type GeometryArgs = {
 // TODO: actorをlifecycleに乗せたのでgpuもたせなくてもいいかも
 // TODO: vaoの生成2回走ってる
 export class Geometry {
-    attributes: Attribute[] = [];
-    vertexCount: number = 0;
-    vertexArrayObject: VertexArrayObject;
-    indices: number[] | null = null;
-    drawCount: number;
-
-    instanceCount: number | null;
-
-    private gpu: GPU;
+    _gpu: GPU;
+    _attributes: Attribute[] = [];
+    // vertexCount: number = 0;
+    _vertexArrayObject: VertexArrayObject;
+    _indices: number[] | null = null;
+    _drawCount: number;
+    _instanceCount: number | null;
+   
+    get attributes() {
+        return this._attributes;
+    }
+    get vertexArrayObject() {
+        return this._vertexArrayObject;
+    }
+    get indices() {
+        return this._indices;
+    }
+    get drawCount() {
+        return this._drawCount;
+    }
+    get instanceCount() {
+        return this._instanceCount;
+    }
+    set instanceCount(value) {
+        this._instanceCount = value;
+    }
 
     constructor({
         gpu,
@@ -39,13 +56,13 @@ export class Geometry {
         // calculateBinormal = false,
         instanceCount = null,
     }: GeometryArgs) {
-        this.gpu = gpu;
+        this._gpu = gpu;
 
-        this.instanceCount = typeof instanceCount == 'number' ? instanceCount : null;
-        this.drawCount = drawCount;
+        this._instanceCount = typeof instanceCount == 'number' ? instanceCount : null;
+        this._drawCount = drawCount;
 
         if (indices) {
-            this.indices = indices;
+            this._indices = indices;
         }
 
         // TODO: vaoの生成2回やっちゃってる. constructorとstartで
@@ -57,7 +74,7 @@ export class Geometry {
             attribute.divisor = attribute.divisor || 0;
         });
 
-        this.vertexArrayObject = new VertexArrayObject({
+        this._vertexArrayObject = new VertexArrayObject({
             gpu,
             attributes: [],
             indices: this.indices,
@@ -104,7 +121,7 @@ export class Geometry {
             console.log('force: ', attribute);
         });
 
-        this.vertexArrayObject = new VertexArrayObject({
+        this._vertexArrayObject = new VertexArrayObject({
             gpu,
             attributes: this.attributes,
             indices: this.indices,
@@ -113,13 +130,13 @@ export class Geometry {
 
     start() {
         if (!this.vertexArrayObject) {
-            this.#createGeometry({ gpu: this.gpu });
+            this.#createGeometry({ gpu: this._gpu });
         }
     }
 
     update() {
         if (!this.vertexArrayObject) {
-            this.#createGeometry({ gpu: this.gpu });
+            this.#createGeometry({ gpu: this._gpu });
         }
     }
 
