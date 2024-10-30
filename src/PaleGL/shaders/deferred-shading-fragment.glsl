@@ -380,8 +380,8 @@ void main() {
 
     #pragma UNROLL_START
     for(int i = 0; i < MAX_POINT_LIGHT_COUNT; i++) {
-        getPointLightIrradiance(uPointLight[UNROLL_i], geometry, directLight);
-        RE_Direct(directLight, geometry, material, reflectedLight, sssRate);
+       getPointLightIrradiance(uPointLight[UNROLL_i], geometry, directLight);
+       RE_Direct(directLight, geometry, material, reflectedLight, sssRate * .25); // TODO: pass parameter
     }
     #pragma UNROLL_END
 

@@ -351,6 +351,7 @@ const load = async () => {
 
     originForgeActorController = createOriginForgeActorController(gpu);
     captureScene.add(originForgeActorController.getActor());
+    captureScene.add(originForgeActorController.getPointLight());
     // originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
 
     //
@@ -551,7 +552,7 @@ const load = async () => {
 
 const playDemo = () => {
     captureSceneCamera!.near = 0.1;
-    captureSceneCamera!.far = 500;
+    captureSceneCamera!.far = 400;
 
     const tick = (time: number) => {
         engine.run(time);
@@ -579,6 +580,7 @@ const playDemo = () => {
     renderer.fogPass.parameters.sssFogColor = originForgeActorController.getPointLight().color;
 
     renderer.fogPass.parameters.distanceFogStart = 28;
+    renderer.fogPass.parameters.distanceFogEnd = 150;
     renderer.fogPass.parameters.distanceFogPower = 0.02;
     renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
     renderer.fogPass.parameters.sssFogRate = 0.029;

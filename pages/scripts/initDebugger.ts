@@ -450,11 +450,22 @@ export function initDebugger({
     fogDebuggerGroup.addSliderDebugger({
         label: 'distance fog start',
         minValue: 0,
-        maxValue: 100,
+        maxValue: 300,
         stepValue: 0.0001,
         initialValue: renderer.fogPass.parameters.distanceFogPower,
         onChange: (value) => {
             renderer.fogPass.parameters.distanceFogStart = value;
+        },
+    });
+    
+    fogDebuggerGroup.addSliderDebugger({
+        label: 'distance fog end',
+        minValue: 0,
+        maxValue: 300,
+        stepValue: 0.0001,
+        initialValue: renderer.fogPass.parameters.distanceFogEnd,
+        onChange: (value) => {
+            renderer.fogPass.parameters.distanceFogEnd = value;
         },
     });
 

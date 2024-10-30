@@ -287,9 +287,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         distance: 15,
         attenuation: 1,
     });
-    mesh.addChild(pointLight);
-    // TODO: 手動オフセットしないとなぜか中央にならない
-    pointLight.transform.position = new Vector3(0, 3, 0);
+    
 
     const initialize = (entities: MorphFollowerActorControllerEntity[], _gatherChildrenActors: Actor[]) => {
         morphFollowersActorControllerEntities = entities;
@@ -624,6 +622,12 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         mesh.materials.forEach((material) => {
             material.uniforms.setValue(UniformNames.EmissiveColor, surfaceParameters.emissiveColor);
         });
+        
+        //
+        // light
+        //
+
+        pointLight.transform.position = mesh.transform.position;
 
         //
         // シーケンスの処理

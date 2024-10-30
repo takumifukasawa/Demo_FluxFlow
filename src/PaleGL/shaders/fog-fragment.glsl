@@ -30,6 +30,7 @@ uniform float uFogDensity;
 uniform float uFogDensityAttenuation;
 uniform float uFogEndHeight;
 uniform float uDistanceFogStart;
+uniform float uDistanceFogEnd;
 uniform float uDistanceFogPower;
 uniform float uSSSFogRate;
 uniform vec4 uSSSFogColor;
@@ -77,10 +78,10 @@ float calcFogHeightUniform(vec3 objectPositionInWorld, vec3 cameraPositionInWorl
 }
 
 // 1に近いほどfogが強い
-float calcDistanceFog(vec3 objectPositionInWorld, vec3 cameraPositionInWorld, float expStart, float expPower) {
+float calcDistanceFog(vec3 objectPositionInWorld, vec3 cameraPositionInWorld, float expStart, float fogEnd, float expPower) {
     float dist = length(cameraPositionInWorld - objectPositionInWorld);
     dist = max(0., dist - expStart);
-    return max(0., 1. - exp(-dist * expPower));
+    return max(0., 1. - exp(-dist * expPower)) * smoothstep(expStart, fogEnd, dist);
 }
 
 void main() {
@@ -121,7 +122,7 @@ void main() {
     float fogRate = calcFogHeightExp(worldPositionFromDepth, uViewPosition, uFogDensity, uFogDensityAttenuation);
     fogRate *= 1. - step(1. - .0001, rawDepth);
     // distance fog
-    fogRate += calcDistanceFog(worldPositionFromDepth, uViewPosition, uDistanceFogStart, uDistanceFogPower);
+    fogRate += calcDistanceFog(worldPositionFromDepth, uViewPosition, uDistanceFogStart, uDistanceFogEnd, uDistanceFogPower);
     // clamp
     fogRate = saturate(fogRate) * noiseRate;
 

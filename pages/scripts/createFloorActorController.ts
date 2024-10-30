@@ -15,10 +15,18 @@ import { Texture } from '@/PaleGL/core/Texture.ts';
 import { Vector4 } from '@/PaleGL/math/Vector4.ts';
 import {Vector2} from "@/PaleGL/math/Vector2.ts";
 import {Color} from "@/PaleGL/math/Color.ts";
+import {
+    buildTimelinePropertyB,
+    buildTimelinePropertyG,
+    buildTimelinePropertyR
+} from "@/Marionetter/timelineUtilities.ts";
 
 const UNIFORM_NAME_MORPH_RATE = 'uMR';
+const EMISSION_COLOR_PREFIX = 'ec';
 
 export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: Texture) {
+    const emissiveColor = new Color(0, 0, 0);
+    
     // tmp
     const mat = (actor as Mesh).mainMaterial as GBufferMaterial;
     if (mat) {
@@ -78,12 +86,25 @@ export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: T
             mesh.materials.forEach((material) => material.uniforms.setValue(UNIFORM_NAME_MORPH_RATE, value));
             return;
         }
+        if(key === buildTimelinePropertyR(EMISSION_COLOR_PREFIX)) {
+            emissiveColor.r = value;
+            return;
+        }
+        if(key === buildTimelinePropertyG(EMISSION_COLOR_PREFIX)) {
+            emissiveColor.g = value;
+            return;
+        }
+        if(key === buildTimelinePropertyB(EMISSION_COLOR_PREFIX)) {
+            emissiveColor.b = value;
+            return;
+        }
     };
     
     actor.onPostProcessTimeline = () => {
         mesh.transform.position = actor.transform.position;
         mesh.transform.scale = actor.transform.scale;
         mesh.transform.rotation = actor.transform.rotation;
+        mesh.setUniformValueToAllMaterials(UniformNames.EmissiveColor, emissiveColor);
         mesh.setUseWorldSpace(true);
     };
 
@@ -97,10 +118,8 @@ export function createFloorActorController(gpu: GPU, actor: Actor, surfaceMap: T
             metallic: 0,
             roughness: 0,
             receiveShadow: true,
-            // emissiveColor: Color.white,
-            // receiveShadow: true,
+            emissiveColor: emissiveColor,
             uniformBlockNames: [UniformBlockNames.Timeline],
-            // faceSide: FaceSide.Double,
         },
         fragmentShaderContent: litScreenSpaceRaymarchFragFloorContent,
         depthFragmentShaderContent: gBufferScreenSpaceRaymarchFragFloorContent,

@@ -24,6 +24,7 @@ const UNIFORM_FOG_DENSITY = 'uFogDensity';
 const UNIFORM_FOG_DENSITY_ATTENUATION = 'uFogDensityAttenuation';
 const UNIFORM_FOG_END_HEIGHT = 'uFogEndHeight';
 const UNIFORM_DISTANCE_FOG_START = 'uDistanceFogStart';
+const UNIFORM_DISTANCE_FOG_END = 'uDistanceFogEnd';
 const UNIFORM_DISTANCE_FOG_POWER = 'uDistanceFogPower';
 const UNIFORM_SSS_FOG_RATE = 'uSSSFogRate';
 const UNIFORM_SSS_FOG_COLOR = 'uSSSFogColor';
@@ -37,6 +38,7 @@ export type FogPassParametersBase = {
     fogEndHeight: number;
     distanceFogStart: number;
     distanceFogPower: number;
+    distanceFogEnd: number;
     sssFogRate: number;
     sssFogColor: Color;
     blendRate: number;
@@ -64,6 +66,7 @@ export function generateFogPassParameters(params: RequiredToOptional<FogPassPara
         fogEndHeight: params.fogEndHeight ?? 1,
         distanceFogStart: params.distanceFogStart ?? 20,
         distanceFogPower: params.distanceFogPower ?? 0.1,
+        distanceFogEnd: params.distanceFogEnd ?? 100,
         sssFogRate: params.sssFogRate ?? 1,
         sssFogColor: params.sssFogColor ?? Color.white,
         blendRate: 1,
@@ -75,26 +78,12 @@ const volumetricLightTextureUniformName = 'uVolumetricLightTexture';
 const screenSpaceShadowTextureUniformName = 'uSSSTexture';
 
 export class FogPass extends PostProcessPassBase {
-    // fogColor: Color = Color.white;
-    // fogStrength: number;
-    // fogDensity: number;
-    // fogDensityAttenuation: number;
-    // fogEndHeight: number;
-    // distanceFogStart: number;
-    // distanceFogPower: number;
-    // blendRate: number = 1;
     parameters: Override<PostProcessPassParametersBase, FogPassParameters>;
 
     constructor(args: { gpu: GPU; parameters?: FogPassParametersArgs }) {
         const { gpu } = args;
         const fragmentShader = fogFragmentShader;
-
-        // const fogStrength = 0.01;
-        // const fogDensity = 0.023;
-        // const fogDensityAttenuation = 0.45;
-        // const fogEndHeight = 1;
-        // const distanceFogStart = 20;
-        // const distanceFogPower = 0.1;
+        
         const parameters = generateFogPassParameters();
 
         super({
@@ -156,6 +145,11 @@ export class FogPass extends PostProcessPassBase {
                     value: parameters.distanceFogStart,
                 },
                 {
+                    name: UNIFORM_DISTANCE_FOG_END,
+                    type: UniformTypes.Float,
+                    value: parameters.distanceFogEnd,
+                },
+                {
                     name: UNIFORM_DISTANCE_FOG_POWER,
                     type: UniformTypes.Float,
                     value: parameters.distanceFogPower,
@@ -208,6 +202,7 @@ export class FogPass extends PostProcessPassBase {
         this.material.uniforms.setValue(UNIFORM_FOG_DENSITY_ATTENUATION, this.parameters.fogDensityAttenuation);
         this.material.uniforms.setValue(UNIFORM_FOG_END_HEIGHT, this.parameters.fogEndHeight);
         this.material.uniforms.setValue(UNIFORM_DISTANCE_FOG_START, this.parameters.distanceFogStart);
+        this.material.uniforms.setValue(UNIFORM_DISTANCE_FOG_END, this.parameters.distanceFogEnd);
         this.material.uniforms.setValue(UNIFORM_DISTANCE_FOG_POWER, this.parameters.distanceFogPower);
         this.material.uniforms.setValue(UNIFORM_SSS_FOG_RATE, this.parameters.sssFogRate);
         this.material.uniforms.setValue(UNIFORM_SSS_FOG_COLOR, this.parameters.sssFogColor);
