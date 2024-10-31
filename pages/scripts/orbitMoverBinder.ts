@@ -3,23 +3,29 @@ import { Vector3 } from '@/PaleGL/math/Vector3.ts';
 
 export type OrbitMoverBinder = Component & {
     calcPosition: (delay?: number, timelineTime?: number) => Vector3;
-}
+};
 
 export function createOrbitMoverBinder(): OrbitMoverBinder {
     let radius = 0;
     let speed = 0;
-    const offsetPosition = Vector3.zero
-    
+    const offsetPosition = Vector3.zero;
+    const currentP = Vector3.zero;
+    const sharedP = Vector3.zero;
+
     let cacheTimelineTime = 0;
-    
-    const calcPosition  = (delay?: number, timelineTime?: number) => {
+
+    const calcPosition = (delay?: number, timelineTime?: number) => {
         const t = (timelineTime !== undefined ? timelineTime : cacheTimelineTime) - (delay ?? 0);
-        return new Vector3(
-            Math.cos(t * speed) * radius + offsetPosition.x,
-            offsetPosition.y,
-            -Math.sin(t * speed) * radius + offsetPosition.z
-        );
-    }
+        // return new Vector3(
+        //     Math.cos(t * speed) * radius + offsetPosition.x,
+        //     offsetPosition.y,
+        //     -Math.sin(t * speed) * radius + offsetPosition.z
+        // );
+        sharedP.x = Math.cos(t * speed) * radius + offsetPosition.x;
+        sharedP.y = offsetPosition.y;
+        sharedP.z = -Math.sin(t * speed) * radius + offsetPosition.z;
+        return sharedP;
+    };
 
     return {
         calcPosition,
@@ -45,12 +51,10 @@ export function createOrbitMoverBinder(): OrbitMoverBinder {
             },
 
             onPostProcessTimeline: (actor, timelineTime) => {
-                const p = new Vector3(
-                    Math.cos(timelineTime * speed) * radius + offsetPosition.x,
-                    offsetPosition.y,
-                    -Math.sin(timelineTime * speed) * radius + offsetPosition.z
-                );
-                actor.transform.position = p;
+                currentP.x = Math.cos(timelineTime * speed) * radius + offsetPosition.x;
+                currentP.y = offsetPosition.y;
+                currentP.z = -Math.sin(timelineTime * speed) * radius + offsetPosition.z;
+                actor.transform.position = currentP;
                 cacheTimelineTime = timelineTime;
             },
         }),

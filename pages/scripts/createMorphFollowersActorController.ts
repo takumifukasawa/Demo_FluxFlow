@@ -899,6 +899,8 @@ export const createMorphFollowersActor = (
         mesh.geometry.instanceCount = n;
     };
 
+    const tmpPositions = maton.range(MAX_INSTANCE_NUM).map(() => Vector3.zero);
+
     // on post process timeline で上流から呼ばれる
     const updateStatesAndBuffers = () => {
         for (let i = 0; i < MAX_INSTANCE_NUM; i++) {
@@ -937,9 +939,13 @@ export const createMorphFollowersActor = (
                         //     generateRandomValue(seed, i + _followerIndex * 2),
                         //     generateRandomValue(seed, i + _followerIndex * 3)
                         // );
+                        // TODO: tmpPositionsそのもののvectorを渡したい
                         const wp = attractorTargetBoxActor.transform.localPointToWorld(lp);
+                        tmpPositions[i].x = wp.x;
+                        tmpPositions[i].y = wp.y;
+                        tmpPositions[i].z = wp.z;
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowCubeEdge, {
-                            p: wp,
+                            p: tmpPositions[i],
                             attractAmplitude: stateParameters.attractAmplitude,
                         });
                         setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });
@@ -950,10 +956,16 @@ export const createMorphFollowersActor = (
                     if (_attractorTargetSphereActors) {
                         // const size = _attractorTargetSphereActor.transform.scale.x * 0.5;
                         const pickIndex = sphereIndexPicker[i % sphereIndexPicker.length];
-                        const lp = randomOnUnitSphere(_followerSeed + i).scale(0.5);
+                        const lp = tmpPositions[i];
+                        randomOnUnitSphere(_followerSeed + i, lp);
+                        lp.scale(0.5);
+                        // TODO: tmpPositionsそのもののvectorを渡したい
                         const wp = _attractorTargetSphereActors[pickIndex].transform.localPointToWorld(lp); // TODO: timelineの後でやるべき?
                         // for debug
                         // console.log(i, randomOnUnitSphere(i).e, randomOnUnitSphere(i).e, lp.e, wp.e, _attractorTargetSphereActor.transform.worldMatrix, _attractorTargetSphereActor.transform.position.e)
+                        // tmpPositions[i].x = wp.x;
+                        // tmpPositions[i].y = wp.y;
+                        // tmpPositions[i].z = wp.z;
                         setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                             p: wp,
                             attractAmplitude: stateParameters.attractAmplitude,
@@ -963,7 +975,12 @@ export const createMorphFollowersActor = (
                     continue;
 
                 case FollowerAttractMode.Ground:
-                    const wp = randomOnUnitCircle(_followerSeed + i, stateParameters.floorEmitRange); // TODO: scaleをfloor_actorから引っ張ってきたい
+                    // TODO: tmpPositionsそのもののvectorを渡したい
+                    const wp = tmpPositions[i];
+                    randomOnUnitCircle(_followerSeed + i, stateParameters.floorEmitRange, wp); // TODO: scaleをfloor_actorから引っ張ってきたい
+                    // tmpPositions[i].x = wp.x;
+                    // tmpPositions[i].y = wp.y;
+                    // tmpPositions[i].z = wp.z;
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: stateParameters.attractAmplitude,
@@ -975,14 +992,17 @@ export const createMorphFollowersActor = (
             if (attractType === FollowerAttractMode.Attractor) {
                 const orbitMoverBinderComponent = attractTarget?.getComponent<OrbitMoverBinder>();
                 const delayValue = i * 0.5;
-                const p = (
-                    orbitMoverBinderComponent
-                        ? orbitMoverBinderComponent.calcPosition(delayValue) //
-                        : attractTarget!.transform.position
-                ).addVector(new Vector3(0, Math.sin((performance.now() / 1000) * 0.5 + i * 0.2) * 1, 0));
+                const p = orbitMoverBinderComponent
+                    ? orbitMoverBinderComponent.calcPosition(delayValue) // ベクトルはcomponentの中で単一のものだが、ループで更新してるので大丈夫なはず
+                    : attractTarget!.transform.position;
+                // p.y += Math.sin((performance.now() / 1000) * 0.5 + i * 0.2) * 1;
+                tmpPositions[i].x = p.x;
+                tmpPositions[i].y = p.y + Math.sin((performance.now() / 1000) * 0.5 + i * 0.2) * 1;
+                tmpPositions[i].z = p.z;
                 // attractTypeならTargetは必ずあるはず
                 setInstanceAttractTargetPosition(i, FollowerAttractMode.Attractor, {
-                    p,
+                    // p,
+                    p: tmpPositions[i],
                     attractAmplitude: stateParameters.attractAmplitude,
                 });
                 setTransformFeedBackState(i, { attractType: TransformFeedbackAttractMode.Attract });

@@ -104,7 +104,7 @@ export function generateRandomValue(seed: number, id: number): number {
     return mulberry32(combinedSeed);
 }
 
-export function randomOnUnitSphere(seed: number) {
+export function randomOnUnitSphere(seed: number, v: Vector3) {
     const theta = lerp(0, Math.PI * 2, generateRandomValue(seed, 0));
     const phi = Math.asin(generateRandomValue(seed, 1) * 2 - 1);
 
@@ -112,7 +112,10 @@ export function randomOnUnitSphere(seed: number) {
     const y = Math.cos(phi) * Math.sin(theta);
     const z = Math.sin(phi);
 
-    return new Vector3(x, y, z);
+    // return new Vector3(x, y, z);
+    v.x = x;
+    v.y = y;
+    v.z = z;
 }
 
 export function randomOnUnitPlane(seed: number, scale: number = 1) {
@@ -121,10 +124,13 @@ export function randomOnUnitPlane(seed: number, scale: number = 1) {
     return new Vector3(x * scale, 0, z * scale);
 }
 
-export function randomOnUnitCircle(id: number, scale: number = 1) {
+export function randomOnUnitCircle(id: number, scale: number, v: Vector3) {
     const t = lerp(0, Math.PI * 2, generateRandomValue(10, id));
     const x = Math.cos(t);
     const z = Math.sin(t);
     const r = scale * Math.sqrt(generateRandomValue(20, id));
-    return new Vector3(x * r, 0, z * r);
+    // return new Vector3(x * r, 0, z * r);
+    v.x = x * r;
+    v.y = 0;
+    v.z = z * r;
 }
