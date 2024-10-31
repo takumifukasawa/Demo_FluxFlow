@@ -29,12 +29,12 @@ type PostProcessRenderArgs = {
 export class PostProcess {
     passes: IPostProcessPass[] = [];
     // renderTarget;
-    #postProcessCamera: Camera;
+    _postProcessCamera: Camera;
 
-    #selfEnabled = true;
+    _selfEnabled = true;
 
     get enabled() {
-        if (!this.#selfEnabled) {
+        if (!this._selfEnabled) {
             return false;
         }
 
@@ -47,12 +47,12 @@ export class PostProcess {
         return false;
     }
 
-    get postProcessCamera() {
-        return this.#postProcessCamera;
+    getPostProcessCamera() {
+        return this._postProcessCamera;
     }
 
     set enabled(value) {
-        this.#selfEnabled = value;
+        this._selfEnabled = value;
     }
 
     get hasEnabledPass() {
@@ -90,9 +90,9 @@ export class PostProcess {
         // });
 
         if (postProcessCamera) {
-            this.#postProcessCamera = postProcessCamera;
+            this._postProcessCamera = postProcessCamera;
         } else {
-            this.#postProcessCamera = OrthographicCamera.CreateFullQuadOrthographicCamera();
+            this._postProcessCamera = OrthographicCamera.CreateFullQuadOrthographicCamera();
         }
     }
 
@@ -102,7 +102,7 @@ export class PostProcess {
      * @param height
      */
     setSize(width: number, height: number) {
-        this.#postProcessCamera.setSize(width, height);
+        this._postProcessCamera.setSize(width, height);
         // this.renderTarget.setSize(width, height);
         this.passes.forEach((pass) => pass.setSize(width, height));
     }
@@ -260,7 +260,7 @@ export class PostProcess {
         //     console.error('[PostProcess.render] scene render target is empty.');
         // }
 
-        this.#postProcessCamera.$updateTransform();
+        this._postProcessCamera.$updateTransform();
         // TODO: render target を外から渡したほうが分かりやすいかも
         // let prevRenderTarget = sceneRenderTarget || this.renderTarget;
         // let prevRenderTarget = sceneRenderTarget;
@@ -284,7 +284,7 @@ export class PostProcess {
             // pass.render({
             //     gpu,
             //     renderer,
-            //     camera: this.#postProcessCamera,
+            //     camera: this._postProcessCamera,
             //     prevRenderTarget,
             //     isLastPass,
             //     targetCamera,
@@ -296,7 +296,7 @@ export class PostProcess {
                 pass,
                 gpu,
                 renderer,
-                camera: this.#postProcessCamera,
+                camera: this._postProcessCamera,
                 prevRenderTarget,
                 isLastPass,
                 targetCamera,
