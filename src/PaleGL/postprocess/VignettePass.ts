@@ -9,15 +9,18 @@ import { Override } from '@/PaleGL/palegl';
 
 // ref:
 
-const UNIFORM_NAME_VIGNETTE_RADIUS = 'uVignetteRadius';
-const UNIFORM_VALUE_VIGNETTE_RADIUS = 2.5;
+const UNIFORM_NAME_VIGNETTE_RADIUS_FROM = 'uVignetteRadiusFrom';
+const UNIFORM_NAME_VIGNETTE_RADIUS_TO = 'uVignetteRadiusTo';
+const UNIFORM_VALUE_VIGNETTE_RADIUS_FROM = 1.77;
+const UNIFORM_VALUE_VIGNETTE_RADIUS_TO = 4.484;
 const UNIFORM_NAME_VIGNETTE_POWER = 'uVignettePower';
-const UNIFORM_VALUE_VIGNETTE_POWER = 1.4;
+const UNIFORM_VALUE_VIGNETTE_POWER = 1.345;
 const UNIFORM_NAME_BLEND_RATE = 'uBlendRate';
-const UNIFORM_VALUE_BLEND_RATE = 1;
+const UNIFORM_VALUE_BLEND_RATE = 0.73;
 
 export type VignettePassParametersBase = {
-    vignetteRadius: number;
+    vignetteRadiusFrom: number;
+    vignetteRadiusTo: number;
     vignettePower: number;
     blendRate: number;
 };
@@ -29,7 +32,8 @@ export type VignettePassParametersArgs = Partial<VignettePassParameters>;
 export function generateVignetteParameters(params: VignettePassParametersArgs = {}): VignettePassParameters {
     return {
         enabled: params.enabled ?? true,
-        vignetteRadius: params.vignetteRadius ?? UNIFORM_VALUE_VIGNETTE_RADIUS,
+        vignetteRadiusFrom: params.vignetteRadiusFrom ?? UNIFORM_VALUE_VIGNETTE_RADIUS_FROM,
+        vignetteRadiusTo: params.vignetteRadiusTo ?? UNIFORM_VALUE_VIGNETTE_RADIUS_TO,
         vignettePower: params.vignettePower ?? UNIFORM_VALUE_VIGNETTE_POWER,
         blendRate: params.blendRate ?? UNIFORM_VALUE_BLEND_RATE,
     };
@@ -53,9 +57,14 @@ export class VignettePass extends PostProcessPassBase {
             fragmentShader,
             uniforms: [
                 {
-                    name: UNIFORM_NAME_VIGNETTE_RADIUS,
+                    name: UNIFORM_NAME_VIGNETTE_RADIUS_FROM,
                     type: UniformTypes.Float,
-                    value: UNIFORM_VALUE_VIGNETTE_RADIUS,
+                    value: UNIFORM_VALUE_VIGNETTE_RADIUS_FROM,
+                },
+                {
+                    name: UNIFORM_NAME_VIGNETTE_RADIUS_TO,
+                    type: UniformTypes.Float,
+                    value: UNIFORM_VALUE_VIGNETTE_RADIUS_TO,
                 },
                 {
                     name: UNIFORM_NAME_VIGNETTE_POWER,
@@ -89,7 +98,8 @@ export class VignettePass extends PostProcessPassBase {
     }
 
     render(options: PostProcessPassRenderArgs) {
-        this.material.uniforms.setValue(UNIFORM_NAME_VIGNETTE_RADIUS, this.parameters.vignetteRadius);
+        this.material.uniforms.setValue(UNIFORM_NAME_VIGNETTE_RADIUS_FROM, this.parameters.vignetteRadiusFrom);
+        this.material.uniforms.setValue(UNIFORM_NAME_VIGNETTE_RADIUS_TO, this.parameters.vignetteRadiusTo);
         this.material.uniforms.setValue(UNIFORM_NAME_VIGNETTE_POWER, this.parameters.vignettePower);
         this.material.uniforms.setValue(UNIFORM_NAME_BLEND_RATE, this.parameters.blendRate);
 

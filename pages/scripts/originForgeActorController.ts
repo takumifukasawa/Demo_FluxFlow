@@ -443,7 +443,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         // TODO: ちょっと回転とかさせたい
         const p = maton.range(METABALL_NUM, true).map((i) => {
             const delay = (1 - r) * (i / METABALL_NUM);
-            const range = lerp(0, 2, saturate(t - delay));
+            const range = lerp(.5, 2, saturate(t - delay));
             const pd = 360 / METABALL_NUM;
             const rad = (90 - i * pd) * DEG_TO_RAD;
             const x = Math.cos(rad) * range;

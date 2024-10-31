@@ -831,13 +831,24 @@ export function initDebugger({
     const vignetteDebuggerGroup = debuggerGUI.addGroup('vignette', false);
 
     vignetteDebuggerGroup.addSliderDebugger({
-        label: 'vignette strength',
+        label: 'vignette from',
         minValue: 0,
-        maxValue: 5,
+        maxValue: 10,
         stepValue: 0.001,
-        initialValue: renderer.vignettePass.parameters.vignetteRadius,
+        initialValue: renderer.vignettePass.parameters.vignetteRadiusFrom,
         onChange: (value) => {
-            renderer.vignettePass.parameters.vignetteRadius = value;
+            renderer.vignettePass.parameters.vignetteRadiusFrom = value;
+        },
+    });
+
+    vignetteDebuggerGroup.addSliderDebugger({
+        label: 'vignette to',
+        minValue: 0,
+        maxValue: 10,
+        stepValue: 0.001,
+        initialValue: renderer.vignettePass.parameters.vignetteRadiusTo,
+        onChange: (value) => {
+            renderer.vignettePass.parameters.vignetteRadiusTo = value;
         },
     });
 

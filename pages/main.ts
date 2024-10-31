@@ -478,16 +478,11 @@ const playDemo = () => {
     renderer.fogPass.parameters.fogColor = Color.fromRGB(13, 16, 18);
     renderer.fogPass.parameters.sssFogRate = 0.029;
 
-    renderer.vignettePass.parameters.vignetteRadius = 4.159;
-    renderer.vignettePass.parameters.vignettePower = 2.714;
-
     renderer.streakPass.parameters.threshold = 0.28;
     renderer.streakPass.parameters.verticalScale = 5.487;
     renderer.streakPass.parameters.horizontalScale = 0.708;
     renderer.streakPass.parameters.stretch = 1;
     renderer.streakPass.parameters.intensity = 0.124;
-
-    // renderer.volumetricLightPass.parameters.rayStep = 1;
 
     renderer.depthOfFieldPass.parameters.focusRange = 3.74;
     renderer.depthOfFieldPass.parameters.bokehRadius = 2.898;
