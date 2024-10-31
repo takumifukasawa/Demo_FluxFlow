@@ -480,7 +480,7 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         // if rawRate >= 0.5
         // 中央から出現するフェーズ
         // 0.5~1 -> 0~1
-        const threshold = 0.9;
+        const threshold = 0.7;
         const invThreshold = 1 / threshold;
         const otherInvThreshold = 1 / (1 - threshold);
         const rate = rawRate < threshold ? saturate(rawRate * invThreshold) : saturate((rawRate - threshold) * otherInvThreshold);
