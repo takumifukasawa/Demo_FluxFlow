@@ -454,7 +454,6 @@ export function createOriginForgeActorController(gpu: GPU): OriginForgeActorCont
         const t = r
         // TODO: パラメーター化したい
         // TODO: ちょっと回転とかさせたい
-        // TODO: 出す速度調整したい
         const p = maton.range(METABALL_NUM, true).map((i) => {
             const delay = (1 - r) * (i / METABALL_NUM);
             const range = lerp(0, 2, saturate(t - delay));

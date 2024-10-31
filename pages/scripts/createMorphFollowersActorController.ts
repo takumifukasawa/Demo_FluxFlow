@@ -1225,6 +1225,7 @@ export const createMorphFollowersActor = (
         // })
         // emissive b
         if (key === buildTimelinePropertyB(SURFACE_EMISSIVE_PROPERTY_BASE)) {
+            surfaceParameters.emissiveColor.b = value;
             return;
         }
         // tryAssignTimelineProperty(key, value, buildTimelinePropertyB(SURFACE_EMISSIVE_PROPERTY_BASE), (v) => {

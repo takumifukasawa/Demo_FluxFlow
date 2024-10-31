@@ -25,9 +25,9 @@ const pack = async (filePath) => {
         const packShellPath = path.join(process.cwd(), 'libs/packer.js');
         
         // id使う場合
-        // const distPath = path.join(process.cwd(), `dist/packed-${id}.html`);
+        const distPath = path.join(process.cwd(), `dist/packed-${id}.html`);
         // id追加しない場合
-        const distPath = path.join(process.cwd(), `dist/packed.html`);
+        // const distPath = path.join(process.cwd(), `dist/packed.html`);
        
         const command = `node ${packShellPath} ${filePath} ${distPath}`;
         // // pattern2: jsexe
