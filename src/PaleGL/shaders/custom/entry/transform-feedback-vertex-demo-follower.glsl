@@ -6,7 +6,7 @@ precision highp float;
 layout(location = 0) in vec3 aPosition;
 layout(location = 1) in vec4 aVelocity; // [nx, ny, nz, length]
 layout(location = 2) in vec4 aAttractTargetPosition; // [x,y,z, attractAmplitude]
-layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, attractPower]
+layout(location = 3) in vec4 aState; // [seed, attractType, morphRate, attractPower]
 
 #include ../../partial/common.glsl
 
@@ -14,16 +14,16 @@ layout(location = 3) in vec4 aState;// [seed, attractType, morphRate, attractPow
 #include ../../partial/uniform-block-timeline.glsl
 
 out vec3 vPosition;
-// out mat4 vTransform;
 out vec4 vVelocity;
-
-// uniform vec3 aAttractTargetPosition;
 
 uniform float uAttractBasePower;
 uniform float uAttractMinPower;
 
 // v minmag
 #define VMM .0001
+
+// devのときはコメントアウト外す. 手動だけど...
+#define PROD_MODE
 
 vec3 unpackVelocity(vec4 v) {
     return v.xyz * max(v.w, VMM);
@@ -89,12 +89,20 @@ void main() {
 
         vec3 diffP = target - vPosition;
         vec3 diffDir = normalize(diffP);
-        
+
+#ifdef PROD_MODE
+        if(length(diffP) < .001) {
+            // vVelocity = vec4(0., 0., 1., 0.);
+            vVelocity = vec4(normalize(diffDir), 0.);
+            return;
+        }
+#else
         if(length(diffP) < .003) {
             // vVelocity = vec4(0., 0., 1., 0.);
             vVelocity = vec4(normalize(diffDir), 0.);
             return;
         }
+#endif
 
         // vec3 acc = diffDir * .01;
         // vec3 newP = target + diffP * .1;
@@ -119,10 +127,18 @@ void main() {
         //     uDeltaTime
         // );
         float attractDelayValue = hash * .5;
+
+#ifdef PROD_MODE
+        vec3 v = diffP
+            * max(uTimelineDeltaTime, 1. / 100.)
+            * max(max(attractPower - attractDelayValue, .01), uAttractMinPower) * uAttractBasePower;
+        velocity = diffDir * max(length(v), .01); // fallback. ちょっとだけ動かすと回転バグらない
+#else
         vec3 v = diffP
             * uTimelineDeltaTime
-            * max(max(attractPower - attractDelayValue, 0.), uAttractMinPower) * uAttractBasePower;
+            * max(max(attractPower - attractDelayValue, .01), uAttractMinPower) * uAttractBasePower;
         velocity = diffDir * max(length(v), .003); // fallback. ちょっとだけ動かすと回転バグらない
+#endif
         
         // // TEST: lerpする場合
         // float r = min(uTimelineDeltaTime * 10., 1.);
