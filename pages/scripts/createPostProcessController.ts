@@ -10,8 +10,18 @@ export function createPostProcessController(
 ) {
     postProcessActor.onProcessPropertyBinder = (key, value) => {
         // bloom
-        if(key === 'bl_i') {
+        if (key === 'bl_i') {
             renderer.bloomPass.parameters.bloomAmount = value;
+            return;
+        }
+        // dof: focus range
+        if (key === 'dof_fr') {
+            renderer.depthOfFieldPass.parameters.focusRange = value;
+            return;
+        }
+        // dof: bokeh radius
+        if (key === 'dof_br') {
+            renderer.depthOfFieldPass.parameters.bokehRadius = value;
             return;
         }
         // volumetric light ray step
@@ -25,8 +35,8 @@ export function createPostProcessController(
             return;
         }
         // glitch
-        if(key === "gl_r") {
-            renderer.glitchPass.parameters.enabled = value > .001;
+        if (key === 'gl_r') {
+            renderer.glitchPass.parameters.enabled = value > 0.001;
             renderer.glitchPass.parameters.blendRate = value;
             return;
         }

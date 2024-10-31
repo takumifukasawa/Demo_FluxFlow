@@ -379,6 +379,7 @@ export const createMorphFollowersActor = (
         diffuseMixer: 0,
         emissionMixer: 0,
         floorEmitRange: 0,
+        floorOffset: -8,
         attractBasePower: 2,
         attractMinPower: 0.2,
         // attractPower: 1,
@@ -978,7 +979,7 @@ export const createMorphFollowersActor = (
                     // TODO: tmpPositionsそのもののvectorを渡したい
                     const wp = tmpPositions[i];
                     randomOnUnitCircle(_followerSeed + i, stateParameters.floorEmitRange, wp); // TODO: scaleをfloor_actorから引っ張ってきたい
-                    wp.z -= 8; // 手動オフセット
+                    wp.z += stateParameters.floorOffset; // 手動オフセット
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: stateParameters.attractAmplitude,
@@ -1140,10 +1141,17 @@ export const createMorphFollowersActor = (
             mesh.materials.forEach((_, i) => {
                 mesh.setCanRenderMaterial(i, i === Math.round(value));
             });
+            return;
         }
         // floor range
         if (key === 'ffr') {
             stateParameters.floorEmitRange = value;
+            return;
+        }
+        // floor offset
+        if(key === 'ffo') {
+            stateParameters.floorOffset = value;
+            return;
         }
 
         // attract base power

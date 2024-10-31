@@ -518,16 +518,16 @@ export function initDebugger({
         onChange: (value) => (renderer.depthOfFieldPass.enabled = value),
     });
 
-    dofDebuggerGroup.addSliderDebugger({
-        label: 'DoF focus distance',
-        minValue: 0.1,
-        maxValue: 100,
-        stepValue: 0.001,
-        initialValue: renderer.depthOfFieldPass.parameters.focusDistance,
-        onChange: (value) => {
-            renderer.depthOfFieldPass.parameters.focusDistance = value;
-        },
-    });
+    // dofDebuggerGroup.addSliderDebugger({
+    //     label: 'DoF focus distance',
+    //     minValue: 0.1,
+    //     maxValue: 100,
+    //     stepValue: 0.001,
+    //     initialValue: renderer.depthOfFieldPass.parameters.focusDistance,
+    //     onChange: (value) => {
+    //         renderer.depthOfFieldPass.parameters.focusDistance = value;
+    //     },
+    // });
 
     dofDebuggerGroup.addSliderDebugger({
         label: 'DoF focus range',
