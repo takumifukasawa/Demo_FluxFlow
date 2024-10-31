@@ -259,7 +259,7 @@ export class BoxGeometry extends Geometry {
         const edgePair = edgePairs[Math.floor(rand1 * edgePairs.length % edgePairs.length)];
         const p0 = this._cornerPositions[edgePair[0]];
         const p1 = this._cornerPositions[edgePair[1]];
-        const t = easeInOutQuad(rand2 % 1);
+        const t = 1. - easeInOutQuad(rand2 % 1);
         return Vector3.lerpVectors(new Vector3(p0[0], p0[1], p0[2]), new Vector3(p1[0], p1[1], p1[2]), t);
     }
 

@@ -201,6 +201,15 @@ void main() {
 
     resultColor = diffuseColor;
 
+// CUSTOM
+// NOTE: いる？
+#ifdef USE_INSTANCING
+    // instance attenuation
+    float ia = (1. - sin(vInstanceId * 100.) * .3);
+    resultColor.rgb *= ia;
+    emissiveColor.rgb *= ia;
+#endif
+
 
 #ifdef USE_ALPHA_TEST
     checkAlphaTest(resultColor.a, uAlphaTestThreshold);
