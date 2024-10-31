@@ -924,7 +924,7 @@ vec2 bowan2(float time) {
 
 vec2 boom(float time) {
     vec2 freq = vec2(500., 560);
-    return (sin(time * freq) * sin(time * 100.) + sin(time * freq * 2.0)) * .025;
+    return (sin(time * freq) * sin(time * 100.) + sin(time * freq * 2.0)) * .05;
 }
 
 // ステレオ出力のためvec2
@@ -935,18 +935,20 @@ vec2 mainSound(float time) {
 
     float measure = beatToMeasure(beat);
 
-    sound += bowan1(time);
-    
-    if(0. <= measure) {
-        sound += bowan2(time);
-        sound += boom(time);
-    }
+    float baseAttenuation = smoothstep(.0002, .0006, mod(measure, 1.));
+    sound += bowan1(time) * baseAttenuation;
+    sound += bowan2(time) * baseAttenuation;
+    sound += boom(time);
 
     // intro
     // 0 ~ 8
-
+    if(0. <= measure && measure < 8.) {
+        // sound +=
+        //     0.
+        //     + arpBaseLoopSeqBase(beat, time)
+        //     ;
     // melody A_1 [16s-32s]
-    if(8. <= measure && measure < 16.) {
+    } else if(8. <= measure && measure < 16.) {
         sound +=
             0.
             + epianoHarmonySeqBase(beat, time)

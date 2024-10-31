@@ -1,6 +1,7 @@
 // prettier-ignore
 const GREETINGS = [
     [
+        'doxas',
         'Jasper Flick',
         'gam0022',
         'kanetaaaaa',

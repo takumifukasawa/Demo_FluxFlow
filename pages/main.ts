@@ -38,7 +38,6 @@ import {
     DEMO_MANAGER_ACTOR_NAME,
     DEPTH_OF_FIELD_TARGET_ACTOR_NAME,
     DIRECT_LIGHT_ACTOR_NAME,
-    // DIRECT_LIGHT_ACTOR_NAME,
     FLOOR_ACTOR_NAME,
     FOLLOWERS_ACTOR_NAME_A,
     FOLLOWERS_ACTOR_NAME_B,
@@ -222,17 +221,21 @@ let originForgeActorController: OriginForgeActorController;
 const load = async () => {
     startupLayer.setLoadingPercentile(10);
 
-    await wait(0);
+    await wait(500);
 
     glslSoundWrapper.load();
     // glslSoundWrapper.warmup();
 
-    await wait(100);
+    await wait(500);
 
     // parseScene(sceneJsonUrl as unknown as MarionetterScene);
     console.log('====== main ======');
     console.log(import.meta.env);
     // console.log(sceneJsonUrl);
+    
+    startupLayer.setLoadingPercentile(50);
+
+    await wait(500);
 
     //
     // morph follower actor controller
@@ -282,47 +285,7 @@ const load = async () => {
     originForgeActorController = createOriginForgeActorController(gpu);
     captureScene.add(originForgeActorController.getActor());
     captureScene.add(originForgeActorController.getPointLight());
-    // originForgeActorController.getActor().transform.position = new Vector3(2, 0, 0);
-
-    //
-    // text mesh
-    //
-
-    // const fontAtlasImg = await loadImg(fontAtlasImgUrl);
-    // // const fontAtlasImg = await loadImgArraybuffer(fontAtlasImgUrl);
-    // const fontAtlasTexture = new Texture({
-    //     gpu,
-    //     // for default img
-    //     img: fontAtlasImg,
-    //     /*
-    //     // for gpu texture
-    //     img: null,
-    //     arraybuffer: fontAtlasImg,
-    //     dxt1: true
-    //     mipmap: false,
-    //     */
-    //     flipY: false,
-    //     minFilter: TextureFilterTypes.Linear,
-    //     magFilter: TextureFilterTypes.Linear,
-    // });
-    // const textMesh1 = new TextMesh({
-    //     gpu,
-    //     text: 'Flux Flow',
-    //     color: new Color(3, 1, 1, 1),
-    //     fontTexture: fontAtlasTexture,
-    //     fontAtlas: fontAtlasJson,
-    //     castShadow: false,
-    //     align: TextAlignType.Center,
-    //     // characterSpacing: -0.2
-    //     characterSpacing: -0.16,
-    // });
-    // textMesh1.transform.position = new Vector3(0, 1, 0);
-    // // textMesh1.transform.rotation.setRotationX(-90);
-    // textMesh1.transform.scale = Vector3.fill(0.5);
-    // // TODO: 使えないかもなので一旦消しておく
-    // textMesh1.enabled = false;
-    // // captureScene.add(textMesh1);
-
+    
     //
     // build marionetter scene
     //

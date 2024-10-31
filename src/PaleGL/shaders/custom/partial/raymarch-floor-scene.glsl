@@ -69,7 +69,7 @@ vec2 dfScene(vec3 p) {
     vec3 q3 = p;
     q3 = opTr(q3, vec3(0., -50., 0.));
     // single floor scale
-    vec3 sf = vec3(1000., 48.5, 1000.);
+    vec3 sf = vec3(1000., 48, 1000.);
     float d3 = dfBo(q3, sf);
 
     float d = opTb(uMR, d1, d2, d3);
