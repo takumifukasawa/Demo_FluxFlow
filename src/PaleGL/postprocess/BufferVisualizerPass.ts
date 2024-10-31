@@ -581,7 +581,10 @@ export class BufferVisualizerPass implements IPostProcessPass {
         this.dom = document.createElement('div');
         this.dom.classList.add('buffer-visualizer-pass');
         const frag = document.createDocumentFragment();
-        console.log(this.rowPasses);
+
+        // for debug
+        // console.log(this.rowPasses);
+
         this.rowPasses.forEach(({ tiles }, rowIndex) => {
             let colIndex = 0;
             const rowContent = document.createElement('div');
@@ -734,7 +737,9 @@ export class BufferVisualizerPass implements IPostProcessPass {
             if (tiles.has(LIGHT_SHAFT_TEXTURE_KEY)) {
                 pass.material.uniforms.setValue(
                     tiles.get(LIGHT_SHAFT_TEXTURE_KEY)!.uniformNameTexture!,
-                    renderer.lightShaftPass.renderTarget.read.$getTexture()
+                    // ORIGINAL
+                    // renderer.lightShaftPass.renderTarget.read.$getTexture()
+                    renderer.lightShaftPassTexture
                 );
             }
 

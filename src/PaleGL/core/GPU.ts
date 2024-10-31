@@ -649,19 +649,23 @@ export class GPU {
 
         const gl = this.gl;
         const blockIndex = gl.getUniformBlockIndex(shader.glObject, blockName);
-        console.log('[GPU.createUniformBufferObject] blockName', blockName);
-        console.log('[GPU.createUniformBufferObject] variableNames', variableNames);
-        console.log('[GPU.createUniformBufferObject] blockIndex', blockIndex);
+        // for debug
+        // console.log('[GPU.createUniformBufferObject] blockName', blockName);
+        // console.log('[GPU.createUniformBufferObject] variableNames', variableNames);
+        // console.log('[GPU.createUniformBufferObject] blockIndex', blockIndex);
         const blockSize = gl.getActiveUniformBlockParameter(
             shader.glObject,
             blockIndex,
             GL_UNIFORM_BLOCK_DATA_SIZE
         ) as number;
-        console.log('[GPU.createUniformBufferObject] blockSize', blockSize);
+        // for debug
+        // console.log('[GPU.createUniformBufferObject] blockSize', blockSize);
         const indices = gl.getUniformIndices(shader.glObject, variableNames) as number[];
-        console.log('[GPU.createUniformBufferObject] indices', indices);
+        // for debug
+        // console.log('[GPU.createUniformBufferObject] indices', indices);
         const offsets = gl.getActiveUniforms(shader.glObject, indices, GL_UNIFORM_OFFSET) as number[];
-        console.log('[GPU.createUniformBufferObject] offsets', offsets);
+        // for debug
+        // console.log('[GPU.createUniformBufferObject] offsets', offsets);
         const uniformBufferObject = new UniformBufferObject(
             this,
             blockName,

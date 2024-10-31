@@ -149,23 +149,10 @@ const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
 ];
 occurrenceSequenceBaseData.forEach((d) => {
     const [s, e, fi] = d;
-    // instanceAccCount[fi] += METABALL_NUM;
     instanceAccCount[fi] += METABALL_NUM;
     const result: TimeStampedOccurrenceSequence = [s, e, fi, instanceAccCount[fi]];
     occurrenceSequenceTimestamps.push(result);
 });
-
-console.log('hogehoge', occurrenceSequenceTimestamps);
-
-// // 16回やりたいが・・・
-// // TODO: targetとなるfollowerを指定できるようにする
-// const occurrenceSequenceTimestamps: TimeStampedOccurrenceSequence[] = [
-//     [0, 8, FollowerIndex.None, 0], // なにもしない時間
-//     [8, 12, FollowerIndex.A, 16],
-//     [12, 16, FollowerIndex.B, 16],
-//     [16, 20, FollowerIndex.C, 16],
-//     [20, 24, FollowerIndex.A, 32],
-// ];
 
 type OccurrenceSequenceData = {
     sequenceIndex: number;

@@ -4,6 +4,7 @@ import { Color } from '@/PaleGL/math/Color.ts';
 import { GLSLSound } from '@/PaleGL/core/GLSLSound.ts';
 import { Renderer } from '@/PaleGL/core/Renderer.ts';
 import { PointLight } from '@/PaleGL/actors/PointLight.ts';
+
 // import { DirectionalLight } from '@/PaleGL/actors/DirectionalLight.ts';
 
 export function initDebugger({
@@ -13,8 +14,8 @@ export function initDebugger({
     stopSound,
     renderer,
     wrapperElement,
-    // directionalLight,
-}: {
+} // directionalLight,
+: {
     bufferVisualizerPass: BufferVisualizerPass;
     glslSound: GLSLSound;
     playSound: () => void;
@@ -150,7 +151,7 @@ export function initDebugger({
             renderer.screenSpaceShadowPass.parameters.strength = value;
         },
     });
-    
+
     sssDebuggerGroup.addSliderDebugger({
         label: 'ray step multiplier',
         minValue: 0.001,
@@ -260,55 +261,56 @@ export function initDebugger({
         onChange: (value) => {
             renderer.ambientOcclusionPass.blendRate = value;
         },
-    })
-
+    });
 
     //
     // light shaft
     //
 
-    debuggerGUI.addBorderSpacer();
+    // ORIGINAL
 
-    const lightShaftDebuggerGroup = debuggerGUI.addGroup('light shaft', false);
+    // debuggerGUI.addBorderSpacer();
 
-    lightShaftDebuggerGroup.addToggleDebugger({
-        label: 'light shaft pass enabled',
-        initialValue: renderer.lightShaftPass.parameters.enabled,
-        onChange: (value) => (renderer.lightShaftPass.parameters.enabled = value),
-    });
+    // const lightShaftDebuggerGroup = debuggerGUI.addGroup('light shaft', false);
 
-    lightShaftDebuggerGroup.addSliderDebugger({
-        label: 'blend rate',
-        minValue: 0,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.lightShaftPass.parameters.blendRate,
-        onChange: (value) => {
-            renderer.lightShaftPass.parameters.blendRate = value;
-        },
-    });
+    // lightShaftDebuggerGroup.addToggleDebugger({
+    //     label: 'light shaft pass enabled',
+    //     initialValue: renderer.lightShaftPass.parameters.enabled,
+    //     onChange: (value) => (renderer.lightShaftPass.parameters.enabled = value),
+    // });
 
-    lightShaftDebuggerGroup.addSliderDebugger({
-        label: 'pass scale',
-        minValue: 0.001,
-        maxValue: 1,
-        stepValue: 0.001,
-        initialValue: renderer.lightShaftPass.parameters.passScaleBase,
-        onChange: (value) => {
-            renderer.lightShaftPass.parameters.passScaleBase = value;
-        },
-    });
+    // lightShaftDebuggerGroup.addSliderDebugger({
+    //     label: 'blend rate',
+    //     minValue: 0,
+    //     maxValue: 1,
+    //     stepValue: 0.001,
+    //     initialValue: renderer.lightShaftPass.parameters.blendRate,
+    //     onChange: (value) => {
+    //         renderer.lightShaftPass.parameters.blendRate = value;
+    //     },
+    // });
 
-    lightShaftDebuggerGroup.addSliderDebugger({
-        label: 'ray step strength',
-        minValue: 0.001,
-        maxValue: 0.05,
-        stepValue: 0.001,
-        initialValue: renderer.lightShaftPass.parameters.rayStepStrength,
-        onChange: (value) => {
-            renderer.lightShaftPass.parameters.rayStepStrength = value;
-        },
-    });
+    // lightShaftDebuggerGroup.addSliderDebugger({
+    //     label: 'pass scale',
+    //     minValue: 0.001,
+    //     maxValue: 1,
+    //     stepValue: 0.001,
+    //     initialValue: renderer.lightShaftPass.parameters.passScaleBase,
+    //     onChange: (value) => {
+    //         renderer.lightShaftPass.parameters.passScaleBase = value;
+    //     },
+    // });
+
+    // lightShaftDebuggerGroup.addSliderDebugger({
+    //     label: 'ray step strength',
+    //     minValue: 0.001,
+    //     maxValue: 0.05,
+    //     stepValue: 0.001,
+    //     initialValue: renderer.lightShaftPass.parameters.rayStepStrength,
+    //     onChange: (value) => {
+    //         renderer.lightShaftPass.parameters.rayStepStrength = value;
+    //     },
+    // });
 
     //
     // light volume pass
@@ -378,7 +380,7 @@ export function initDebugger({
             renderer.volumetricLightPass.parameters.blendRate = value;
         },
     });
-    
+
     //
     // fog
     //
@@ -457,7 +459,7 @@ export function initDebugger({
             renderer.fogPass.parameters.distanceFogStart = value;
         },
     });
-    
+
     fogDebuggerGroup.addSliderDebugger({
         label: 'distance fog end',
         minValue: 0,
@@ -490,7 +492,6 @@ export function initDebugger({
             renderer.fogPass.parameters.sssFogRate = value;
         },
     });
-
 
     fogDebuggerGroup.addSliderDebugger({
         label: 'blend rate',
@@ -924,7 +925,6 @@ export function initDebugger({
             renderer.glitchPass.parameters.blendRate = value;
         },
     });
-
 
     //
     // add debugger ui

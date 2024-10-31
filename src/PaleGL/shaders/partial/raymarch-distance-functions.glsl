@@ -242,6 +242,8 @@ vec2 opFl(vec3 p, float seed) {
     fq.yz *= fSwayRotYZ;
 
     // 枚数分生成
+    // float petalNum = mod(seed, 2.) > 1.5 ? 5. : 10.;
+    // fq.xy = opFoldRotate(fq.xy, petalNum);
     fq.xy = opFoldRotate(fq.xy, 10.);
 
     // t.z...自重の影響

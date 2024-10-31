@@ -42,11 +42,6 @@ export class TransformFeedbackDoubleBuffer {
     }
 
     constructor({ gpu, attributes, drawCount, vertexShader, varyings, uniforms = [], uniformBlockNames = [] }: TransformFeedbackBufferArgs) {
-        // this.gpu = gpu;
-        // const {gl} = gpu;
-
-        console.log(attributes);
-
         const transformFeedbackVaryings = varyings.map(({ name }) => name);
         this.shader = new Shader({
             gpu,
@@ -54,8 +49,6 @@ export class TransformFeedbackDoubleBuffer {
             fragmentShader: transformFeedbackFragmentShader,
             transformFeedbackVaryings,
         });
-
-        console.log(this.shader);
 
         this.drawCount = drawCount;
         this.uniforms = new Uniforms(uniforms);

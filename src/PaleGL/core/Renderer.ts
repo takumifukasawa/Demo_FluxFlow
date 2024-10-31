@@ -31,7 +31,8 @@ import { SSRPass } from '@/PaleGL/postprocess/SSRPass';
 import { ToneMappingPass } from '@/PaleGL/postprocess/ToneMappingPass';
 import { BloomPass, BloomPassParameters } from '@/PaleGL/postprocess/BloomPass';
 import { DepthOfFieldPass } from '@/PaleGL/postprocess/DepthOfFieldPass';
-import { LightShaftPass } from '@/PaleGL/postprocess/LightShaftPass.ts';
+// ORIGINAL
+// import { LightShaftPass } from '@/PaleGL/postprocess/LightShaftPass.ts';
 import { VolumetricLightPass } from '@/PaleGL/postprocess/VolumetricLightPass.ts';
 import { FogPass } from '@/PaleGL/postprocess/FogPass.ts';
 import { DirectionalLight } from '@/PaleGL/actors/DirectionalLight.ts';
@@ -158,7 +159,8 @@ export class Renderer {
     _ambientOcclusionPass: SSAOPass;
     _deferredShadingPass: DeferredShadingPass;
     _ssrPass: SSRPass;
-    _lightShaftPass: LightShaftPass;
+    // ORIGINAL
+    // _lightShaftPass: LightShaftPass;
     _volumetricLightPass: VolumetricLightPass;
     _fogPass: FogPass;
     _depthOfFieldPass: DepthOfFieldPass;
@@ -181,10 +183,11 @@ export class Renderer {
     get pixelRatio() {
         return this._pixelRatio;
     }
-    
-    getStats() {
-        return this._stats;
-    }
+   
+    // ORIGINAL
+    // getStats() {
+    //     return this._stats;
+    // }
     
     setStats(stats: Stats) {
         this._stats = stats;
@@ -218,8 +221,13 @@ export class Renderer {
         return this._deferredShadingPass;
     }
 
-    get lightShaftPass() {
-        return this._lightShaftPass;
+    // ORIGINAL
+    // get lightShaftPass() {
+    //     return this._lightShaftPass;
+    // }
+    get lightShaftPassTexture() {
+        // dummy
+        return this._gpu.dummyTextureBlack;
     }
 
     get volumetricLightPass() {
@@ -312,7 +320,8 @@ export class Renderer {
         this._ambientOcclusionPass = new SSAOPass({ gpu });
         this._deferredShadingPass = new DeferredShadingPass({ gpu });
         this._ssrPass = new SSRPass({ gpu });
-        this._lightShaftPass = new LightShaftPass({ gpu });
+        // ORIGINAL
+        // this._lightShaftPass = new LightShaftPass({ gpu });
         this._volumetricLightPass = new VolumetricLightPass({ gpu });
         this._fogPass = new FogPass({ gpu });
 
@@ -712,7 +721,8 @@ export class Renderer {
         this._ambientOcclusionPass.setSize(w, h);
         this._deferredShadingPass.setSize(w, h);
         this._ssrPass.setSize(w, h);
-        this._lightShaftPass.setSize(w, h);
+        // ORIGINAL
+        // this._lightShaftPass.setSize(w, h);
         this._volumetricLightPass.setSize(w, h);
         this._fogPass.setSize(w, h);
         this._depthOfFieldPass.setSize(w, h);
