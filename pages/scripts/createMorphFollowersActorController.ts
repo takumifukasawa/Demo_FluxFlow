@@ -978,9 +978,7 @@ export const createMorphFollowersActor = (
                     // TODO: tmpPositionsそのもののvectorを渡したい
                     const wp = tmpPositions[i];
                     randomOnUnitCircle(_followerSeed + i, stateParameters.floorEmitRange, wp); // TODO: scaleをfloor_actorから引っ張ってきたい
-                    // tmpPositions[i].x = wp.x;
-                    // tmpPositions[i].y = wp.y;
-                    // tmpPositions[i].z = wp.z;
+                    wp.z -= 8; // 手動オフセット
                     setInstanceAttractTargetPosition(i, FollowerAttractMode.FollowSphereSurface, {
                         p: wp,
                         attractAmplitude: stateParameters.attractAmplitude,
