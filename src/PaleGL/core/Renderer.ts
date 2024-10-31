@@ -340,6 +340,9 @@ export class Renderer {
         this._scenePostProcess.addPass(this._chromaticAberrationPass);
 
         this._glitchPass = new GlitchPass({ gpu });
+        // CUSTOM
+        // this._glitchPass.parameters.enabled = false;
+        //
         this._scenePostProcess.addPass(this._glitchPass);
 
         //
@@ -1094,37 +1097,22 @@ export class Renderer {
         // light shaft pass
         // ------------------------------------------------------------------------------
 
-        // PostProcess.updatePassMaterial({
-        //     pass: this._lightShaftPass,
-        //     renderer: this,
-        //     targetCamera: this._scenePostProcess.postProcessCamera,
-        //     time,
-        //     lightActors,
-        // });
-
-        // this._lightShaftPass.materials.forEach((mat) => {
-        //     mat.updateUniform(
-        //         UniformNames.DepthTexture,
-        //         this._depthPrePassRenderTarget.depthTexture
-        //         // this._copyDepthDestRenderTarget.depthTexture
-        //     );
-        // });
-
-        if (lightActors.directionalLight) {
-            this._lightShaftPass.setDirectionalLight(lightActors.directionalLight);
-            PostProcess.renderPass({
-                pass: this._lightShaftPass,
-                renderer: this,
-                targetCamera: camera,
-                gpu: this._gpu,
-                camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
-                prevRenderTarget: this._deferredShadingPass.renderTarget,
-                isLastPass: false,
-                time, // TODO: engineから渡したい
-            });
-        } else {
-            // TODO: directional light ないときの対応。黒く塗りたい
-        }
+        // ORIGINAL
+        // if (lightActors.directionalLight) {
+        //     this._lightShaftPass.setDirectionalLight(lightActors.directionalLight);
+        //     PostProcess.renderPass({
+        //         pass: this._lightShaftPass,
+        //         renderer: this,
+        //         targetCamera: camera,
+        //         gpu: this._gpu,
+        //         camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
+        //         prevRenderTarget: this._deferredShadingPass.renderTarget,
+        //         isLastPass: false,
+        //         time, // TODO: engineから渡したい
+        //     });
+        // } else {
+        //     // TODO: directional light ないときの対応。黒く塗りたい
+        // }
 
         // ------------------------------------------------------------------------------
         // volumetric light pass
@@ -1153,9 +1141,13 @@ export class Renderer {
         // ------------------------------------------------------------------------------
 
         this._fogPass.setTextures(
-            this._lightShaftPass.renderTarget,
-            this._volumetricLightPass.renderTarget,
-            this._screenSpaceShadowPass.renderTarget,
+            // ORIGINAL
+            // this._lightShaftPass.renderTarget,
+            // CUSTOM
+             this._gpu.dummyTextureBlack,
+            //
+            this._volumetricLightPass.renderTarget.read.$getTexture()!,
+            this._screenSpaceShadowPass.renderTarget.read.$getTexture()!,
             sharedTextures[SharedTexturesTypes.FBM_NOISE].texture
         );
 

@@ -85,14 +85,6 @@ void main() {
     desaturatedCol += vec4(lensAbrR * 2., 0., 0., 0.);
     destCol = mix(compositeCol, vec4(desaturatedCol.xyz, 1.), desaturate);
 
-    // wip
-    // // radial mask
-    // vec2 uv = vUv;
-    // vec2 centerUv = vUv * 2. - 1.; // -1 ~ 1
-    // centerUv.x *= uAspect;
-    // float d = dot(centerUv, centerUv);
-    // float factor = 1. - saturate(pow(min(1., d / uVignetteRadius), uVignettePower) * uBlendRate);
-    
     // rect mask
     vec2 centerUv = vUv * 2. - 1.;
     centerUv.x *= uAspect;
@@ -100,5 +92,5 @@ void main() {
     vec2 rectArea = step(-rectSize, centerUv) * (1. - step(rectSize, centerUv));
     float rectmask = rectArea.x * rectArea.y;
 
-    outColor = mix(srcCol, destCol, uBlendRate * rectmask);
+    outColor = mix(srcCol, destCol, uBlendRate * 1.);
 }

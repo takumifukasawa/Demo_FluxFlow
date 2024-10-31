@@ -24,5 +24,11 @@ export function createPostProcessController(
             blackCurtainPass.material.uniforms.setValue(UniformNames.BlendRate, value);
             return;
         }
+        // glitch
+        if(key === "gl_r") {
+            renderer.glitchPass.parameters.enabled = value > .001;
+            renderer.glitchPass.parameters.blendRate = value;
+            return;
+        }
     };
 }

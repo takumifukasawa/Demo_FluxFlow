@@ -6,7 +6,6 @@ import {
     PostProcessPassParametersBase,
     PostProcessPassRenderArgs,
 } from '@/PaleGL/postprocess/PostProcessPassBase';
-import { RenderTarget } from '@/PaleGL/core/RenderTarget.ts';
 import {
     PostProcessPassType,
     RenderTargetTypes,
@@ -184,14 +183,14 @@ export class FogPass extends PostProcessPassBase {
     }
 
     setTextures(
-        lightShaftRt: RenderTarget,
-        volumetricLightRt: RenderTarget,
-        screenSpaceShadowRt: RenderTarget,
+        lightShaftRtTexture: Texture,
+        volumetricLightRtTexture: Texture,
+        screenSpaceShadowRtTexture: Texture,
         noiseTexture: Texture
     ) {
-        this.material.uniforms.setValue(lightShaftTextureUniformName, lightShaftRt.read.$getTexture());
-        this.material.uniforms.setValue(volumetricLightTextureUniformName, volumetricLightRt.read.$getTexture());
-        this.material.uniforms.setValue(screenSpaceShadowTextureUniformName, screenSpaceShadowRt.read.$getTexture());
+        this.material.uniforms.setValue(lightShaftTextureUniformName, lightShaftRtTexture);
+        this.material.uniforms.setValue(volumetricLightTextureUniformName, volumetricLightRtTexture);
+        this.material.uniforms.setValue(screenSpaceShadowTextureUniformName, screenSpaceShadowRtTexture);
         this.material.uniforms.setValue(UNIFORM_NOISE_TEXTURE, noiseTexture);
     }
 
