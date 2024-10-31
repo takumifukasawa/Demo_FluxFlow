@@ -362,12 +362,11 @@ function createMarionetterAnimationClip(
                 //     console.log(actor)
                 //     break;
                 default:
-                // 厳しい場合、propertyが紐づいていない場合はエラーを出す
-                // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}, value: ${value}`);
+                    // // 厳しい場合、propertyが紐づいていない場合はエラーを出す
+                    // // console.error(`[createMarionetterAnimationClip] invalid declared property: ${propertyName}, value: ${value}`);
+                    // 特に紐づいてない場合はactorに流す
+                    actor.processPropertyBinder(propertyName, value);
             }
-
-            // for debug
-            actor.processPropertyBinder(propertyName, value);
         });
 
         if (hasLocalScale) {
