@@ -13,7 +13,7 @@ import { transformGlslUnroll } from './vite-transform-glsl-unroll-plugin.ts';
 import { transformGlslLayout } from './vite-transform-glsl-layout-plugin.ts';
 import { transformExtractGlslRaymarchTemplate } from './vite-extract-glsl-raymarch-template-plugin.ts';
 import { deleteTmpCachesPlugin } from './vite-delete-tmp-caches-plugin.ts';
-import { roundFloatPlugin } from './vite-round-float-plugin.ts';
+// import { roundFloatPlugin } from './vite-round-float-plugin.ts';
 import { viteGlslShaderMinifierCustomNoRenamingList } from './vite-glsl-shader-minifier-custom-no-renaming-list.ts';
 import string from 'vite-plugin-string';
 
@@ -161,7 +161,7 @@ export default defineConfig(async (config) => {
             transformExtractGlslRaymarchTemplate({
                 extractEnabled: true,
             }),
-            roundFloatPlugin(),
+            // roundFloatPlugin(),
             checker({
                 typescript: true,
                 eslint: {
