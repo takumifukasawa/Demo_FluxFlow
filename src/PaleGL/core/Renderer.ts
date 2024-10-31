@@ -1020,12 +1020,14 @@ export class Renderer {
         // screen space shadow pass
         // ------------------------------------------------------------------------------
 
+        const postProcessCamera = this._scenePostProcess.getPostProcessCamera();
+        
         PostProcess.renderPass({
             pass: this._screenSpaceShadowPass,
             renderer: this,
             targetCamera: camera,
             gpu: this._gpu,
-            camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
+            camera: postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             prevRenderTarget: null,
             isLastPass: false,
             time, // TODO: engineから渡したい
@@ -1041,7 +1043,7 @@ export class Renderer {
             renderer: this,
             targetCamera: camera,
             gpu: this._gpu,
-            camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
+            camera: postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             prevRenderTarget: null,
             isLastPass: false,
             time, // TODO: engineから渡したい
@@ -1080,7 +1082,7 @@ export class Renderer {
             renderer: this,
             targetCamera: camera,
             gpu: this._gpu,
-            camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
+            camera: postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             prevRenderTarget: null,
             isLastPass: false,
             time, // TODO: engineから渡したい
@@ -1096,7 +1098,7 @@ export class Renderer {
             renderer: this,
             targetCamera: camera,
             gpu: this._gpu,
-            camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
+            camera: postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             prevRenderTarget: this._deferredShadingPass.renderTarget,
             isLastPass: false,
             time, // TODO: engineから渡したい
@@ -1135,7 +1137,7 @@ export class Renderer {
                 renderer: this,
                 targetCamera: camera,
                 gpu: this._gpu,
-                camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
+                camera: postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
                 prevRenderTarget: this._deferredShadingPass.renderTarget,
                 isLastPass: false,
                 time, // TODO: engineから渡したい
@@ -1166,7 +1168,7 @@ export class Renderer {
             renderer: this,
             targetCamera: camera,
             gpu: this._gpu,
-            camera: this._scenePostProcess.postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
+            camera: postProcessCamera, // TODO: いい感じにfullscreenquadなcameraを生成して渡したい
             // prevRenderTarget: this._deferredShadingPass.renderTarget,
             prevRenderTarget: this._ssrPass.renderTarget,
             isLastPass: false,
